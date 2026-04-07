@@ -1,0 +1,7 @@
+---
+# Variables applied to every host.
+ansible_python_interpreter: /usr/bin/python3
+timezone: Europe/Stockholm
+ntp_servers:
+  - ntp1.example.local
+  - ntp2.example.local

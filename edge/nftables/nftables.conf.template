@@ -1,0 +1,35 @@
+# nftables.conf.template
+# Default-deny host firewall for the vehicle K430.
+# Substitute {{INTERFACES}} at provisioning time.
+
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        iifname "lo" accept
+        ct state established,related accept
+
+        # Accept HTTPS from the OPS-TABLET VLAN to ops-api (via Nginx)
+        iifname "{{EDGE_SVC_IFACE}}" tcp dport 443 accept
+
+        # Accept HTTPS from the mesh interface (peer K430 syncd traffic)
+        iifname "{{MESH_IFACE}}" tcp dport 443 accept
+
+        # WireGuard inbound from the core peer (UDP 51820)
+        udp dport 51820 accept
+
+        # ICMP for path MTU discovery and basic diagnostics
+        ip  protocol icmp   icmp   type { echo-request, destination-unreachable, time-exceeded } accept
+        ip6 nexthdr icmpv6 icmpv6 type { echo-request, destination-unreachable, time-exceeded, packet-too-big } accept
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}

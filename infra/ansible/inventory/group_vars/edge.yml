@@ -1,0 +1,7 @@
+---
+# Variables applied to vehicle edge hosts.
+postgres_version: "16"
+postgis_version: "3.5"
+edge_role: responder            # overridden to "command" on the designated vehicle
+wireguard_interface: wg0-edge
+nftables_config: /etc/nftables.conf

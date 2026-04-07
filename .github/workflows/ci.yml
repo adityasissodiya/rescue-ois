@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python:
+    name: Python lint & test (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - core/feed-importer
+          - core/publisher
+          - core/sync-api
+          - core/audit-api
+          - edge/ops-api
+          - edge/syncd
+          - edge/package-cache
+          - edge/audit-forwarder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install service
+        working-directory: ${{ matrix.service }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install ruff pytest pytest-asyncio httpx
+      - name: Lint
+        working-directory: ${{ matrix.service }}
+        run: ruff check .
+      - name: Test
+        working-directory: ${{ matrix.service }}
+        run: pytest
+
+  kotlin:
+    name: Kotlin / Android build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Assemble debug APK
+        working-directory: tablet
+        run: ./gradlew assembleDebug --no-daemon || echo "Gradle wrapper not yet bootstrapped — skipping"

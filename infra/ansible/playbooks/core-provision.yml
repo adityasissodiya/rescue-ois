@@ -1,0 +1,13 @@
+---
+- name: Provision regional core (cop-core-a / cop-core-b)
+  hosts: core
+  become: true
+  roles:
+    - postgres
+    - martin
+    - nginx
+    - wireguard
+  tasks:
+    - name: TODO — pull and start core docker-compose stack
+      debug:
+        msg: "TODO: docker compose -f /opt/rescue-ois/core/docker-compose.yml up -d"

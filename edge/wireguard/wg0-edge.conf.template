@@ -1,0 +1,14 @@
+# wg0-edge.conf.template
+# WireGuard client config rendered into wg0-edge.conf at provisioning time
+# by the Ansible wireguard role. Substitute {{...}} placeholders.
+
+[Interface]
+Address    = 10.252.0.{{VEHICLE_OCTET}}/32
+PrivateKey = {{EDGE_PRIVATE_KEY}}
+
+[Peer]
+# Regional core
+PublicKey   = {{CORE_PUBLIC_KEY}}
+Endpoint    = {{CORE_ENDPOINT}}:51820
+AllowedIPs  = 10.252.0.0/24
+PersistentKeepalive = 25

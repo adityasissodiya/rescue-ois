@@ -1,0 +1,20 @@
+---
+- name: Install PostgreSQL + PostGIS
+  # TODO: install postgresql-{{ postgres_version }} and postgis-{{ postgis_version }} packages
+  debug:
+    msg: "TODO install"
+
+- name: Initialize cluster and enable service
+  # TODO: initdb if missing, enable + start postgresql
+  debug:
+    msg: "TODO init + service"
+
+- name: Create database and roles
+  # TODO: create rescue_ois / rescue_ois_edge database and application role
+  debug:
+    msg: "TODO db roles"
+
+- name: Apply migrations
+  # TODO: run migrations from core/db/migrations or edge/db/migrations
+  debug:
+    msg: "TODO migrations"

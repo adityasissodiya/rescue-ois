@@ -1,0 +1,77 @@
+version: "3.9"
+
+networks:
+  edge-net:
+    driver: bridge
+
+volumes:
+  edge-postgres-data:
+  edge-cache-data:
+  edge-files-data:
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-rescue_ois_edge}
+    volumes:
+      - edge-postgres-data:/var/lib/postgresql/data
+    networks: [edge-net]
+
+  martin:
+    image: ghcr.io/maplibre/martin:latest
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+    depends_on: [postgres]
+    networks: [edge-net]
+    volumes:
+      - edge-cache-data:/data/cache:ro
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - edge-files-data:/data/files:ro
+    depends_on: [martin, ops-api, syncd]
+    networks: [edge-net]
+    ports:
+      - "443:443"
+
+  ops-api:
+    build: ./ops-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      EDGE_ROLE: ${EDGE_ROLE:-responder}
+      FILES_DIR: /data/files
+    volumes:
+      - edge-files-data:/data/files:ro
+    depends_on: [postgres]
+    networks: [edge-net]
+
+  syncd:
+    build: ./syncd
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      EDGE_ROLE: ${EDGE_ROLE:-responder}
+      CORE_BASE_URL: ${CORE_BASE_URL:-https://core.rescue-ois.local}
+      COMMAND_PEER_URL: ${COMMAND_PEER_URL:-}
+    depends_on: [postgres]
+    networks: [edge-net]
+
+  package-cache:
+    build: ./package-cache
+    environment:
+      CACHE_DIR: /data/cache
+    volumes:
+      - edge-cache-data:/data/cache
+    networks: [edge-net]
+
+  audit-forwarder:
+    build: ./audit-forwarder
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      CORE_AUDIT_URL: ${CORE_AUDIT_URL:-https://core.rescue-ois.local/audit/events}
+    depends_on: [postgres]
+    networks: [edge-net]

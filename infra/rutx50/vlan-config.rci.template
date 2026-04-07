@@ -1,0 +1,38 @@
+# vlan-config.rci.template
+# Reference RUTX50 VLAN configuration for the per-vehicle five-VLAN model.
+# Substitute {{VEHICLE_ID}} (1..254) at provisioning time.
+#
+# This is a documentation template — load via the RUTX50 RCI interface or
+# UCI batch file. Not directly executable on the router.
+#
+# VLAN map:
+#   10  MGMT        172.31.{{VEHICLE_ID}}.0/27
+#   20  EDGE-SVC    172.31.{{VEHICLE_ID}}.32/27
+#   30  OPS-TABLET  172.31.{{VEHICLE_ID}}.64/26
+#   40  SENSOR      172.31.{{VEHICLE_ID}}.128/27
+#   50  MAINT       172.31.{{VEHICLE_ID}}.160/27
+
+network.vlan_mgmt=switch_vlan
+network.vlan_mgmt.device=switch0
+network.vlan_mgmt.vlan=10
+network.vlan_mgmt.ports=0t 1
+
+network.vlan_edge_svc=switch_vlan
+network.vlan_edge_svc.device=switch0
+network.vlan_edge_svc.vlan=20
+network.vlan_edge_svc.ports=0t 2
+
+network.vlan_ops_tablet=switch_vlan
+network.vlan_ops_tablet.device=switch0
+network.vlan_ops_tablet.vlan=30
+network.vlan_ops_tablet.ports=0t 3 4
+
+network.vlan_sensor=switch_vlan
+network.vlan_sensor.device=switch0
+network.vlan_sensor.vlan=40
+network.vlan_sensor.ports=0t 5
+
+network.vlan_maint=switch_vlan
+network.vlan_maint.device=switch0
+network.vlan_maint.vlan=50
+network.vlan_maint.ports=0t 6

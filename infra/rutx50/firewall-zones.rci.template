@@ -1,0 +1,58 @@
+# firewall-zones.rci.template
+# Reference RUTX50 firewall zone configuration enforcing the per-vehicle
+# inter-VLAN policy described in docs/architecture/network-topology.md.
+#
+# Substitute {{VEHICLE_ID}} at provisioning time.
+
+# Zone definitions
+firewall.zone_mgmt=zone
+firewall.zone_mgmt.name=mgmt
+firewall.zone_mgmt.network=vlan_mgmt
+firewall.zone_mgmt.input=ACCEPT
+firewall.zone_mgmt.output=ACCEPT
+firewall.zone_mgmt.forward=REJECT
+
+firewall.zone_edge_svc=zone
+firewall.zone_edge_svc.name=edge_svc
+firewall.zone_edge_svc.network=vlan_edge_svc
+firewall.zone_edge_svc.input=ACCEPT
+firewall.zone_edge_svc.output=ACCEPT
+firewall.zone_edge_svc.forward=REJECT
+
+firewall.zone_ops_tablet=zone
+firewall.zone_ops_tablet.name=ops_tablet
+firewall.zone_ops_tablet.network=vlan_ops_tablet
+firewall.zone_ops_tablet.input=REJECT
+firewall.zone_ops_tablet.output=ACCEPT
+firewall.zone_ops_tablet.forward=REJECT
+
+firewall.zone_sensor=zone
+firewall.zone_sensor.name=sensor
+firewall.zone_sensor.network=vlan_sensor
+firewall.zone_sensor.input=REJECT
+firewall.zone_sensor.output=ACCEPT
+firewall.zone_sensor.forward=REJECT
+
+firewall.zone_maint=zone
+firewall.zone_maint.name=maint
+firewall.zone_maint.network=vlan_maint
+firewall.zone_maint.input=REJECT
+firewall.zone_maint.output=ACCEPT
+firewall.zone_maint.forward=REJECT
+
+# Inter-zone policy: only OPS-TABLET -> EDGE-SVC HTTPS is allowed
+firewall.fwd_tablet_to_edge_https=forwarding
+firewall.fwd_tablet_to_edge_https.src=ops_tablet
+firewall.fwd_tablet_to_edge_https.dest=edge_svc
+firewall.fwd_tablet_to_edge_https.proto=tcp
+firewall.fwd_tablet_to_edge_https.dest_port=443
+
+firewall.fwd_sensor_to_edge_tls=forwarding
+firewall.fwd_sensor_to_edge_tls.src=sensor
+firewall.fwd_sensor_to_edge_tls.dest=edge_svc
+firewall.fwd_sensor_to_edge_tls.proto=tcp
+firewall.fwd_sensor_to_edge_tls.dest_port=8443
+
+firewall.fwd_mgmt_to_all=forwarding
+firewall.fwd_mgmt_to_all.src=mgmt
+firewall.fwd_mgmt_to_all.dest=edge_svc

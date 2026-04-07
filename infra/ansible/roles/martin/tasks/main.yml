@@ -1,0 +1,15 @@
+---
+- name: Install Martin tile server
+  # TODO: download Martin binary or run via docker, install systemd unit
+  debug:
+    msg: "TODO install"
+
+- name: Template Martin config
+  # TODO: write martin config (PG sources, PMTiles directory)
+  debug:
+    msg: "TODO template config"
+
+- name: Enable and start Martin
+  # TODO: systemctl enable --now martin
+  debug:
+    msg: "TODO service"

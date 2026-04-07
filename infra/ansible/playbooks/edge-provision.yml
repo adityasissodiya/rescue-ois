@@ -1,0 +1,17 @@
+---
+- name: Provision vehicle edge (K430)
+  hosts: edge_command:edge_responder
+  become: true
+  roles:
+    - postgres
+    - martin
+    - nginx
+    - wireguard
+  tasks:
+    - name: TODO — apply nftables baseline policy
+      debug:
+        msg: "TODO: template edge/nftables/nftables.conf.template -> /etc/nftables.conf, restart nftables"
+
+    - name: TODO — pull and start edge docker-compose stack
+      debug:
+        msg: "TODO: docker compose -f /opt/rescue-ois/edge/docker-compose.yml up -d"

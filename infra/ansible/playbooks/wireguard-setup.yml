@@ -1,0 +1,6 @@
+---
+- name: Configure WireGuard overlay
+  hosts: core:edge_command:edge_responder
+  become: true
+  roles:
+    - wireguard

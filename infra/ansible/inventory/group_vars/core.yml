@@ -1,0 +1,6 @@
+---
+# Variables applied to the regional core hosts.
+postgres_version: "16"
+postgis_version: "3.5"
+publish_dir: /var/lib/rescue-ois/packages
+wireguard_interface: wg0-core

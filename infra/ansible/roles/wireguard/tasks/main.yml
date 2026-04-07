@@ -1,0 +1,20 @@
+---
+- name: Install WireGuard
+  # TODO: install wireguard package
+  debug:
+    msg: "TODO install"
+
+- name: Generate or fetch device keypair
+  # TODO: generate wg keypair if not present, store private key in 0600 file
+  debug:
+    msg: "TODO keys"
+
+- name: Render wg config from template
+  # TODO: render core/wireguard/wg0-core.conf.template or edge/wireguard/wg0-edge.conf.template
+  debug:
+    msg: "TODO template"
+
+- name: Enable and start wg-quick
+  # TODO: systemctl enable --now wg-quick@{{ wireguard_interface }}
+  debug:
+    msg: "TODO service"

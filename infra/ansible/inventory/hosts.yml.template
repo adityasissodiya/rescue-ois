@@ -1,0 +1,26 @@
+---
+# Inventory template for Rescue OIS provisioning.
+# Copy to hosts.yml and substitute real hostnames / addresses.
+
+all:
+  children:
+    core:
+      hosts:
+        cop-core-a.example.local:
+          ansible_host: 10.10.110.10
+        cop-core-b.example.local:
+          ansible_host: 10.10.120.10
+
+    edge_command:
+      # Vehicles currently designated as command for an active incident.
+      hosts:
+        # k430-vehicle-05.example.local:
+        #   ansible_host: 10.252.0.5
+
+    edge_responder:
+      # Vehicles currently in responder role.
+      hosts:
+        # k430-vehicle-06.example.local:
+        #   ansible_host: 10.252.0.6
+        # k430-vehicle-07.example.local:
+        #   ansible_host: 10.252.0.7

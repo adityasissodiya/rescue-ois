@@ -1,0 +1,20 @@
+---
+- name: Install Nginx
+  # TODO: install nginx package
+  debug:
+    msg: "TODO install"
+
+- name: Deploy nginx.conf for this tier
+  # TODO: copy core/nginx/nginx.conf or edge/nginx/nginx.conf based on host group
+  debug:
+    msg: "TODO config"
+
+- name: Install TLS certificates
+  # TODO: distribute certs from organizational CA
+  debug:
+    msg: "TODO tls"
+
+- name: Enable and start Nginx
+  # TODO: systemctl enable --now nginx
+  debug:
+    msg: "TODO service"
