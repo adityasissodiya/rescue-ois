@@ -1,0 +1,50 @@
+\section{Evaluation}
+
+\subsection{Pilot Setup}
+
+Describe the drill setup in enough detail that another group could reproduce the evaluation:
+\begin{itemize}
+  \item number of vehicles, tablets, and portable mesh relays;
+  \item deployment environment and incident scenario;
+  \item partition injection method for WAN and mesh failures;
+  \item software build or configuration baseline used during the pilot.
+\end{itemize}
+
+\subsection{Metrics}
+
+The evaluation should center on operationally meaningful measurements rather than generic system benchmarks:
+\begin{itemize}
+  \item incident bootstrap latency;
+  \item field edit end-to-end propagation time;
+  \item partition recovery time;
+  \item sustained offline usability duration;
+  \item data staleness under partition;
+  \item command-promotion latency.
+\end{itemize}
+
+\begin{table}[t]
+  \centering
+  \caption{Result table skeleton for pilot measurements.}
+  \label{tab:results}
+  \begin{tabularx}{\columnwidth}{@{}p{0.34\columnwidth}p{0.16\columnwidth}p{0.38\columnwidth}@{}}
+    \toprule
+    Metric & Median & Notes \\
+    \midrule
+    Bootstrap latency & TODO & Command and responder variants \\
+    Field edit round-trip & TODO & Tablet to all tablets \\
+    Recovery time & TODO & Mesh and WAN cases \\
+    Promotion latency & TODO & Manual role switch included? \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Results and Failure Modes}
+
+Do not separate success results from failure observations too aggressively. For a systems paper in this area, the most credible evaluation combines measured performance with the edge cases that appeared during drills. If a polling interval, stale manifest, duplicate forward, or promotion handoff created problems, report it plainly.
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.95\columnwidth}{\centering TODO: evaluation timeline and results charts\\Use box plots or bars for discrete trial data.}}
+  \caption{Planned evaluation figure combining trial timeline and key measurements.}
+  \label{fig:evaluation}
+\end{figure}

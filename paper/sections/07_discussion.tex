@@ -1,0 +1,22 @@
+\section{Discussion}
+
+\subsection{Why Single Writer Instead of CRDTs}
+
+Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems \citep{kleppmann2019localfirst,haas2023lore,jannes2021owebsync}. That logic does not automatically transfer to incident management. Incident state contains command decisions, ordered status transitions, and resource assignments whose meaning is often sequence-dependent. A CRDT-friendly representation would still require application-level semantics for resolving conflicting authority-bearing updates.
+
+The single-writer design adopted here intentionally trades some write availability at responder nodes for a smaller operational reasoning surface. In this domain, that is a feature rather than a defect. If a responder is partitioned from command, it is acceptable for that responder to continue collecting locally useful information while deferring authoritative incident-state commitment.
+
+\subsection{Limitations}
+
+The paper should state at least four limitations directly:
+\begin{itemize}
+  \item the command role remains a temporary single point of failure;
+  \item promotion is manual and therefore slower than automatic failover;
+  \item polling-based synchronization adds bounded but real latency;
+  \item pilot-scale evaluation does not establish behavior for very large fleets or multi-incident concurrency.
+\end{itemize}
+
+\subsection{Generalizability}
+
+The architectural pattern may transfer to other command-hierarchical environments such as ambulance operations, police tactical deployments, maritime search and rescue, and some military or wildfire contexts. The design is less likely to transfer cleanly to flat peer groups without a clear authority model.
+

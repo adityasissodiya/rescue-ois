@@ -1,0 +1,42 @@
+\section{System Architecture}
+
+\subsection{Design Principles}
+
+The system is built around five principles:
+\begin{itemize}
+  \item \textbf{Offline-first:} all previously synchronized data remains available without connectivity.
+  \item \textbf{Single incident writer:} exactly one command node sequences and commits incident events.
+  \item \textbf{Forward-only edits:} tablets and responder vehicles enqueue edits locally and forward them upstream.
+  \item \textbf{Mesh as transit only:} the wireless mesh carries traffic between edge nodes, but does not expose user VLANs end to end.
+  \item \textbf{Existing identity:} the deployment integrates with the authority's established identity and certificate infrastructure.
+\end{itemize}
+
+\subsection{Tier 1: Regional Core}
+
+The regional core hosts the authoritative master-data platform, including PostgreSQL/PostGIS, geodata ingest pipelines, attachment packaging, publication manifests, and the WireGuard hub used for vehicle connectivity. Keep this subsection brief in the final paper. The core matters operationally, but it is not the main research contribution.
+
+\subsection{Tier 2: Vehicle Edge}
+
+The vehicle edge tier is the architectural center of the paper. Each vehicle carries the same edge hardware profile, but nodes operate in one of two software roles:
+\begin{itemize}
+  \item \textbf{Command vehicle:} commits incident events, assigns sequence numbers, materializes incident state, and backhauls to core when WAN is present.
+  \item \textbf{Responder vehicle:} caches master data, serves local tablets, and queues field edits in an outbox until they can be forwarded to command.
+\end{itemize}
+
+This role split is intentional. It preserves hardware interchangeability while keeping the incident journal under one authority-bearing node at any time. Any responder can be promoted to command by configuration and operational procedure.
+
+\subsection{Tier 3: Field Tablets}
+
+Field tablets are leaf clients attached to a local vehicle only. They use an encrypted local database and local tile cache, and they communicate over HTTPS with the edge node in their vehicle. Tablets have no direct mesh participation and no direct internet dependency. This sharply limits the exposed trust and connectivity surface.
+
+\subsection{Network Segmentation}
+
+Describe the per-vehicle segmentation model here, including the operational tablet VLAN, service VLAN, management VLAN, and the separate mesh-facing edge interface. The key argument is that the wireless mesh is not used to flatten the entire vehicle LAN into one incident-wide broadcast domain.
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.95\columnwidth}{\centering TODO: system topology figure\\Core, command vehicle, responder vehicle, relay, tablets,\\plus mesh, WireGuard, and local VLAN annotations.}}
+  \caption{Planned deployment topology figure for the three-tier architecture.}
+  \label{fig:topology}
+\end{figure}
+

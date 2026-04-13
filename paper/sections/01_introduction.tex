@@ -1,0 +1,19 @@
+\section{Introduction}
+
+Swedish rescue services still depend on paper binders for pre-incident site plans, hazard notes, and operational reference material. That workflow is resilient in the narrow sense that paper remains available when networks fail, but it is weak in every other respect: binders are hard to update, difficult to search, impossible to synchronize across vehicles in real time, and poorly suited to map-centric incident coordination.
+
+Digital emergency-response systems can improve information sharing and team situation awareness, especially when information is enriched, routed through clear coordination roles, and presented through shared situational tools \citep{walle2016situation,andreassen2020information,kedia2020situational}. However, much of the surrounding literature assumes either central connectivity or flatter peer-style collaboration models that are not well matched to rescue-service command structures \citep{costa2022survey,damasevicius2023ioes}. Public-safety communications research likewise shows that broadband support is valuable, but field connectivity remains variable across LTE, ad hoc, and emergency mesh deployments \citep{kumbhar2015legacy,wang2023overview,hoyhtya2018critical,zimbelman2022mesh}.
+
+The operational problem in this paper is narrower and more concrete than ``offline mobile access'' in general. Rescue-service information must be authored at the station, transported into the field, shared across multiple vehicles at an incident scene, and made available to leaf tablets even during total WAN loss. At the same time, incident-level updates must remain operationally coherent. A wrong merge is worse than a delayed merge if it produces an inconsistent shared incident picture.
+
+This paper therefore argues for a deliberately asymmetric design: master data is replicated outward, but incident state is committed by a single command node. Responder vehicles and tablets may keep working while disconnected, yet they do not independently commit authoritative incident state. Instead, they enqueue edits in local outboxes for later forwarding.
+
+The paper makes three contributions:
+\begin{enumerate}
+  \item It presents a three-tier architecture spanning a regional core, vehicle edge, and field tablets, designed for rescue-service operations over intermittent mesh connectivity.
+  \item It specifies a tiered synchronization protocol based on a single-writer incident journal with forward-only outbox submission, avoiding consensus protocols and multi-writer conflict resolution.
+  \item It evaluates the architecture in a pilot deployment and reports not only latency and recovery results but also the observed failure modes and architectural limits.
+\end{enumerate}
+
+The central claim is not that offline-first systems are novel in themselves. Rather, the claim is that for this domain, a single-writer edge architecture is a better operational fit than CRDT-style multi-writer designs because incident state is sequenced, authority-bearing, and safety-critical.
+

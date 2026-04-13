@@ -1,0 +1,20 @@
+\section{Background and Related Work}
+
+\subsection{Information Systems in Emergency Response}
+
+Research in crisis informatics and emergency information systems consistently emphasizes the value of shared situational awareness, information quality, and clear coordination structures \citep{walle2016situation,andreassen2020information,kedia2020situational}. Recent surveys also show that many emergency-response platforms are built around cloud-connected, centrally managed, or smart-city oriented architectures \citep{costa2022survey,damasevicius2023ioes}. That literature is useful background, but it does not directly resolve the design problem addressed here: maintaining a usable and updateable shared incident picture across a vehicle fleet when WAN connectivity is intermittent.
+
+To position the paper in the ISCRAM community, add a short paragraph here covering recent proceedings work on fire services, volunteer response, and decision-support for first responders. Seed entries are already included for two recent ISCRAM papers \citep{mioch2024humanvalues,matinrad2024villages}; expand this with the most relevant 2024--2026 proceedings before submission.
+
+\subsection{Offline-First and Local-First Architectures}
+
+Local-first systems prioritize local availability, user control, and continued operation under poor connectivity \citep{kleppmann2019localfirst}. Much of that line of work relies on coordination-free replication or CRDT-based synchronization, with newer work focusing on preserving invariants and verifying safety properties in replicated settings \citep{haas2023lore,jannes2021owebsync}. Those ideas are important because they define the design space this paper is explicitly not choosing.
+
+The architecture presented here adopts the offline-first goal but rejects the multi-writer premise for incident state. This is a domain-driven choice. In rescue-service operations, command authority is structured rather than flat, and many updates are not naturally commutative. The design objective is therefore not to maximize write availability everywhere, but to preserve a coherent operational picture with a small and explainable consistency model.
+
+\subsection{Mobile Mesh Networking for Public Safety}
+
+Emergency communications research spans legacy narrowband systems, LTE and 5G public-safety services, ad hoc and vehicular networking, and rapidly deployable mesh-style infrastructure \citep{kumbhar2015legacy,hoyhtya2018critical,wang2023overview}. The literature is clear that broadband capability helps, but field networks remain heterogeneous and partially connected in practice \citep{saafi2021wearable,savunen2023operators,zimbelman2022mesh}.
+
+This paper does not propose a new mesh routing technique. Instead, it treats the mesh as a transit fabric between vehicles and keeps application semantics above the network layer. That distinction matters because the contribution is architectural: how incident information should be staged, forwarded, committed, and recovered across a partitioned fleet.
+

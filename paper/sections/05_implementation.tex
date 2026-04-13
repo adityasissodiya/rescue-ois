@@ -1,0 +1,28 @@
+\section{Implementation}
+
+This section should establish that the system exists as an implemented artifact, not merely as an architectural proposal. Use concise but concrete detail:
+\begin{itemize}
+  \item Core operating system, database, GIS, API, and reverse-proxy stack.
+  \item Edge deployment model, including containerization, sync daemon responsibilities, and local map-serving stack.
+  \item Tablet stack, local database layer, and mapping SDK.
+  \item Network hardware and software roles for router and mesh devices.
+\end{itemize}
+
+\begin{table}[t]
+  \centering
+  \caption{Implementation summary table to complete during drafting.}
+  \label{tab:implementation}
+  \begin{tabularx}{\columnwidth}{@{}lX@{}}
+    \toprule
+    Component & Planned content \\
+    \midrule
+    Core & OS, PostgreSQL/PostGIS, GeoServer or Martin, API stack, WireGuard \\
+    Edge & OS, Compose deployment, sync daemon, local tiles, HTTPS API \\
+    Tablet & Kotlin, local DB, MapLibre, auth, encrypted storage \\
+    Network & Mesh nodes, router model, VLAN and firewall policy \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Be explicit about what is fully implemented, what is pilot-ready, and what remains stubbed. Reviewers are more tolerant of partial scope than of inflated claims.
+

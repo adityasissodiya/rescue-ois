@@ -1,0 +1,59 @@
+\section{Synchronization Protocol}
+
+\subsection{Baseline Sync}
+
+Baseline synchronization distributes master data from the core to vehicle edge nodes using one-way replication and package pulls. In the implementation described by this paper, logical replication handles database schemas suited to that model, while heavier artifacts such as tiles and attachments are published as versioned bundles with signed or hashed manifests.
+
+\subsection{Incident Bootstrap}
+
+On dispatch, the core prepares an incident-specific package consisting of the area of interest, referenced attachments, and an initial manifest. The command vehicle attempts to pull this package from the core first. Responder vehicles then either pull directly from core or bootstrap from the command node over the mesh if WAN access is absent. Tablets bootstrap only from their local vehicle node.
+
+\subsection{Field Edit Flow}
+
+\cref{fig:sequence} should show the steady-state field edit path:
+\begin{enumerate}
+  \item A tablet submits an event to its local vehicle API.
+  \item The responder node stores the event in a durable outbox with a stable identifier.
+  \item The responder's sync daemon forwards unacknowledged outbox entries to the command node when mesh connectivity exists.
+  \item The command node validates scope and identity, assigns the next incident sequence number, appends the event to the journal, and updates materialized incident state.
+  \item The responder marks the outbox entry forwarded only after acknowledgement from command.
+  \item All edge nodes poll for committed events after their last applied sequence number.
+  \item The command node batches committed journal entries upstream to the regional core when WAN connectivity is present.
+\end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.95\columnwidth}{\centering TODO: sequence diagram\\Tablet $\rightarrow$ responder outbox $\rightarrow$ command journal\\$\rightarrow$ responder/tablet fan-out $\rightarrow$ core backhaul}}
+  \caption{Planned sequence diagram for the forward-only field edit flow.}
+  \label{fig:sequence}
+\end{figure}
+
+\subsection{Partition Behavior}
+
+Partition handling should be described case by case, because the design is intentionally asymmetric:
+\begin{itemize}
+  \item If a responder loses mesh connectivity to command, tablets continue to operate from cache and local outbox entries accumulate until reconnection.
+  \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
+  \item If the command vehicle is lost, a responder is promoted manually and becomes the new single writer for the incident.
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.95\columnwidth}{\centering TODO: partition state diagram\\Full connectivity, mesh-only, isolated responder, isolated command, promoted responder}}
+  \caption{Planned partition behavior diagram.}
+  \label{fig:partition}
+\end{figure}
+
+\subsection{Consistency Guarantees}
+
+State the guarantees precisely in the final manuscript:
+\begin{itemize}
+  \item The incident journal is totally ordered because only one command node commits events at a time.
+  \item Outbox delivery from responders is at least once and must be deduplicated by durable event identifiers.
+  \item Master data converges eventually from core to edge.
+  \item Tablets converge eventually with their local vehicle edge.
+  \item There is no claim of causal ordering across independent responder outboxes before command assignment.
+\end{itemize}
+
+This subsection should read like a compact contract, not a marketing paragraph.
+
