@@ -47,8 +47,8 @@ services:
     depends_on: [martin, geoserver, sync-api, audit-api]
     networks: [core-net]
     ports:
-      - "443:443"
-      - "80:80"
+      - "443"
+      - "80"
 
   feed-importer:
     build: ./feed-importer

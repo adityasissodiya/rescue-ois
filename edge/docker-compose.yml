@@ -37,7 +37,7 @@ services:
     depends_on: [martin, ops-api, syncd]
     networks: [edge-net]
     ports:
-      - "443:443"
+      - "443"
 
   ops-api:
     build: ./ops-api

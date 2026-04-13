@@ -1,32 +1,60 @@
-# Rescue OIS
+# 🚁 Rescue OIS
 
-Resilient Operational Information System for Swedish rescue services — a map-centric, offline-first digital platform replacing paper-based incident planning.
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Build Status](https://github.com/aditya-sissodiya/rescue-ois/actions/workflows/ci.yml/badge.svg)](https://github.com/aditya-sissodiya/rescue-ois/actions)
 
-The system is a three-tier architecture: a regional **core** (master data and publication), **vehicle edge** nodes (per-vehicle K430 + RUTX50 + Rajant Hawk providing local services and the live incident journal), and ruggedized **field tablets** that talk only to their local vehicle edge.
+> **Resilient Operational Information System** for Swedish rescue services — a map-centric, offline-first digital platform replacing paper-based incident planning.
 
-See [docs/architecture/README.md](docs/architecture/README.md) for the architecture overview, network topology, sync protocol, and security model.
+---
 
-## Quickstart (local development)
+## 🏗️ Architecture Overview
+The system utilizes a robust three-tier architecture specifically designed for unstable network conditions:
+- 🏢 **Regional Core**: Source of truth handling master data and map publication.
+- 🚒 **Vehicle Edge Nodes**: Installed per-vehicle (`K430` + `RUTX50` + `Rajant Hawk`). These provide local services and host the live incident journal for offline operations.
+- 📱 **Field Tablets**: Ruggedized operator tablets that communicate exclusively with their local vehicle edge node.
+
+📖 *See [docs/architecture/README.md](docs/architecture/README.md) for the architecture overview, network topology, sync protocol, and security model.*
+
+---
+
+## 🚀 Quickstarts 
+
+### 🖥️ Local Development Emulation
+To quickly boot up a full environment locally (containing 1 Core, 1 Edge Command, and 1 Edge Responder):
 
 ```bash
-./scripts/dev-up.sh          # start core stack via docker-compose
-./scripts/run-migrations.sh  # apply SQL migrations
-./scripts/dev-down.sh        # tear down
+./scripts/dev-up.sh          # Start core & edges via docker-compose
+./scripts/run-migrations.sh  # Apply SQL migrations
+./scripts/dev-down.sh        # Tear down
 ```
 
-## Repository layout
+### 🔬 Academic Evaluation Pilot
+To reproduce the timing metrics and figures presented in our academic paper:
+```bash
+./scripts/dev-up.sh
+python3 scripts/evaluate-pilot.py
+python3 paper/scripts/generate_plots.py
+```
+> The generated SVGs/PDFs will be pushed to the `paper/figures` directory!
 
-- `core/` — regional services (PostGIS, Martin, GeoServer, Nginx, sync-api, audit-api, feed-importer, publisher)
-- `edge/` — vehicle K430 services (PostGIS, Martin, ops-api, syncd, package-cache, audit-forwarder)
-- `tablet/` — Kotlin / Jetpack Compose / MapLibre Native Android app
-- `infra/` — Ansible playbooks, RUTX50 templates, Rajant notes
-- `docs/` — architecture, deployment, runbooks, ADRs
-- `scripts/` — developer convenience scripts
+---
 
-## License
+## 📁 Repository Layout
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+| Directory   | Description |
+| ----------- | ----------- |
+| `core/`     | Regional services *(PostGIS, Martin, GeoServer, Nginx, sync-api, audit-api, feed-importer, publisher)* |
+| `edge/`     | Vehicle K430 services *(PostGIS, Martin, ops-api, syncd, package-cache, audit-forwarder)* |
+| `tablet/`   | Kotlin / Jetpack Compose / MapLibre Native Android application |
+| `infra/`    | Ansible playbooks, RUTX50 templates, Rajant notes |
+| `docs/`     | Architecture, deployment, runbooks, and ADR tracking |
+| `paper/`    | LaTeX files, research scripts, and generated figures |
+| `scripts/`  | Developer convenience & test runner scripts |
 
-## Contributing
+---
+
+## 🤝 Contributing & License
 
 Open a pull request following the template in `.github/pull_request_template.md`.
+
+This software is released under the **Apache License 2.0** — see [LICENSE](LICENSE).

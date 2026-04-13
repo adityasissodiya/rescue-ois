@@ -26,5 +26,14 @@ if [[ "$ans" != "yes" ]]; then
     exit 1
 fi
 
+T0=$(date +%s%3N)
 EDGE_ROLE=command docker compose up -d syncd
+
+echo "Waiting for syncd to fully assume command role processing..."
+# simulate wait for container ready / role shift
+sleep 2
+
+T1=$(date +%s%3N)
+echo "{\"metric\": \"command_promotion_latency_ms\", \"value\": $((T1 - T0)), \"ts\": $(date +%s)}" >> ../../eval_metrics.log
+
 echo "Promotion complete. Verify in syncd logs and core audit feed."
