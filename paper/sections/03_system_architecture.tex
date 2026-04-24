@@ -13,7 +13,7 @@ The system is built around five principles:
 
 \subsection{Tier 1: Regional Core}
 
-The regional core hosts the authoritative master-data platform, including PostgreSQL/PostGIS, geodata ingest pipelines, attachment packaging, publication manifests, and the WireGuard hub used for vehicle connectivity. Keep this subsection brief in the final paper. The core matters operationally, but it is not the main research contribution.
+The regional core hosts the authoritative master-data platform. It runs PostgreSQL~16 with PostGIS~3.5 (SRID~3006, SWEREF~99~TM), a publication pipeline that stages, validates, and promotes geodata into versioned offline packages, and a tile-serving stack (Martin for vector tiles, GeoServer for WMS/WFS). An Nginx reverse proxy terminates TLS and routes API traffic to internal microservices. A WireGuard hub on a \texttt{10.252.0.0/24} overlay connects all enrolled vehicles. Feed importers ingest external data from SMHI, Trafikverket, Lantm\"ateriet, and Naturv\r{a}rdsverket. Published packages consist of PMTiles bundles, compressed attachment archives, and SHA-256-signed manifests that edge nodes pull over HTTP range requests.
 
 \subsection{Tier 2: Vehicle Edge}
 
@@ -31,7 +31,7 @@ Field tablets are leaf clients attached to a local vehicle only. They use an enc
 
 \subsection{Network Segmentation}
 
-Describe the per-vehicle segmentation model here, including the operational tablet VLAN, service VLAN, management VLAN, and the separate mesh-facing edge interface. The key argument is that the wireless mesh is not used to flatten the entire vehicle LAN into one incident-wide broadcast domain.
+Each vehicle carries a Teltonika RUTX50 router that enforces a five-VLAN segmentation model keyed on a per-vehicle identifier. VLAN~10 (Management, \texttt{/27}) is reserved for device administration. VLAN~20 (Edge Services, \texttt{/27}) hosts the K430 compute node and its containerized services. VLAN~30 (Operational Tablets, \texttt{/26}) carries tablet traffic and permits only outbound HTTPS to the Edge Services zone. VLAN~40 (Sensors, \texttt{/27}) isolates drone feeds and environmental sensors. VLAN~50 (Maintenance, \texttt{/27}) provides technician access. Firewall rules enforce strict zone isolation: tablets reach only the local \texttt{ops-api} endpoint over port~443, and no user VLAN is extended across the Rajant mesh. The mesh operates as a Layer~3 transit fabric on \texttt{10.253.0.0/16}, carrying only application-layer traffic between K430 nodes. This design prevents broadcast storms, limits the attack surface, and ensures that a compromised tablet cannot reach other vehicles or the wider mesh.
 
 \begin{figure}[t]
   \centering

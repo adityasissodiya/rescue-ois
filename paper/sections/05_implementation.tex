@@ -1,28 +1,33 @@
 \section{Implementation}
 
-This section should establish that the system exists as an implemented artifact, not merely as an architectural proposal. Use concise but concrete detail:
-\begin{itemize}
-  \item Core operating system, database, GIS, API, and reverse-proxy stack.
-  \item Edge deployment model, including containerization, sync daemon responsibilities, and local map-serving stack.
-  \item Tablet stack, local database layer, and mapping SDK.
-  \item Network hardware and software roles for router and mesh devices.
-\end{itemize}
+The system is implemented as a set of containerized microservices (core and edge tiers) and a native Android application (tablet tier). All Python services target Python~3.12 and use FastAPI with Pydantic models, asyncpg for database access, and uvicorn as the ASGI server. Each service exposes a \texttt{GET /health} endpoint. Database schemas are managed through numbered, forward-only plain SQL migrations. Infrastructure is provisioned with Ansible playbooks and role-based templates for PostgreSQL, Martin, Nginx, and WireGuard.
 
 \begin{table}[t]
   \centering
-  \caption{Implementation summary table to complete during drafting.}
+  \caption{Implementation stack summary.}
   \label{tab:implementation}
   \begin{tabularx}{\columnwidth}{@{}lX@{}}
     \toprule
-    Component & Planned content \\
+    Component & Stack \\
     \midrule
-    Core & OS, PostgreSQL/PostGIS, GeoServer or Martin, API stack, WireGuard \\
-    Edge & OS, Compose deployment, sync daemon, local tiles, HTTPS API \\
-    Tablet & Kotlin, local DB, MapLibre, auth, encrypted storage \\
-    Network & Mesh nodes, router model, VLAN and firewall policy \\
+    Core DB & PostgreSQL~16 + PostGIS~3.5 (SRID~3006). Schemas: \texttt{staging}, \texttt{master}, \texttt{publication}, \texttt{audit}. GiST indexes on all geometry columns. \\
+    Core services & \texttt{sync-api} (baseline sync, bootstrap bundles), \texttt{audit-api} (centralized audit ingest/query), \texttt{publisher} (PMTiles + attachment packaging via tippecanoe), \texttt{feed-importer} (SMHI, Trafikverket, Lantm\"ateriet, Naturv\r{a}rdsverket). \\
+    Tile serving & Martin (vector/raster, PMTiles native) + GeoServer~2.28 (WMS/WFS). \\
+    Edge services & \texttt{ops-api} (tablet-facing incident API), \texttt{syncd} (pull, push, accept, forward flows), \texttt{audit-forwarder} (batch forwarding to core), \texttt{package-cache} (PMTiles/attachment caching with SHA-256 verification). \\
+    Edge DB & PostgreSQL~16 + PostGIS~3.5. Schemas: \texttt{cache}, \texttt{incident} (journal + materialized state), \texttt{outbox} (device\_outbox with forwarded\_at index). \\
+    Tablet & Kotlin, Jetpack Compose, Room~2.6.1 (SQLite), MapLibre Native~11.5.2, Retrofit~2.11.0 + OkHttp~4.12.0. Min SDK~29, target SDK~35. \\
+    Network & Rajant Hawk (mesh, L3 transit on \texttt{10.253.0.0/16}), Teltonika RUTX50 (5-VLAN per vehicle, nftables firewall), WireGuard overlay (\texttt{10.252.0.0/24}). \\
+    Proxy & Nginx~1.27 (JSON access logs, mTLS termination, client cert DN extraction). \\
+    Provisioning & Ansible roles for PostgreSQL, Martin, Nginx, WireGuard. Docker Compose~3.9 per tier. \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-Be explicit about what is fully implemented, what is pilot-ready, and what remains stubbed. Reviewers are more tolerant of partial scope than of inflated claims.
+The core tier comprises four Python microservices behind an Nginx reverse proxy. The \texttt{sync-api} serves baseline synchronization endpoints and incident bootstrap bundles. The \texttt{publisher} stages geodata through validation, promotes it to master tables, builds PMTiles via tippecanoe, bundles attachments into \texttt{tar.zst} archives, and atomically swaps signed manifests into a publication directory. The \texttt{feed-importer} ingests external data from four Swedish authorities. The \texttt{audit-api} provides batch ingest and query for forwarded audit events.
+
+Each edge node runs a Docker Compose stack with PostgreSQL, Martin, Nginx, and three application services. The \texttt{ops-api} is the tablet-facing interface: it serves incident bootstraps, accepts field edits, proxies tiles, and streams attachment files. The \texttt{syncd} daemon implements four synchronization flows: pulling master data from core (Flow~1), pushing outbox entries from responder to command (Flow~4), accepting and sequencing events on the command node (Flow~4, server side), and forwarding the incident journal to core (Flow~5). The \texttt{audit-forwarder} batches local audit events and posts them to the core audit endpoint with exponential backoff on transient failures.
+
+The tablet application is a single-activity Kotlin Android app. It uses Retrofit for HTTPS communication with the local vehicle \texttt{ops-api}, Room for local structured data, and MapLibre Native for offline map rendering from locally cached PMTiles. A \texttt{SyncManager} orchestrates baseline bootstrap, field edit submission with idempotency keys, and incremental event polling. The application enforces \texttt{usesCleartextTraffic=false} and disables backup.
+
+Authentication follows a layered model. WireGuard provides network-level encryption between vehicles and core. Nginx terminates mTLS and extracts client certificate subjects, which are passed as headers to backend services. Tablets authenticate to their local vehicle via mTLS with certificates distributed through Knox Manage MDM. No parallel identity system is introduced; the deployment consumes the authority's existing organizational CA and IdP.
 

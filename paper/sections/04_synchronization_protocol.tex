@@ -10,7 +10,7 @@ On dispatch, the core prepares an incident-specific package consisting of the ar
 
 \subsection{Field Edit Flow}
 
-\cref{fig:sequence} should show the steady-state field edit path:
+The steady-state field edit path proceeds as follows (\cref{fig:sequence}):
 \begin{enumerate}
   \item A tablet submits an event to its local vehicle API.
   \item The responder node stores the event in a durable outbox with a stable identifier.
@@ -30,7 +30,7 @@ On dispatch, the core prepares an incident-specific package consisting of the ar
 
 \subsection{Partition Behavior}
 
-Partition handling should be described case by case, because the design is intentionally asymmetric:
+Partition handling is intentionally asymmetric, reflecting the tiered authority model:
 \begin{itemize}
   \item If a responder loses mesh connectivity to command, tablets continue to operate from cache and local outbox entries accumulate until reconnection.
   \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
@@ -46,7 +46,7 @@ Partition handling should be described case by case, because the design is inten
 
 \subsection{Consistency Guarantees}
 
-State the guarantees precisely in the final manuscript:
+The protocol provides the following consistency guarantees:
 \begin{itemize}
   \item The incident journal is totally ordered because only one command node commits events at a time.
   \item Outbox delivery from responders is at least once and must be deduplicated by durable event identifiers.
@@ -55,5 +55,5 @@ State the guarantees precisely in the final manuscript:
   \item There is no claim of causal ordering across independent responder outboxes before command assignment.
 \end{itemize}
 
-This subsection should read like a compact contract, not a marketing paragraph.
+These guarantees hold under the assumption that at most one command node is active per incident at any time. Promotion to a new command node is a manual, operator-confirmed procedure specifically to prevent split-brain violations of the single-writer invariant.
 

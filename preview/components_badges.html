@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; font-family: 'IBM Plex Sans', sans-serif; padding: 16px; }
+  .label { font-size: 9px; font-weight: 600; color: #4a5168; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; margin-top: 12px; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+</style>
+</head><body>
+
+<div class="label">Status badges</div>
+<div class="row">
+  <span class="badge" style="background:rgba(45,182,125,0.15);color:#52d09a;border:1px solid rgba(45,182,125,0.3)">
+    <span class="dot" style="background:#2db67d"></span>LIVE
+  </span>
+  <span class="badge" style="background:rgba(232,48,42,0.12);color:#ef5f5a;border:1px solid rgba(232,48,42,0.3)">
+    <span class="dot" style="background:#e8302a"></span>OFFLINE
+  </span>
+  <span class="badge" style="background:rgba(245,178,30,0.12);color:#fac84e;border:1px solid rgba(245,178,30,0.3)">
+    <span class="dot" style="background:#f5b21e;animation:pulse 1s infinite"></span>SYNCING
+  </span>
+  <span class="badge" style="background:rgba(0,87,168,0.15);color:#6aaef0;border:1px solid rgba(0,87,168,0.35)">QUEUED</span>
+  <span class="badge" style="background:rgba(74,81,104,0.3);color:#8a94b0;border:1px solid #2e3650">IDLE</span>
+</div>
+
+<div class="label">Role badges</div>
+<div class="row">
+  <span class="badge" style="background:rgba(245,104,30,0.15);color:#f5681e;border:1px solid rgba(245,104,30,0.35)">⬡ COMMAND</span>
+  <span class="badge" style="background:rgba(34,120,212,0.12);color:#6aaef0;border:1px solid rgba(34,120,212,0.3)">◯ RESPONDER</span>
+  <span class="badge" style="background:rgba(74,81,104,0.2);color:#8a94b0;border:1px solid #2e3650">⬦ TABLET</span>
+</div>
+
+<div class="label">Event / tier badges</div>
+<div class="row">
+  <span class="badge" style="background:#252b3b;color:#8a94b0;border:1px solid #2e3650;font-size:10px">TIER 1 · CORE</span>
+  <span class="badge" style="background:#252b3b;color:#8a94b0;border:1px solid #2e3650;font-size:10px">TIER 2 · VEHICLE</span>
+  <span class="badge" style="background:#252b3b;color:#8a94b0;border:1px solid #2e3650;font-size:10px">TIER 3 · TABLET</span>
+</div>
+
+<div class="label">Partition / network state</div>
+<div class="row">
+  <span class="badge" style="background:rgba(232,48,42,0.12);color:#e8302a;border:1px solid rgba(232,48,42,0.3);font-size:10px">▲ WAN PARTITION</span>
+  <span class="badge" style="background:rgba(245,178,30,0.12);color:#f5b21e;border:1px solid rgba(245,178,30,0.3);font-size:10px">⚡ MESH ONLY</span>
+  <span class="badge" style="background:rgba(45,182,125,0.12);color:#2db67d;border:1px solid rgba(45,182,125,0.3);font-size:10px">✓ COMMITTED</span>
+</div>
+
+<style>
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</body></html>

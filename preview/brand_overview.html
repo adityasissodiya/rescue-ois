@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; font-family: 'IBM Plex Sans', sans-serif; padding: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { background: #1c2030; border: 1px solid #2e3650; border-radius: 10px; padding: 16px; }
+  .card-title { font-size: 11px; font-weight: 600; color: #4a5168; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+
+  /* Project name lockup */
+  .lockup { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 40px; height: 40px; background: #f5681e; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-mark svg { width: 24px; height: 24px; }
+  .logo-text { font-size: 16px; font-weight: 700; color: #f0f2f7; line-height: 1.1; }
+  .logo-sub  { font-size: 11px; color: #8a94b0; font-weight: 400; }
+
+  /* Topology diagram */
+  .topo { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .topo-row { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .node { background: #252b3b; border: 1px solid #2e3650; border-radius: 6px; padding: 5px 10px; font-size: 10px; font-weight: 600; color: #8a94b0; text-align: center; white-space: nowrap; }
+  .node-cmd { border-color: #f5681e; color: #f5681e; background: rgba(245,104,30,0.08); }
+  .node-rsp { border-color: #2278d4; color: #6aaef0; background: rgba(0,87,168,0.1); }
+  .node-tablet { border-color: #2e3650; font-size: 9px; }
+  .arrow { color: #2e3650; font-size: 14px; }
+
+  /* Paper cite style */
+  .cite { background: #ffffff; border-radius: 6px; padding: 10px 12px; }
+  .cite-title { font-family: 'Source Serif 4', serif; font-size: 11pt; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; line-height: 1.3; }
+  .cite-body  { font-family: 'Source Serif 4', serif; font-size: 9pt; color: #4a4a4a; line-height: 1.4; }
+  .cite-venue { font-size: 8pt; color: #888; font-family: 'Source Serif 4', serif; margin-top: 4px; }
+</style>
+</head><body>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">Project identity</div>
+    <div class="lockup">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">Tiered Sync</div>
+        <div class="logo-sub">Offline-first rescue operations</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:#4a5168;line-height:1.5">
+      ISCRAM 2027 · Swedish rescue services<br>
+      Three-tier offline-first architecture
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">System topology</div>
+    <div class="topo">
+      <div class="topo-row">
+        <div class="node" style="border-color:#0057a8;color:#6aaef0;background:rgba(0,87,168,0.1)">CORE · Tier 1</div>
+      </div>
+      <div class="arrow">↓ WireGuard</div>
+      <div class="topo-row">
+        <div class="node node-cmd">CMD-01</div>
+        <div class="arrow">— mesh —</div>
+        <div class="node node-rsp">RSP-03</div>
+        <div class="arrow">—</div>
+        <div class="node node-rsp">RSP-07</div>
+      </div>
+      <div class="arrow">↓ HTTPS</div>
+      <div class="topo-row">
+        <div class="node node-tablet">TAB-A</div>
+        <div class="node node-tablet">TAB-B</div>
+        <div class="node node-tablet">TAB-C</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-title">Paper — academic context</div>
+    <div class="cite">
+      <div class="cite-title">Offline-First Incident Information: A Tiered Sync Architecture for Rescue Service Operations over Intermittent Mesh Networks</div>
+      <div class="cite-body">A three-tier offline-first architecture spanning a regional core, vehicle edge nodes, and field tablets, with a tiered synchronization protocol for rescue fleets.</div>
+      <div class="cite-venue">ISCRAM 2027 · Draft · Keywords: offline-first, crisis informatics, edge computing, mesh networking</div>
+    </div>
+  </div>
+
+</div>
+</body></html>

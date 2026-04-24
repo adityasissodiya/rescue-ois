@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; font-family: 'IBM Plex Sans', sans-serif; padding: 16px; }
+  .row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .swatch { flex: 1; height: 40px; border-radius: 5px; position: relative; }
+  .swatch-sm { height: 28px; }
+  .group-label { font-size: 10px; font-weight: 600; color: #4a5168; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; margin-top: 10px; }
+  .swatch-label { position: absolute; bottom: 4px; left: 6px; font-size: 9px; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.55); }
+  .swatch-label.dark { color: rgba(0,0,0,0.4); }
+  .row.bg .swatch { border: 1px solid #2e3650; }
+</style>
+</head><body>
+<div class="group-label">Orange — Rescue</div>
+<div class="row">
+  <div class="swatch" style="background:#fff4ee"><span class="swatch-label dark">50</span></div>
+  <div class="swatch" style="background:#ffe0cc"><span class="swatch-label dark">100</span></div>
+  <div class="swatch" style="background:#ffb380"><span class="swatch-label dark">200</span></div>
+  <div class="swatch" style="background:#ff8540"><span class="swatch-label">300</span></div>
+  <div class="swatch" style="background:#f5681e"><span class="swatch-label">400</span></div>
+  <div class="swatch" style="background:#d9540c"><span class="swatch-label">500</span></div>
+  <div class="swatch" style="background:#aa400a"><span class="swatch-label">600</span></div>
+</div>
+<div class="group-label">Red — Critical / Alert</div>
+<div class="row">
+  <div class="swatch" style="background:#f59190"><span class="swatch-label dark">200</span></div>
+  <div class="swatch" style="background:#ef5f5a"><span class="swatch-label">300</span></div>
+  <div class="swatch" style="background:#e8302a"><span class="swatch-label">400</span></div>
+  <div class="swatch" style="background:#c0221d"><span class="swatch-label">500</span></div>
+  <div class="swatch swatch-sm" style="background:rgba(232,48,42,0.12); flex:2"><span class="swatch-label">bg tint</span></div>
+</div>
+<div class="group-label">Blue — Authority / MSB</div>
+<div class="row">
+  <div class="swatch" style="background:#c8e2fa"><span class="swatch-label dark">100</span></div>
+  <div class="swatch" style="background:#6aaef0"><span class="swatch-label">200</span></div>
+  <div class="swatch" style="background:#2278d4"><span class="swatch-label">300</span></div>
+  <div class="swatch" style="background:#0057a8"><span class="swatch-label">400</span></div>
+  <div class="swatch swatch-sm" style="background:rgba(0,87,168,0.15); flex:2"><span class="swatch-label">bg tint</span></div>
+</div>
+<div class="group-label">Green — Success / Safe</div>
+<div class="row">
+  <div class="swatch" style="background:#96e8c8"><span class="swatch-label dark">200</span></div>
+  <div class="swatch" style="background:#52d09a"><span class="swatch-label dark">300</span></div>
+  <div class="swatch" style="background:#2db67d"><span class="swatch-label">400</span></div>
+  <div class="swatch swatch-sm" style="background:rgba(45,182,125,0.12); flex:2"><span class="swatch-label">bg tint</span></div>
+</div>
+<div class="group-label">Amber — Warning</div>
+<div class="row">
+  <div class="swatch" style="background:#fac84e"><span class="swatch-label dark">300</span></div>
+  <div class="swatch" style="background:#f5b21e"><span class="swatch-label dark">400</span></div>
+  <div class="swatch swatch-sm" style="background:rgba(245,178,30,0.12); flex:3"><span class="swatch-label">bg tint</span></div>
+</div>
+</body></html>

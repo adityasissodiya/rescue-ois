@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; font-family: 'IBM Plex Sans', sans-serif; padding: 16px; }
+  .label { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: #4a5168; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+  .group { margin-bottom: 14px; }
+  .row { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+  .box { background: #252b3b; border: 1px solid #2e3650; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .name { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #4a5168; margin-left: 6px; }
+  .val { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #8a94b0; margin-left: auto; padding-right: 4px; }
+  .inner { font-size: 10px; color: #4a5168; }
+</style>
+</head><body>
+<div class="group">
+  <div class="label">Spacing — 8px base unit</div>
+  <div class="row"><div class="box" style="width:4px;height:20px"></div><span class="name">--space-1</span><span class="val">4px</span></div>
+  <div class="row"><div class="box" style="width:8px;height:20px"></div><span class="name">--space-2</span><span class="val">8px</span></div>
+  <div class="row"><div class="box" style="width:12px;height:20px"></div><span class="name">--space-3</span><span class="val">12px</span></div>
+  <div class="row"><div class="box" style="width:16px;height:20px"></div><span class="name">--space-4</span><span class="val">16px</span></div>
+  <div class="row"><div class="box" style="width:24px;height:20px"></div><span class="name">--space-6</span><span class="val">24px</span></div>
+  <div class="row"><div class="box" style="width:32px;height:20px"></div><span class="name">--space-8</span><span class="val">32px</span></div>
+  <div class="row"><div class="box" style="width:48px;height:20px"></div><span class="name">--space-12</span><span class="val">48px</span></div>
+</div>
+<div class="group">
+  <div class="label">Corner radii</div>
+  <div class="row" style="gap:8px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:36px;height:36px;background:#252b3b;border:1px solid #2e3650;border-radius:4px"></div>
+      <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168">sm 4px</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:36px;height:36px;background:#252b3b;border:1px solid #2e3650;border-radius:8px"></div>
+      <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168">md 8px</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:36px;height:36px;background:#252b3b;border:1px solid #2e3650;border-radius:12px"></div>
+      <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168">lg 12px</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:36px;height:36px;background:#252b3b;border:1px solid #2e3650;border-radius:999px"></div>
+      <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168">pill</span>
+    </div>
+  </div>
+</div>
+<div class="group">
+  <div class="label">Shadows / elevation</div>
+  <div class="row" style="gap:14px;padding-left:4px">
+    <div style="width:48px;height:32px;background:#252b3b;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.5)"></div>
+    <div style="width:48px;height:32px;background:#252b3b;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.55)"></div>
+    <div style="width:48px;height:32px;background:#252b3b;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.6)"></div>
+    <div style="width:48px;height:32px;background:#252b3b;border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,0.65)"></div>
+  </div>
+  <div class="row" style="gap:14px;padding-left:4px;margin-top:2px">
+    <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168;width:48px">sm</span>
+    <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168;width:48px">md</span>
+    <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168;width:48px">lg</span>
+    <span style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#4a5168;width:48px">xl</span>
+  </div>
+</div>
+</body></html>

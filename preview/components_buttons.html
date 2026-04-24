@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; font-family: 'IBM Plex Sans', sans-serif; padding: 16px; }
+  .label { font-size: 9px; font-weight: 600; color: #4a5168; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; margin-top: 12px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button { border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; border-radius: 6px; min-height: 36px; padding: 0 16px; font-size: 13px; transition: all 150ms ease-in-out; }
+  .btn-primary { background: #f5681e; color: #fff; }
+  .btn-primary:hover { background: #d9540c; }
+  .btn-danger  { background: #e8302a; color: #fff; }
+  .btn-danger:hover  { background: #c0221d; }
+  .btn-info    { background: #0057a8; color: #fff; }
+  .btn-info:hover { background: #2278d4; }
+  .btn-ghost   { background: transparent; color: #8a94b0; border: 1px solid #2e3650; }
+  .btn-ghost:hover { background: #252b3b; color: #f0f2f7; }
+  .btn-subtle  { background: #252b3b; color: #f0f2f7; border: 1px solid #2e3650; }
+  .btn-subtle:hover { background: #2e3650; }
+  .btn-sm { min-height: 28px; padding: 0 10px; font-size: 11px; }
+  .btn-lg { min-height: 44px; padding: 0 24px; font-size: 15px; }
+  .btn-disabled { background: #1c2030; color: #4a5168; border: 1px solid #2e3650; cursor: not-allowed; }
+</style>
+</head><body>
+
+<div class="label">Primary actions</div>
+<div class="row">
+  <button class="btn-primary">Commit Incident</button>
+  <button class="btn-danger">Declare Partition</button>
+  <button class="btn-info">Promote to Command</button>
+</div>
+
+<div class="label">Secondary / ghost</div>
+<div class="row">
+  <button class="btn-ghost">Cancel</button>
+  <button class="btn-subtle">View Outbox</button>
+  <button class="btn-subtle">Sync Now</button>
+</div>
+
+<div class="label">Sizes</div>
+<div class="row">
+  <button class="btn-subtle btn-sm">Small</button>
+  <button class="btn-subtle">Default</button>
+  <button class="btn-primary btn-lg">Large — 44px touch</button>
+</div>
+
+<div class="label">Disabled</div>
+<div class="row">
+  <button class="btn-disabled" disabled>Commit (no WAN)</button>
+  <button class="btn-disabled" disabled>Forward Outbox</button>
+</div>
+</body></html>
