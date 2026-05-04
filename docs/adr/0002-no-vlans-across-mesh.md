@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The Rajant Hawk mesh provides inter-vehicle wireless transit. It is tempting to bridge user VLANs (OPS-TABLET, SENSOR) across the mesh so devices on one vehicle can talk to devices on another vehicle directly. In practice, stretching VLANs over a mobile multi-hop wireless mesh causes broadcast storms (ARP, mDNS, IPv6 ND), unmanageable routing as topology shifts, and difficult-to-debug failure modes when nodes partition and reconverge.
+The Rajant Hawk mesh provides inter-vehicle wireless transit. It is tempting to bridge user VLANs (OPS-TABLET, SENSOR) across the mesh so devices on one vehicle can talk to devices on another vehicle directly. In practice, stretching VLANs over a mobile multi-hop wireless mesh causes broadcast storms (ARP, mDNS, IPv6 ND), unmanageable routing as topology shifts, and difficult-to-debug failure modes when nodes partition and reconverge. Empirical measurements of comparable public-safety mesh-radio deployments in forested terrain support treating frequent multi-hop disconnection as the expected case rather than an edge case ([Zimbelman et al., 2022](https://doi.org/10.1371/journal.pone.0275791)).
 
 ## Decision
 

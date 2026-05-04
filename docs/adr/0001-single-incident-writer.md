@@ -25,3 +25,8 @@ Only **one K430 per incident** writes to `incident.journal` and `incident.state`
 - The command vehicle is a single point of write availability for the incident. Recovery requires an explicit promotion procedure (`scripts/promote-responder.sh`) and a documented runbook (`docs/runbooks/command-failover.md`).
 - Responder vehicles must persist outbox entries durably until acked.
 - Promotion must be auditable to prevent split-brain.
+
+## Implementation Notes
+
+- `event_seq` monotonicity is enforced at the database level by a `UNIQUE (incident_id, event_seq)` constraint on `incident.journal`, in addition to the application-level allocation in `syncd`. Application-only enforcement is insufficient because two `syncd` instances briefly co-existing during a botched promotion could otherwise both believe they are the writer.
+- The single-writer claim assumes the database constraint is present in the migration set. If you change migrations, re-verify that the constraint exists.

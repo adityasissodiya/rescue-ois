@@ -12,8 +12,7 @@ The paper makes three contributions:
 \begin{enumerate}
   \item It presents a three-tier architecture spanning a regional core, vehicle edge, and field tablets, designed for rescue-service operations over intermittent mesh connectivity.
   \item It specifies a tiered synchronization protocol based on a single-writer incident journal with forward-only outbox submission, avoiding consensus protocols and multi-writer conflict resolution.
-  \item It evaluates the architecture in a pilot deployment and reports not only latency and recovery results but also the observed failure modes and architectural limits.
+  \item It validates the synchronization protocol on a containerized emulation, reports the structural properties confirmed by that validation, and is explicit about which operational claims still require a physical pilot.
 \end{enumerate}
 
 The central claim is not that offline-first systems are novel in themselves. Rather, the claim is that for this domain, a single-writer edge architecture is a better operational fit than CRDT-style multi-writer designs because incident state is sequenced, authority-bearing, and safety-critical.
-

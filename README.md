@@ -28,14 +28,14 @@ To quickly boot up a full environment locally (containing 1 Core, 1 Edge Command
 ./scripts/dev-down.sh        # Tear down
 ```
 
-### 🔬 Academic Evaluation Pilot
-To reproduce the timing metrics and figures presented in our academic paper:
+### 🔬 Prototype Validation Harness
+To run the structural validation harness used by the paper:
 ```bash
 ./scripts/dev-up.sh
 python3 scripts/evaluate-pilot.py
 python3 paper/scripts/generate_plots.py
 ```
-> The generated SVGs/PDFs will be pushed to the `paper/figures` directory!
+The harness writes `eval_metrics.jsonl`. Plot generation only emits a figure when real non-null measurements exist; the current paper does not embed numerical performance results.
 
 ---
 

@@ -20,6 +20,7 @@ Use **PMTiles** as the canonical offline package format. Martin serves PMTiles n
 - HTTP range requests allow partial cache warming and resumable downloads from `sync-api`.
 - No SQLite locking issues under concurrent reads.
 - Martin supports PMTiles directly.
+- `package-cache` on the edge verifies SHA-256 checksums from the publisher's signed manifest before a swap; the single-file format makes that verification trivially atomic.
 
 **Negative:**
 

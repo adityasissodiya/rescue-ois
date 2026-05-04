@@ -34,6 +34,10 @@ echo "Waiting for syncd to fully assume command role processing..."
 sleep 2
 
 T1=$(date +%s%3N)
-echo "{\"metric\": \"command_promotion_latency_ms\", \"value\": $((T1 - T0)), \"ts\": $(date +%s)}" >> ../../eval_metrics.log
+METRICS_PATH=${RESCUE_OIS_METRICS_PATH:-../../eval_metrics.jsonl}
+RUN_ID=${RESCUE_OIS_RUN_ID:-manual}
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+printf '{"run_id":"%s","scenario":"command_promotion","metric_name":"command_promotion_latency","value_ms":%s,"timestamp_iso":"%s","notes":"measured by promote-responder.sh after operator confirmation"}\n' \
+    "$RUN_ID" "$((T1 - T0))" "$TIMESTAMP" >> "$METRICS_PATH"
 
 echo "Promotion complete. Verify in syncd logs and core audit feed."

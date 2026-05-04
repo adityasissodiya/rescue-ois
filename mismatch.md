@@ -74,3 +74,7 @@ Several documents referenced in deployment guides don't exist or are stubs:
 - `runbooks/device-revocation.md`
 - `scripts/build-pmtiles.sh`
 - `scripts/dev-down.sh`
+
+## Closing Note
+
+As of 2026-05-04, the evaluation pipeline has been unified per ADR-0006. The hardcoded-numbers issue is resolved at the harness level; the paper has been updated to remove unverified numerical claims.
