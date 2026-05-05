@@ -8,9 +8,12 @@ client = TestClient(app)
 def test_health() -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "service": "ops-api"}
+    assert response.json()["status"] == "ok"
+    assert response.json()["service"] == "ops-api"
 
 
-def test_bootstrap_stub() -> None:
+def test_bootstrap_returns_200() -> None:
     response = client.get("/api/bootstrap")
-    assert response.status_code == 501
+    assert response.status_code == 200
+    body = response.json()
+    assert "master_version" in body

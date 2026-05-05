@@ -23,10 +23,16 @@ The system utilizes a robust three-tier architecture specifically designed for u
 To quickly boot up a full environment locally (containing 1 Core, 1 Edge Command, and 1 Edge Responder):
 
 ```bash
-./scripts/dev-up.sh          # Start core & edges via docker-compose
-./scripts/run-migrations.sh  # Apply SQL migrations
-./scripts/dev-down.sh        # Tear down
+./scripts/dev-up.sh                 # Start core, command edge, and 1 responder
+RESPONDERS=3 ./scripts/dev-up.sh    # Start core, command edge, and 3 responders
+./scripts/run-migrations.sh         # Apply SQL migrations
+./scripts/run-migrations.sh edge    # Apply edge SQL migrations
+./scripts/dev-down.sh               # Tear down all compose projects
 ```
+
+The local emulation uses the external Docker network `rescue-ois-net`. Compose
+projects get project-scoped DNS aliases such as `sync-api.core`,
+`syncd.edge-cmd`, and `ops-api.edge-resp-1` for cross-tier prototype traffic.
 
 ### 🔬 Prototype Validation Harness
 To run the structural validation harness used by the paper:

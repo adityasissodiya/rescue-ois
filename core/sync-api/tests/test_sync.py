@@ -11,11 +11,13 @@ def test_health() -> None:
     assert response.json() == {"status": "ok", "service": "sync-api"}
 
 
-def test_sync_events_stub() -> None:
+def test_sync_events_compat() -> None:
     response = client.get("/sync/events")
-    assert response.status_code == 501
+    assert response.status_code == 200
+    assert response.json() == {"latest_seq": 0, "events": []}
 
 
-def test_sync_bootstrap_stub() -> None:
-    response = client.get("/sync/bootstrap", params={"incident_id": "abc"})
-    assert response.status_code == 501
+def test_empty_journal_batch_ack() -> None:
+    response = client.post("/sync/journal-batch", json={"events": []})
+    assert response.status_code == 200
+    assert response.json() == {"accepted": 0, "duplicates": 0, "last_acked_seq": 0}

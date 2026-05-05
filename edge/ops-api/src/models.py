@@ -1,13 +1,14 @@
 """Pydantic models for ops-api."""
 
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
 
 class FieldEdit(BaseModel):
-    client_event_id: str
-    incident_id: str
+    client_event_id: UUID
+    incident_id: UUID
     event_type: str
     payload: dict
     device_id: str
@@ -17,7 +18,5 @@ class FieldEdit(BaseModel):
 
 class BootstrapResponse(BaseModel):
     master_version: str
-    incident_id: str | None
-    aoi_geojson: dict | None
-    plan_ids: list[str]
+    incident_id: UUID | None
     last_event_seq: int | None

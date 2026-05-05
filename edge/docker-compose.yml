@@ -1,8 +1,9 @@
 version: "3.9"
 
 networks:
-  edge-net:
-    driver: bridge
+  default:
+    name: rescue-ois-net
+    external: true
 
 volumes:
   edge-postgres-data:
@@ -18,14 +19,16 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-rescue_ois_edge}
     volumes:
       - edge-postgres-data:/var/lib/postgresql/data
-    networks: [edge-net]
+    networks:
+      default:
+        aliases:
+          - postgres.${COMPOSE_PROJECT_NAME:-edge}
 
   martin:
     image: ghcr.io/maplibre/martin:latest
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.${COMPOSE_PROJECT_NAME:-edge}:5432/${POSTGRES_DB:-rescue_ois_edge}
     depends_on: [postgres]
-    networks: [edge-net]
     volumes:
       - edge-cache-data:/data/cache:ro
 
@@ -35,30 +38,39 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - edge-files-data:/data/files:ro
     depends_on: [martin, ops-api, syncd]
-    networks: [edge-net]
     ports:
       - "443"
 
   ops-api:
     build: ./ops-api
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.${COMPOSE_PROJECT_NAME:-edge}:5432/${POSTGRES_DB:-rescue_ois_edge}
       EDGE_ROLE: ${EDGE_ROLE:-responder}
       FILES_DIR: /data/files
     volumes:
       - edge-files-data:/data/files:ro
     depends_on: [postgres]
-    networks: [edge-net]
+    networks:
+      default:
+        aliases:
+          - ops-api.${COMPOSE_PROJECT_NAME:-edge}
+    ports:
+      - "${OPS_API_PORT:-18080}:8000"
 
   syncd:
     build: ./syncd
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.${COMPOSE_PROJECT_NAME:-edge}:5432/${POSTGRES_DB:-rescue_ois_edge}
       EDGE_ROLE: ${EDGE_ROLE:-responder}
       CORE_BASE_URL: ${CORE_BASE_URL:-https://core.rescue-ois.local}
       COMMAND_PEER_URL: ${COMMAND_PEER_URL:-}
     depends_on: [postgres]
-    networks: [edge-net]
+    networks:
+      default:
+        aliases:
+          - syncd.${COMPOSE_PROJECT_NAME:-edge}
+    ports:
+      - "${SYNCD_PORT:-18081}:8000"
 
   package-cache:
     build: ./package-cache
@@ -66,12 +78,10 @@ services:
       CACHE_DIR: /data/cache
     volumes:
       - edge-cache-data:/data/cache
-    networks: [edge-net]
 
   audit-forwarder:
     build: ./audit-forwarder
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois_edge}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.${COMPOSE_PROJECT_NAME:-edge}:5432/${POSTGRES_DB:-rescue_ois_edge}
       CORE_AUDIT_URL: ${CORE_AUDIT_URL:-https://core.rescue-ois.local/audit/events}
     depends_on: [postgres]
-    networks: [edge-net]

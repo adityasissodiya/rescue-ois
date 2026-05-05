@@ -1,23 +1,49 @@
-"""Outbox table helpers used by both push (responder) and accept (command).
+"""Outbox helpers used by the responder push flow."""
 
-Encapsulates inserts/queries against `outbox.device_outbox` so the rest of
-syncd does not embed SQL strings.
-"""
+from __future__ import annotations
 
+import json
+from uuid import UUID
 
-async def enqueue(event: dict) -> str:
-    """Insert an event into outbox.device_outbox; return the row id."""
-    # TODO: INSERT into outbox.device_outbox, return id.
-    raise NotImplementedError
+import asyncpg
 
 
-async def fetch_unforwarded(limit: int = 100) -> list[dict]:
-    """Return up to `limit` rows where forwarded_at IS NULL ordered by id."""
-    # TODO: SELECT FROM outbox.device_outbox WHERE forwarded_at IS NULL.
-    raise NotImplementedError
+async def fetch_unforwarded(conn: asyncpg.Connection, limit: int = 100) -> list[dict]:
+    rows = await conn.fetch(
+        """
+        SELECT id, incident_id, client_event_id, device_id, user_id,
+               event_type, payload, created_at
+        FROM outbox.device_outbox
+        WHERE forwarded_at IS NULL
+        ORDER BY created_at, id
+        LIMIT $1
+        """,
+        limit,
+    )
+    return [
+        {
+            "id": str(r["id"]),
+            "incident_id": str(r["incident_id"]),
+            "client_event_id": str(r["client_event_id"]),
+            "device_id": r["device_id"],
+            "user_id": r["user_id"],
+            "event_type": r["event_type"],
+            "payload": r["payload"] if isinstance(r["payload"], dict) else json.loads(r["payload"]),
+            "created_at": r["created_at"].isoformat(),
+        }
+        for r in rows
+    ]
 
 
-async def mark_forwarded(row_ids: list[str], ack_seq: int) -> None:
-    """Mark the given outbox rows as forwarded with the supplied ack_seq."""
-    # TODO: UPDATE outbox.device_outbox SET forwarded_at = now(), ack_seq = $2
-    raise NotImplementedError
+async def mark_forwarded(conn: asyncpg.Connection, ids: list[str], ack_seq: int) -> None:
+    if not ids:
+        return
+    await conn.execute(
+        """
+        UPDATE outbox.device_outbox
+        SET forwarded_at = now(), ack_seq = $2
+        WHERE id = ANY($1::uuid[])
+        """,
+        [UUID(x) for x in ids],
+        ack_seq,
+    )

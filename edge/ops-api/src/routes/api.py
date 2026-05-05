@@ -1,48 +1,61 @@
 """Tablet-facing API: bootstrap, search, field-edit submission."""
 
-import time
-import logging
 import json
-from fastapi import APIRouter, HTTPException
+from uuid import uuid4
 
+from fastapi import APIRouter, Request
+
+from src.db import get_pool
 from src.models import FieldEdit
 
 router = APIRouter(prefix="/api", tags=["api"])
-logger = logging.getLogger("eval_metrics")
+
 
 @router.get("/bootstrap")
 async def get_bootstrap() -> dict:
-    """Return the initial bundle for a freshly-connected tablet."""
-    # INSTRUMENTATION: Track bootstrap start and mock completion for pilot
-    t0 = time.time()
-    logger.info(json.dumps({"metric": "bootstrap_start", "ts": t0}))
-    
-    # Simulating work or just returning mock for the evaluation runner
-    t1 = time.time()
-    logger.info(json.dumps({"metric": "bootstrap_end", "ts": t1, "latency_ms": (t1 - t0) * 1000}))
-    
+    """Return the initial bundle for a freshly-connected tablet.
+
+    On responder vehicles this is a thin wrapper that the harness drives
+    through the responder's syncd if a real bootstrap has been pulled.
+    """
     return {
         "master_version": "v1.0",
-        "incident_id": "mock_incident",
-        "aoi_geojson": {"type": "Polygon", "coordinates": []},
-        "plan_ids": [],
-        "last_event_seq": 0
+        "incident_id": None,
+        "last_event_seq": 0,
     }
+
 
 @router.get("/search")
 async def search(q: str) -> dict:
     """Local search across cached sites/plans/hazards."""
     return {"results": []}
 
+
 @router.post("/events")
-async def post_event(edit: FieldEdit) -> dict:
-    """Accept a field edit. On command role, append to journal. On responder, queue in outbox."""
-    received_at = time.time()
-    logger.info(json.dumps({
-        "metric": "field_edit_received",
-        "client_event_id": edit.client_event_id,
-        "occurred_at": edit.occurred_at.isoformat(),
-        "received_at": received_at,
-        "device_id": edit.device_id
-    }))
-    return {"status": "accepted", "event_id": edit.client_event_id}
+async def post_event(edit: FieldEdit, request: Request) -> dict:
+    """Persist a field edit into outbox.device_outbox. Idempotent on client_event_id."""
+    settings = request.app.state.settings
+    pool = await get_pool(settings.database_url)
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            """
+            INSERT INTO outbox.device_outbox
+                (id, incident_id, client_event_id, device_id, user_id,
+                 event_type, payload, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (client_event_id) DO NOTHING
+            """,
+            uuid4(),
+            edit.incident_id,
+            edit.client_event_id,
+            edit.device_id,
+            edit.user_id,
+            edit.event_type,
+            json.dumps(edit.payload),
+            edit.occurred_at,
+        )
+    inserted = result.endswith(" 1")
+    return {
+        "status": "accepted" if inserted else "duplicate",
+        "client_event_id": str(edit.client_event_id),
+    }

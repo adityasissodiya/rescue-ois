@@ -1,8 +1,9 @@
 version: "3.9"
 
 networks:
-  core-net:
-    driver: bridge
+  default:
+    name: rescue-ois-net
+    external: true
 
 volumes:
   postgres-data:
@@ -17,16 +18,18 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-rescue_ois}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks: [core-net]
+    networks:
+      default:
+        aliases:
+          - postgres.core
     ports:
       - "5432:5432"
 
   martin:
     image: ghcr.io/maplibre/martin:latest
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.core:5432/${POSTGRES_DB:-rescue_ois}
     depends_on: [postgres]
-    networks: [core-net]
     ports:
       - "3000:3000"
 
@@ -35,7 +38,6 @@ services:
     environment:
       GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER:-admin}
       GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD:-geoserver}
-    networks: [core-net]
     ports:
       - "8080:8080"
 
@@ -45,7 +47,6 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - packages-data:/data/packages:ro
     depends_on: [martin, geoserver, sync-api, audit-api]
-    networks: [core-net]
     ports:
       - "443"
       - "80"
@@ -53,36 +54,38 @@ services:
   feed-importer:
     build: ./feed-importer
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.core:5432/${POSTGRES_DB:-rescue_ois}
       LM_API_KEY: ${LM_API_KEY:-}
       SMHI_API_KEY: ${SMHI_API_KEY:-}
       TRV_API_KEY: ${TRV_API_KEY:-}
     depends_on: [postgres]
-    networks: [core-net]
 
   publisher:
     build: ./publisher
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.core:5432/${POSTGRES_DB:-rescue_ois}
       PUBLISH_DIR: /data/packages
     volumes:
       - packages-data:/data/packages
     depends_on: [postgres]
-    networks: [core-net]
 
   sync-api:
     build: ./sync-api
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.core:5432/${POSTGRES_DB:-rescue_ois}
       PACKAGES_DIR: /data/packages
     volumes:
       - packages-data:/data/packages:ro
     depends_on: [postgres]
-    networks: [core-net]
+    networks:
+      default:
+        aliases:
+          - sync-api.core
+    ports:
+      - "${SYNC_API_PORT:-18000}:8000"
 
   audit-api:
     build: ./audit-api
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-rescue_ois}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres.core:5432/${POSTGRES_DB:-rescue_ois}
     depends_on: [postgres]
-    networks: [core-net]

@@ -1,19 +1,36 @@
-"""Pydantic models for sync-api request/response payloads."""
+"""Pydantic models for sync-api."""
+
+from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 
 
-class SyncEvent(BaseModel):
-    seq: int
-    table: str
-    op: str
-    row_id: str
+class IncidentEvent(BaseModel):
+    incident_id: UUID
+    event_seq: int
+    event_type: str
     payload: dict
+    device_id: str
+    user_id: str
+    client_event_id: UUID
+    created_at: datetime
 
 
-class BootstrapBundle(BaseModel):
-    incident_id: str
+class JournalBatch(BaseModel):
+    events: list[IncidentEvent]
+
+
+class JournalBatchAck(BaseModel):
+    accepted: int
+    duplicates: int
+    last_acked_seq: int
+
+
+class BootstrapResponse(BaseModel):
+    incident_id: UUID
     aoi_geojson: dict
     plan_ids: list[str]
     hazard_ids: list[str]
-    attachment_paths: list[str]
+    manifest_sha256: str
+    last_event_seq: int
