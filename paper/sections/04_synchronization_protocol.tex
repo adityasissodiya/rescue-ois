@@ -1,6 +1,8 @@
 \section{Synchronization Protocol}
 \label{sec:sync}
 
+The protocol design follows directly from the operational requirements of Section~\ref{sec:requirements}. Outbox durability at responder vehicles and tablets is required by R2; sequence assignment by the command vehicle is required by R3, since every committed incident-state change must be attributable to the operationally designated authority; the responder's discipline of marking outbox entries forwarded only after acknowledgement from the command vehicle is what makes R2 hold under arbitrary partition and crash. The role asymmetry below --- command commits, responder forwards, tablet submits --- is therefore not an architectural preference but the smallest protocol structure that satisfies R1 through R3 simultaneously.
+
 \subsection{Baseline Sync}
 
 Baseline synchronization distributes master data from the core to vehicle edge nodes using one-way replication and package pulls. In the implementation described by this paper, logical replication handles database schemas suited to that model, while heavier artifacts such as tiles and attachments are published as versioned bundles with signed or hashed manifests.

@@ -2,7 +2,7 @@
 
 \subsection{Why Single Writer Instead of CRDTs}
 
-Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems \cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not automatically transfer to incident management. Incident state contains command decisions, ordered status transitions, and resource assignments whose meaning is often sequence-dependent. A CRDT-friendly representation would still require application-level semantics for resolving conflicting authority-bearing updates.
+Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems~\cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not satisfy R3. Incident state contains command decisions, ordered status transitions, and resource assignments for which CRDT-based merge has no defensible application semantics: there is no commutative merge function for a status transition that two responders attempt to drive in different directions, and any resolution rule that picks one of them implicitly invents the authority that R3 requires be explicit. The single-writer design adopted here makes that authority operational rather than emergent, at the cost of write availability at responder nodes during partition.
 
 The single-writer design adopted here intentionally trades some write availability at responder nodes for a smaller operational reasoning surface. In this domain, that is a feature rather than a defect. If a responder is partitioned from command, it is acceptable for that responder to continue collecting locally useful information while deferring authoritative incident-state commitment.
 
@@ -19,4 +19,4 @@ The architecture has several limitations that bound the scope of the contributio
 
 \subsection{Generalizability}
 
-The architectural pattern is most plausible for command-hierarchical environments where one operational role has authority to sequence shared state. The design is less likely to transfer cleanly to flat peer groups without a clear authority model.
+The architectural pattern transfers to operational settings whose requirements include R3 in particular: environments in which one principal has stated, operationally designated authority over shared state. Maritime search and rescue, military command and control, and industrial-incident response all share this structure. The pattern is unlikely to transfer cleanly to flat peer groups without such an authority --- collaborative documents, distributed sensor networks, and consumer-facing local-first applications --- where commutative merge is both available and operationally appropriate.

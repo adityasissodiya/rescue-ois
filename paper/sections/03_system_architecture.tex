@@ -1,15 +1,33 @@
 \section{System Architecture}
 \label{sec:architecture}
 
+\subsection{Operational Setting and Requirements}
+\label{sec:requirements}
+
+The deployment environment is municipal rescue-service incident response in a country with substantial unpopulated forested terrain. Incidents are managed by a small set of vehicles, typically two to ten per incident, operating up to several hours away from the regional dispatch centre. Each vehicle is staffed by personnel using rugged tablets to view and update operational information. The incident is led by a designated command vehicle whose role is operationally fixed at dispatch and reassigned only by explicit operator decision. The publicly available rescue-service guidance summarised in Section~\ref{sec:introduction} establishes that incident-planning information must be available without continuous connectivity, that secrecy-protected and non-secret material must be handled with different operational discipline, and that incident plans are layered, ongoing operational artefacts rather than static documents~\cite{rsg-rad201, rsg-kommunalplan}.
+
+We summarise the load-bearing operational requirements that this design must satisfy:
+
+\begin{itemize}
+  \item \textbf{R1 (Offline operation).} Each tier must continue functioning on previously synchronised data without connectivity to any other tier.
+  \item \textbf{R2 (Durable forward-only submission).} Field observations entered on tablets must never be lost, including across vehicle restart and prolonged partition.
+  \item \textbf{R3 (Authority for incident state).} Decisions on resource assignments, status transitions, and hazard annotations must be attributable to a single operationally designated authority at every instant of the incident.
+  \item \textbf{R4 (Predictable network behaviour).} The wireless mesh substrate must not cause cascading failures (broadcast storms, routing loops) when nodes join, leave, or partition.
+  \item \textbf{R5 (No parallel identity).} Authentication, authorisation, and audit must reuse the rescue-service organisation's existing certificate authority and identity provider; no parallel identity stack may be introduced.
+\end{itemize}
+
+The five design principles in Section~\ref{sec:principles} are derived from these requirements rather than asserted independently. The mapping is explicit: \textit{offline-first} from R1; \textit{single incident writer} from R3 directly and R2 indirectly, since durable forward submission requires a fixed forwarding target; \textit{forward-only edits} from R2 directly and R3 indirectly; \textit{mesh as transit only} from R4 directly and R5 indirectly, because stretched VLANs would extend the trust surface across the mesh; \textit{existing identity} from R5.
+
 \subsection{Design Principles}
+\label{sec:principles}
 
 The system is built around five principles:
 \begin{itemize}
-  \item \textbf{Offline-first:} all previously synchronized data remains available without connectivity.
-  \item \textbf{Single incident writer:} exactly one command node sequences and commits incident events.
-  \item \textbf{Forward-only edits:} tablets and responder vehicles enqueue edits locally and forward them upstream.
-  \item \textbf{Mesh as transit only:} the wireless mesh carries traffic between edge nodes, but does not expose user VLANs end to end.
-  \item \textbf{Existing identity:} the deployment integrates with the authority's established identity and certificate infrastructure.
+  \item \textbf{Offline-first} (R1): all previously synchronised data remains available without connectivity.
+  \item \textbf{Single incident writer} (R3, R2): exactly one command node sequences and commits incident events.
+  \item \textbf{Forward-only edits} (R2, R3): tablets and responder vehicles enqueue edits locally and forward them upstream.
+  \item \textbf{Mesh as transit only} (R4, R5): the wireless mesh carries traffic between edge nodes, but does not expose user VLANs end to end.
+  \item \textbf{Existing identity} (R5): the deployment integrates with the authority's established identity and certificate infrastructure.
 \end{itemize}
 
 \subsection{Tier 1: Regional Core}
