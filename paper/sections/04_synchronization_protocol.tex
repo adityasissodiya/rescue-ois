@@ -56,4 +56,4 @@ The protocol provides the following consistency guarantees:
   \item There is no claim of causal ordering across independent responder outboxes before command assignment.
 \end{itemize}
 
-These guarantees hold under the assumption that at most one command node is active per incident at any time. Promotion to a new command node is a manual, operator-confirmed procedure specifically to prevent split-brain violations of the single-writer invariant; this is a deliberate position within the well-known availability-versus-consistency trade-off in partitioned systems \citep{davidson1985consistency}.
+These guarantees hold under the assumption that at most one command node is active per incident at any time. Promotion to a new command node is a manual, operator-confirmed procedure specifically to prevent split-brain violations of the single-writer invariant; this is a deliberate position within the well-known availability-versus-consistency trade-off in partitioned systems \cite{davidson1985consistency}.

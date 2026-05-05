@@ -1,4 +1,5 @@
 \section{Implementation}
+\label{sec:implementation}
 
 The system is implemented as a set of containerized microservices (core and edge tiers) and a native Android application (tablet tier). All Python services target Python~3.12 and use FastAPI with Pydantic models, asyncpg for database access, and uvicorn as the ASGI server. Each service exposes a \texttt{GET /health} endpoint. Database schemas are managed through numbered, forward-only plain SQL migrations. Infrastructure is provisioned with Ansible playbooks and role-based templates for PostgreSQL, Martin, Nginx, and WireGuard.
 

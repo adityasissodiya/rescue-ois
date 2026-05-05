@@ -1,33 +1,10 @@
-\section{Prototype Validation}\label{sec:validation}
+\section{Evaluation Plan}
+\label{sec:validation}
 
-\subsection{Status of the Implementation}
+\TODO{Phase 2 - measurements pending.}
 
-The system described in \cref{sec:architecture,sec:sync} is a research prototype. Core synchronization, mTLS termination, and Ansible provisioning are scaffolded; the tablet local data layer and several edge services contain stubs awaiting full implementation. This section reports a structural validation of the synchronization protocol on the current emulation environment, not empirical field-performance claims.
+Evaluation forthcoming, see Phase 2. The NCA evaluation will replace the current structural validation text with emulation measurements from the unified \texttt{eval\_metrics.jsonl} harness. These will be emulation measurements with explicitly stated injected latencies, useful for relative comparisons between protocol variants and partition profiles, not for absolute field-performance claims.
 
-\subsection{Emulation Environment}
+The planned scenario set covers bootstrap latency versus incident size, field-edit propagation versus queue depth, recovery time versus partition duration, promotion latency, command-edge throughput, and scaling with concurrent responder vehicles. Each scenario cell will report at least 30 runs, median, p95, and interquartile range.
 
-The validation environment is a Docker Compose emulation that instantiates one regional core, one command-role edge node, and one responder-role edge node as separate Compose projects with dynamically assigned ephemeral ports to avoid host collisions. An automated runner orchestrates five scripted phases: (1)~incident bootstrap on the command edge, (2)~field-edit injection from a tablet stub against the responder edge, (3)~WAN partition injection via \texttt{scripts/inject-partition.sh}, (4)~partition recovery, and (5)~command promotion via \texttt{scripts/promote-responder.sh}. Services emit structured JSON events to a single log for post-hoc inspection.
-
-\subsection{Validated Properties}
-
-The emulation validates the following structural properties of the synchronization protocol:
-\begin{itemize}
-  \item Incident bootstrap returns a complete bundle (area of interest, plan references, hazard identifiers, last sequence number) on a freshly initialized command edge.
-  \item Field edits submitted to a responder edge are durably persisted in \texttt{outbox.device\_outbox}, forwarded to the command edge, and committed to \texttt{incident.journal} with a strictly monotonically increasing \texttt{event\_seq}.
-  \item Duplicate submissions identified by the same \texttt{client\_event\_id} produce exactly one journal entry on the command edge.
-  \item WAN partition injection does not produce data loss within the buffered window: the command edge persists committed events locally and resumes forwarding from the last acknowledged sequence number on link restoration.
-  \item Manual command promotion is the only path to a new incident writer in this prototype; automatic failover is intentionally not exercised, to prevent split-brain on the journal during partition recovery \citep{davidson1985consistency}.
-\end{itemize}
-
-\subsection{What This Validation Does Not Show}
-
-The emulation does not establish field-realistic latency, throughput, or survivability, and several known operational variables are explicitly outside its scope:
-\begin{itemize}
-  \item Real Rajant Hawk mesh latency, jitter, and packet loss under operational RF conditions, including the vegetation-driven connectivity loss reported for similar mesh-radio deployments in forested terrain by \citet{zimbelman2022mesh}.
-  \item LTE coverage variability across Swedish incident terrain.
-  \item Multi-incident concurrency at the regional core.
-  \item Sustained tablet operation under battery, thermal, and prolonged-offline conditions.
-  \item User behaviour under stress, including the consistency-of-use observation reported in observational studies of comparable real-time information systems for mass-casualty incidents \citep{lindstrom2025tripod}.
-\end{itemize}
-
-A physical pilot with at least two vehicles, three tablets, and a portable Rajant relay --- instrumented along the lines of the observational design used by \citet{lindstrom2025tripod} --- is required before any quantitative performance claim can be made. The contribution of the present prototype is therefore architectural and protocol-level, not performance-empirical.
+The evaluation will also include a safety-property subsection. The primary path is a TLA+ model with a \texttt{NoTwoWriters} invariant over the single-writer plus manual-promotion model; the secondary path is a Hypothesis test corpus over generated partition, promotion, replay, and commit schedules. The baseline subsection will compare Rescue OIS against at least an analytical Raft, multi-primary, and CRDT design table, with a measured Raft baseline if the planned hashicorp/raft glue is complete in time.

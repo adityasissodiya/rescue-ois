@@ -1,17 +1,18 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[a4paper,margin=1.65cm,columnsep=0.7cm]{geometry}
-\usepackage{lmodern}
-\usepackage{microtype}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
 \usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{enumitem}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
 \usepackage[hidelinks]{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
 
@@ -19,17 +20,13 @@
 \setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
 
 \newcommand{\systemname}{Tiered Sync Architecture}
-\newcommand{\TODO}[1]{\textbf{[TODO: #1]}}
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
 
 \title{Offline-First Incident Information: A Tiered Sync Architecture for Rescue Service Operations over Intermittent Mesh Networks}
 
-\author{
-Author Name \\
-Affiliation \\
-\texttt{author@example.org}
-}
-
-\date{Draft built \today}
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{Anonymous Affiliation\\
+Submitted to NCA 2026 (double-blind review)}}
 
 \begin{document}
 
@@ -39,7 +36,9 @@ Affiliation \\
 \input{sections/00_abstract}
 \end{abstract}
 
-\noindent\textbf{Keywords:} offline-first systems, crisis informatics, public safety communications, edge computing, mesh networking, incident management
+\begin{IEEEkeywords}
+offline-first systems, edge computing, distributed systems, single-writer replication, intermittent connectivity, mesh networks, prototype evaluation
+\end{IEEEkeywords}
 
 \input{sections/01_introduction}
 \input{sections/02_related_work}
@@ -50,8 +49,7 @@ Affiliation \\
 \input{sections/07_discussion}
 \input{sections/08_conclusion}
 
-\bibliographystyle{plainnat}
+\bibliographystyle{IEEEtran}
 \bibliography{refs}
 
 \end{document}
-
