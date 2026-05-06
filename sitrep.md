@@ -5,6 +5,7 @@ Branch: `nca2026-submission`
 
 ## Current Commit Stack
 
+- `3b2e9d1 paper: add Phase 2 evaluator metrics source`
 - `895b5ce scripts: fixes from STEP 7 dry-run`
 - `a69bdca prototype: minimum wiring for Phase 2 measurements`
 - `551a6fb paper: genre shift to problem-driven systems contribution`
@@ -28,6 +29,10 @@ Scenario row counts:
 - `duplicate_replay`: 30 rows, run indices 0--29.
 - `command_promotion`: 5 rows, run indices 0--4.
 
+The canonical metrics file is now committed at
+`paper/data/eval_metrics.jsonl` per ADR-0006. Future evaluator runs default to
+that path through `scripts/evaluate-pilot.py`.
+
 Inspection checks already run:
 
 - No `harness_error` rows.
@@ -42,15 +47,15 @@ Inspection checks already run:
 ## Open Observations From Phase 2
 
 - `command_promotion` only has 5 skipped rows while the rest of the cells use
-  30 runs. This should be made explicit in Section VI or the evaluator should
-  emit 30 skipped rows for shape consistency.
-- `partition_wan` audit rows are sparse and should not share the canonical
-  metrics stream with the Python evaluator. Move partition audit output to a
-  separate `partition_audit.jsonl`.
+  30 runs in the committed data. The evaluator has been updated so future runs
+  emit `RUNS_PER_CELL` skipped promotion rows for shape consistency.
+- `partition_wan` audit rows were sparse and shared the canonical metrics
+  stream. `inject-partition.sh` now writes audit rows to
+  `partition_audit.jsonl` by default instead.
 - The `command_throughput` low outlier is `run_index=0`:
   53.920090271790066 ev/s. The following runs immediately jump to the expected
-  range around 168--173 ev/s, so Section VI can treat the first throughput run
-  as warm-up and drop/warn on it.
+  range around 168--173 ev/s. The evaluator now marks throughput run 0 with a
+  warm-up note; Section VI should exclude it from throughput summaries.
 
 ## Paper State
 
@@ -60,20 +65,18 @@ derives R1--R5 from operational requirements, Section IV maps protocol choices
 to R1--R3, and Section VII argues explicitly why CRDT/local-first logic does
 not satisfy R3.
 
-Do not write measured numbers into Section VI until the canonical metrics file
-has been committed under `paper/data/` and any plot/table generation is pointed
-at that file.
+Section VI should use only `paper/data/eval_metrics.jsonl` for measured claims.
 
 ## Next Submission Work
 
 Immediate work before Phase 3:
 
-1. Move `eval_metrics.jsonl` to `paper/data/eval_metrics.jsonl` and commit it
-   as the ADR-0006 source of truth.
-2. Apply the small evaluator/partition quality-of-life fixes:
-   promotion run count consistency, separate partition audit output, and
-   throughput warm-up marking.
-3. Stop before Phase 3 until `safetyPlan.md` exists.
+1. Stop before Phase 3 until `safetyPlan.md` exists.
+2. Once `safetyPlan.md` exists, implement Path C: TLA+ primary, Hypothesis
+   secondary.
+3. After the safety-property result is green, update Section VI around
+   measurements and safety verification without overclaiming production
+   readiness.
 
 Phase 3 is Path C per `docs/decisions.md`: TLA+ primary, Hypothesis secondary.
 The TLA+ deliverable should model vehicles, roles, the journal, promotion

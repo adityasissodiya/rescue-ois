@@ -5,14 +5,16 @@
 #   ./scripts/inject-partition.sh wan 60      # disconnect command edge from core for 60s
 #   ./scripts/inject-partition.sh mesh 60     # disconnect a responder from command for 60s
 #
-# Emits structured events to $RESCUE_OIS_METRICS_PATH (default eval_metrics.jsonl).
+# Emits structured audit events to $RESCUE_OIS_PARTITION_AUDIT_PATH
+# (default partition_audit.jsonl). These records are intentionally separate
+# from the canonical evaluation metrics stream.
 
 set -euo pipefail
 
 TARGET="${1:-wan}"
 DURATION="${2:-30}"
 NETWORK_NAME="rescue-ois-net"
-METRICS_PATH="${RESCUE_OIS_METRICS_PATH:-eval_metrics.jsonl}"
+AUDIT_PATH="${RESCUE_OIS_PARTITION_AUDIT_PATH:-partition_audit.jsonl}"
 RUN_ID="${RESCUE_OIS_RUN_ID:-manual}"
 RESPONDER_INDEX="${RESPONDER_INDEX:-1}"
 
@@ -43,7 +45,7 @@ emit() {
     ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     if [[ -z "$value_ms" ]]; then value_ms="null"; fi
     printf '{"run_id":"%s","scenario":"partition_%s","metric_name":"%s","value_ms":%s,"timestamp_iso":"%s","notes":"%s"}\n' \
-        "$RUN_ID" "$TARGET" "$metric" "$value_ms" "$ts" "$notes" >> "$METRICS_PATH"
+        "$RUN_ID" "$TARGET" "$metric" "$value_ms" "$ts" "$notes" >> "$AUDIT_PATH"
 }
 
 ALIASES=$(docker inspect "$container" -f \

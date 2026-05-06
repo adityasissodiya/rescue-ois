@@ -30,8 +30,8 @@ from typing import Any
 
 import httpx
 
-METRICS_PATH = Path("eval_metrics.jsonl")
 RUNS_PER_CELL = int(os.environ.get("RUNS_PER_CELL", "30"))
+METRICS_PATH = Path(os.environ.get("RESCUE_OIS_METRICS_PATH", "paper/data/eval_metrics.jsonl"))
 
 CORE_BASE = os.environ.get("CORE_BASE", "http://127.0.0.1:18000")
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
@@ -279,7 +279,7 @@ async def scenario_throughput(handle, run_id: str) -> None:
                     "events_per_sec": tput,
                 },
                 run_index=i,
-                notes="",
+                notes="warmup_run: exclude from Section VI summaries" if i == 0 else "",
             )
 
 
@@ -332,7 +332,7 @@ async def scenario_idempotency(handle, run_id: str) -> None:
 
 async def scenario_promotion(handle, run_id: str) -> None:
     """Manual promotion latency: invoke promote-responder.sh, time the role flip."""
-    for i in range(min(RUNS_PER_CELL, 5)):
+    for i in range(RUNS_PER_CELL):
         write_record(
             handle,
             run_id=run_id,
@@ -349,6 +349,7 @@ async def scenario_promotion(handle, run_id: str) -> None:
 async def main() -> None:
     run_id = str(uuid.uuid4())
     print(f"run_id={run_id}, runs_per_cell={RUNS_PER_CELL}")
+    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
     with METRICS_PATH.open("w", encoding="utf-8") as handle:
         for fn in (
             scenario_bootstrap,
