@@ -46,13 +46,18 @@ emit() {
         "$RUN_ID" "$TARGET" "$metric" "$value_ms" "$ts" "$notes" >> "$METRICS_PATH"
 }
 
+ALIASES=$(docker inspect "$container" -f \
+    '{{range $i,$v := (index .NetworkSettings.Networks "'"$NETWORK_NAME"'").Aliases}}{{if $i}} {{end}}{{$v}}{{end}}')
+
 T0_NS=$(date +%s%N)
 docker network disconnect "$NETWORK_NAME" "$container"
 emit "partition_injected" "null" "container=$container target=$TARGET duration_s=$DURATION"
 
 sleep "$DURATION"
 
-docker network connect "$NETWORK_NAME" "$container"
+ALIAS_ARGS=()
+for a in $ALIASES; do ALIAS_ARGS+=(--alias "$a"); done
+docker network connect "${ALIAS_ARGS[@]}" "$NETWORK_NAME" "$container"
 T1_NS=$(date +%s%N)
 
 DURATION_MS=$(( (T1_NS - T0_NS) / 1000000 ))

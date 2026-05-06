@@ -53,7 +53,7 @@ async def set_kv(conn: asyncpg.Connection, key: str, value: int) -> None:
     await conn.execute(
         """
         INSERT INTO sync.state (key, value, updated_at)
-        VALUES ($1, jsonb_build_object('v', $2::text::int), now())
+        VALUES ($1, jsonb_build_object('v', $2::bigint), now())
         ON CONFLICT (key) DO UPDATE
             SET value = EXCLUDED.value, updated_at = now()
         """,
