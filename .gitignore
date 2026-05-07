@@ -30,6 +30,11 @@ captures/
 # Docker
 *.pid
 
+# Formal verification local outputs
+formal/tla/tlc_*.log
+formal/tla/states/
+formal/python/.hypothesis/
+
 # IDE
 .idea/
 .vscode/
