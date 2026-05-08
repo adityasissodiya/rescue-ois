@@ -39,17 +39,19 @@ and rises to 914 ms at queue depth 100, reflecting the 250 ms
 responder-syncd poll interval compounded with batch processing on the
 command side.
 
-Recovery from a WAN partition is monotonic in partition duration. For 1 s
-partitions the median recovery is 728 ms; for 10 s partitions 3.39 s; for
-60 s partitions the distribution becomes bimodal, with a small low-side
-population near 12 s and a tight cluster around 49.7 s. The cluster lies
-within 0.1 s of five times the per-batch HTTP timeout used by the
-command-to-core forwarder (10 s); we attribute it to the long-lived
-\texttt{httpx.AsyncClient} retaining stale connections across the
-disconnect/reconnect cycle and timing out per batch on resume. A production
-deployment would invalidate the connection pool on partition events; we
-report the artefact rather than mask it because the architecture, not the
-client library, is the contribution of this paper.
+Recovery from a WAN partition is monotonic in partition duration. For
+1\,s partitions the median recovery is 728\,ms; for 10\,s partitions
+3.39\,s; for 60\,s partitions the distribution is bimodal, with a small
+low-side population near 12\,s and a tight cluster at 49.7\,s. The
+49.7\,s cluster reflects the per-batch HTTP timeout (10\,s) of the
+long-lived \texttt{httpx.AsyncClient} used by the command-to-core
+forwarder: the client retains the stale connection across the
+disconnect/reconnect cycle and times out once per outbound batch on
+resume. The protocol-level claim from this scenario is the monotonicity
+in partition duration, not the absolute recovery number at 60\,s;
+closing the connection pool on partition events would collapse the
+60\,s distribution onto the single-second order of magnitude seen in
+the 1\,s and 10\,s cells.
 
 \begin{table}[t]
 \centering
@@ -143,23 +145,35 @@ voters. The full results are in
 \texttt{paper/data/eval\_metrics\_raft.jsonl}; summary statistics are in
 Table~\ref{tab:baseline}.
 
-Under no partition, the direct Raft leader path is much faster than the
-prototype's field-edit path at queue depth~10: the median is 10.5 ms
-versus 615.9 ms. This is expected because the baseline removes the
-responder outbox and polling interval and commits directly at the leader;
-it is a journal-commit comparison, not a replacement workflow. After a
-60 s isolation of one voter, Raft follower catch-up is also shorter
-(median 4.1 s) than Rescue OIS's command-to-core WAN-recovery drain
-(median 49.6 s), again because the two paths measure different recovery
-mechanisms and the Rescue OIS measurement includes the HTTP-client timeout
-artefact discussed above. The architectural difference that matters for R3
-appears when quorum is lost. With two of three voters isolated, the Raft
-cluster cannot make progress: all 10 write attempts fail throughout the
-partition window. Rescue OIS's command vehicle is by construction
-unaffected by the isolation of responder peers; it commits to its local
-journal regardless of responder-fleet connectivity. This is the trade-off
-encoded in R3: write availability under partition is preserved at the cost
-of automatic write failover.
+We do not present Raft as a workflow-equivalent alternative. The
+responder-outbox plus manual-promotion pattern is structurally different
+from leader-and-followers consensus, and a like-for-like latency
+comparison would require a Raft variant with equivalent client-side
+overheads --- outbox, polling interval, multi-tier forwarding --- which
+we leave to future work. The comparison here isolates a single
+architectural property: write availability under partition. The latency
+cells in Table~\ref{tab:baseline} are reported for context, not as a
+head-to-head claim.
+
+Under no partition, the direct Raft leader path is faster than the
+prototype's end-to-end field-edit path at queue depth~10 (median 10.5\,ms
+versus 615.9\,ms), as expected: the baseline commits directly at the
+leader and does not include the responder outbox or the responder-syncd
+poll interval. After a 60\,s isolation of one voter, Raft follower
+catch-up is also shorter (median 4.1\,s) than the prototype's
+command-to-core WAN-recovery drain (median 49.6\,s, dominated by the
+HTTP-client artefact discussed in Section~\ref{sec:eval-latency}); the
+two paths measure different recovery mechanisms and are not directly
+comparable on absolute time.
+
+The architectural difference that matters for R3 appears when quorum is
+lost. With two of three voters isolated, the Raft cluster cannot make
+progress: all ten write attempts fail throughout the partition window.
+The prototype's command vehicle is by construction unaffected by the
+isolation of responder peers; it commits to its local journal regardless
+of responder-fleet connectivity. This is the trade-off encoded in R3:
+write availability under partition is preserved at the cost of automatic
+write failover.
 
 \begin{table}[t]
 \centering
