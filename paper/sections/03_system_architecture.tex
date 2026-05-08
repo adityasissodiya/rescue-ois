@@ -53,8 +53,39 @@ Field tablets are leaf clients attached to a local vehicle only. They use an enc
 Each vehicle carries a Teltonika RUTX50 router that enforces a five-VLAN segmentation model keyed on a per-vehicle identifier. VLAN~10 (Management, \texttt{/27}) is reserved for device administration. VLAN~20 (Edge Services, \texttt{/27}) hosts the K430 compute node and its containerized services. VLAN~30 (Operational Tablets, \texttt{/26}) carries tablet traffic and permits only outbound HTTPS to the Edge Services zone. VLAN~40 (Sensors, \texttt{/27}) isolates drone feeds and environmental sensors. VLAN~50 (Maintenance, \texttt{/27}) provides technician access. Firewall rules enforce strict zone isolation: tablets reach only the local \texttt{ops-api} endpoint over port~443, and no user VLAN is extended across the Rajant mesh. The mesh operates as a Layer~3 transit fabric on \texttt{10.253.0.0/16}, carrying only application-layer traffic between K430 nodes. This design prevents broadcast storms, limits the attack surface, and ensures that a compromised tablet cannot reach other vehicles or the wider mesh.
 
 \begin{figure}[t]
-  \centering
-  \fbox{\parbox{0.95\columnwidth}{\centering TODO: system topology figure\\Core, command vehicle, responder vehicle, relay, tablets,\\plus mesh, WireGuard, and local VLAN annotations.}}
-  \caption{Planned deployment topology figure for the three-tier architecture.}
-  \label{fig:topology}
+\centering
+\begin{tikzpicture}[
+  node distance=4mm and 6mm,
+  every node/.style={font=\footnotesize},
+  tier/.style={draw, rounded corners=1pt, minimum height=7mm, align=center},
+  core/.style={tier, fill=gray!10, minimum width=42mm},
+  edge/.style={tier, minimum width=22mm},
+  tablet/.style={tier, fill=white, minimum width=14mm, font=\scriptsize, minimum height=5mm},
+  wan/.style={->, >=stealth, semithick},
+  wandash/.style={->, >=stealth, semithick, dashed},
+  mesh/.style={<->, >=stealth, thick, dashed},
+  link/.style={-, semithick}
+]
+
+\node[core] (core) {Regional core\\\scriptsize (master DB, sync API, package publisher)};
+
+\node[edge, below=12mm of core, xshift=-15mm] (cmd) {Command edge\\\scriptsize (journal, forward)};
+\node[edge, below=12mm of core, xshift=15mm]  (resp) {Responder edge\\\scriptsize (cache, outbox)};
+
+\draw[wan]     (cmd)  -- (core) node[midway, left, font=\scriptsize] {WireGuard};
+\draw[wandash] (resp) -- (core) node[midway, right, font=\scriptsize] {(when WAN)};
+\draw[mesh] (cmd) -- (resp) node[midway, above, font=\scriptsize] {Rajant mesh};
+
+\node[tablet, below=8mm of cmd]  (t1) {Tablet};
+\node[tablet, below=8mm of resp] (t2) {Tablet};
+
+\draw[link] (t1) -- (cmd)  node[midway, right, font=\scriptsize] {HTTPS};
+\draw[link] (t2) -- (resp) node[midway, right, font=\scriptsize] {HTTPS};
+
+\end{tikzpicture}
+\caption{Three-tier deployment topology. The regional core hosts master
+data and the sync API; vehicle edges run a command or responder role;
+tablets connect only to their local edge over HTTPS. Mesh transit
+between edges is independent of WAN reachability to the core.}
+\label{fig:topology}
 \end{figure}

@@ -13,7 +13,7 @@ On dispatch, the core prepares an incident-specific package consisting of the ar
 
 \subsection{Field Edit Flow}
 
-The steady-state field edit path proceeds as follows (\cref{fig:sequence}):
+The steady-state field edit path proceeds as follows:
 \begin{enumerate}
   \item A tablet submits an event to its local vehicle API.
   \item The responder node stores the event in a durable outbox with a stable identifier.
@@ -24,13 +24,6 @@ The steady-state field edit path proceeds as follows (\cref{fig:sequence}):
   \item The command node batches committed journal entries upstream to the regional core when WAN connectivity is present.
 \end{enumerate}
 
-\begin{figure}[t]
-  \centering
-  \fbox{\parbox{0.95\columnwidth}{\centering TODO: sequence diagram\\Tablet $\rightarrow$ responder outbox $\rightarrow$ command journal\\$\rightarrow$ responder/tablet fan-out $\rightarrow$ core backhaul}}
-  \caption{Planned sequence diagram for the forward-only field edit flow.}
-  \label{fig:sequence}
-\end{figure}
-
 \subsection{Partition Behavior}
 
 Partition handling is intentionally asymmetric, reflecting the tiered authority model:
@@ -39,13 +32,6 @@ Partition handling is intentionally asymmetric, reflecting the tiered authority 
   \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
   \item If the command vehicle is lost, a responder is promoted manually and becomes the new single writer for the incident.
 \end{itemize}
-
-\begin{figure}[t]
-  \centering
-  \fbox{\parbox{0.95\columnwidth}{\centering TODO: partition state diagram\\Full connectivity, mesh-only, isolated responder, isolated command, promoted responder}}
-  \caption{Planned partition behavior diagram.}
-  \label{fig:partition}
-\end{figure}
 
 \subsection{Consistency Guarantees}
 
