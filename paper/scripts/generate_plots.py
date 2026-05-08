@@ -1,104 +1,80 @@
 #!/usr/bin/env python3
+"""Generate paper figures from paper/data/eval_metrics.jsonl.
+
+Per ADR-0006, this script is the single transformation from measurements
+to figures. It does not embed default values; if the data file is missing
+or empty, it exits non-zero.
+"""
+
 from __future__ import annotations
 
 import json
-import statistics
 import sys
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib
 
-ERROR_NO_VALID = (
-    "No valid measurements in eval_metrics.jsonl. "
-    "Run scripts/evaluate-pilot.py first."
-)
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
-def load_records(metrics_path: Path) -> list[dict]:
-    if not metrics_path.exists():
-        print(ERROR_NO_VALID, file=sys.stderr)
-        raise SystemExit(1)
-
-    records: list[dict] = []
-    with metrics_path.open("r", encoding="utf-8") as handle:
-        for line_number, line in enumerate(handle, start=1):
-            stripped = line.strip()
-            if not stripped:
-                continue
-            try:
-                records.append(json.loads(stripped))
-            except json.JSONDecodeError as exc:
-                print(
-                    f"Invalid JSON in {metrics_path} at line {line_number}: {exc}",
-                    file=sys.stderr,
-                )
-                raise SystemExit(1) from exc
-
-    if not records:
-        print(ERROR_NO_VALID, file=sys.stderr)
-        raise SystemExit(1)
-    return records
+DATA = Path("paper/data/eval_metrics.jsonl")
+OUT = Path("paper/figures")
+OUT.mkdir(exist_ok=True)
 
 
-def valid_measurements(records: list[dict]) -> list[dict]:
-    valid = []
+def load_records():
+    if not DATA.exists() or DATA.stat().st_size == 0:
+        sys.exit(f"ERROR: {DATA} missing or empty. Run scripts/evaluate-pilot.py first.")
+    with DATA.open(encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle]
+
+
+def fig_recovery(records):
+    by_dur = defaultdict(list)
     for record in records:
-        value = record.get("value_ms")
-        if isinstance(value, int | float):
-            valid.append(record)
-    if not valid:
-        print(ERROR_NO_VALID, file=sys.stderr)
-        raise SystemExit(1)
-    return valid
+        if record.get("scenario") != "wan_recovery":
+            continue
+        if record.get("value_ms") is None:
+            continue
+        dur = record["scenario_params"].get("partition_s")
+        by_dur[dur].append(record["value_ms"])
+    if not by_dur:
+        sys.exit("ERROR: no wan_recovery records with non-null value_ms")
 
+    durations = sorted(by_dur.keys())
+    data = [by_dur[duration] for duration in durations]
+    n_per = [len(duration_data) for duration_data in data]
 
-def generate_plots() -> None:
-    root = repo_root()
-    metrics_path = root / "eval_metrics.jsonl"
-    records = load_records(metrics_path)
-    valid = valid_measurements(records)
-
-    if len(valid) < 3:
-        print(
-            "Fewer than three valid measurements in eval_metrics.jsonl; "
-            "not writing paper/figures/fig_evaluation.pdf because the paper "
-            "does not currently embed numerical results."
-        )
-        return
-
-    grouped: dict[str, list[float]] = defaultdict(list)
-    for record in valid:
-        grouped[str(record["metric_name"])].append(float(record["value_ms"]))
-
-    metric_names = sorted(grouped)
-    medians = [statistics.median(grouped[name]) for name in metric_names]
-    latest_timestamp = max(str(record.get("timestamp_iso", "")) for record in valid)
-
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(metric_names, medians, color="#4C72B0")
-    ax.set_ylabel("Latency (ms)")
-    ax.set_title("Evaluation Measurements")
-    ax.tick_params(axis="x", rotation=20)
-    ax.text(
-        0.01,
-        -0.24,
-        f"Run timestamp: {latest_timestamp} | valid records: {len(valid)}",
-        transform=ax.transAxes,
-        fontsize=8,
+    fig, ax = plt.subplots(figsize=(3.4, 2.4))
+    ax.boxplot(
+        data,
+        labels=[f"{duration}s" for duration in durations],
+        widths=0.5,
+        medianprops={"color": "black", "linewidth": 1.2},
+        boxprops={"linewidth": 0.8},
+        whiskerprops={"linewidth": 0.8},
+        capprops={"linewidth": 0.8},
+        flierprops={"marker": "+", "markersize": 4, "markeredgecolor": "black"},
     )
+    ax.set_xlabel("Partition duration")
+    ax.set_ylabel("Recovery time (ms, log scale)")
+    ax.set_yscale("log")
+    ax.grid(axis="y", linestyle=":", linewidth=0.5, alpha=0.6)
+    ax.set_axisbelow(True)
+    for i, n in enumerate(n_per):
+        ax.text(i + 1, ax.get_ylim()[0] * 1.5, f"n={n}", ha="center", fontsize=7)
 
-    figure_path = root / "paper" / "figures" / "fig_evaluation.pdf"
-    figure_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(figure_path)
-    print(f"Plot saved as {figure_path}")
+    fig.tight_layout(pad=0.3)
+    fig.savefig(OUT / "fig_recovery.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
+def main():
+    records = load_records()
+    fig_recovery(records)
+    print(f"figures written to {OUT}/")
 
 
 if __name__ == "__main__":
-    generate_plots()
+    main()

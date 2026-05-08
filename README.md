@@ -1,208 +1,236 @@
-# 🚁 Rescue OIS
+# Rescue OIS
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Build Status](https://github.com/aditya-sissodiya/rescue-ois/actions/workflows/ci.yml/badge.svg)](https://github.com/aditya-sissodiya/rescue-ois/actions)
+Rescue OIS is a research prototype for an offline-first operational information
+system for rescue-service incidents. It studies how authority-bearing incident
+data can be synchronized across intermittently connected regional, vehicle, and
+tablet tiers without turning field partitions into multi-writer conflicts.
 
-> **Resilient Operational Information System** for Swedish rescue services — a map-centric, offline-first digital platform replacing paper-based incident planning.
+The core design rule is:
 
----
+> Core owns master data. The command vehicle owns live incident state.
+> Responders and tablets only queue and forward field edits.
 
-## 🏗️ Architecture Overview
-The system utilizes a robust three-tier architecture specifically designed for unstable network conditions:
-- 🏢 **Regional Core**: Source of truth handling master data and map publication.
-- 🚒 **Vehicle Edge Nodes**: Installed per-vehicle (`K430` + `RUTX50` + `Rajant Hawk`). These provide local services and host the live incident journal for offline operations.
-- 📱 **Field Tablets**: Ruggedized operator tablets that communicate exclusively with their local vehicle edge node.
+This repository contains the prototype services, local Docker emulation,
+formal safety models, evaluation harnesses, a Raft comparison baseline, Android
+tablet scaffold, and the LaTeX paper sources.
 
-📖 *See [docs/architecture/README.md](docs/architecture/README.md) for the architecture overview, network topology, sync protocol, and security model.*
+## Status
 
----
+This is a research and submission repository, not a production deployment. The
+local emulation exercises the protocol and measurements used by the paper, but
+the full operational stack still requires production hardening around mTLS,
+device management, deployment automation, physical mesh testing, and
+field-validation procedures.
 
-## 🚀 Quickstarts 
+For NCA-style double-blind submission work, do not assume the whole repository
+is an anonymous artefact. Some planning and submission-side documents under the
+root and `docs/` may contain author-side information. Re-run the anonymisation
+grep for any bundle before sharing it with reviewers.
 
-### 🖥️ Local Development Emulation
-To quickly boot up a full environment locally (containing 1 Core, 1 Edge Command, and 1 Edge Responder):
+## Architecture
 
-```bash
-./scripts/dev-up.sh                 # Start core, command edge, and 1 responder
-RESPONDERS=3 ./scripts/dev-up.sh    # Start core, command edge, and 3 responders
-./scripts/run-migrations.sh         # Apply SQL migrations
-./scripts/run-migrations.sh edge    # Apply edge SQL migrations
-./scripts/dev-down.sh               # Tear down all compose projects
-```
+Rescue OIS uses three tiers:
 
-The local emulation uses the external Docker network `rescue-ois-net`. Compose
-projects get project-scoped DNS aliases such as `sync-api.core`,
-`syncd.edge-cmd`, and `ops-api.edge-resp-1` for cross-tier prototype traffic.
+- `Regional Core`: authoritative master-data platform, publication pipeline,
+  tile/package serving, sync API, and audit receiver.
+- `Vehicle Edge`: per-vehicle local services. One edge acts as command and
+  sequences the incident journal; responders cache data and forward queued
+  field edits.
+- `Field Tablet`: Android leaf client that talks only to the local vehicle
+  edge over HTTPS and keeps a local offline store.
 
-### 🔬 Prototype Validation Harness
-To run the structural validation harness used by the paper:
+The mesh is treated as transit only. User VLANs are not stretched across
+vehicles, and live incident-state writes are sequenced by exactly one command
+node at a time.
+
+See [docs/architecture/README.md](docs/architecture/README.md) for the detailed
+architecture overview, network model, security model, and protocol write-up.
+
+## Repository Layout
+
+| Path | Purpose |
+| --- | --- |
+| `core/` | Regional services: PostGIS, Martin, GeoServer, Nginx, `sync-api`, `audit-api`, `feed-importer`, and `publisher`. |
+| `edge/` | Vehicle services: local PostGIS, `ops-api`, `syncd`, package cache, audit forwarder, Nginx, WireGuard and firewall templates. |
+| `tablet/` | Kotlin / Jetpack Compose / MapLibre Android tablet scaffold. |
+| `formal/` | TLA+ model and Python Hypothesis state-machine tests for the protocol safety properties. |
+| `baseline-raft/` | Three-voter `hashicorp/raft` baseline used for the paper comparison. |
+| `scripts/` | Local emulation, migration, partition injection, promotion, and evaluation scripts. |
+| `paper/` | IEEE/NCA paper source, bibliography, generated tables, figures, and measurement data. |
+| `docs/` | Architecture, deployment notes, runbooks, ADRs, and submission-side checklist. |
+| `infra/` | Ansible, router, and mesh-device configuration templates. |
+| `ui_kits/`, `preview/` | Conceptual design-system and tablet UI preview artefacts. |
+
+## Prerequisites
+
+The full repository spans several toolchains. Install only the pieces needed for
+the task you are running.
+
+- Docker Engine with Docker Compose v2
+- Python 3.11+ for evaluation scripts; `httpx` is required for the harnesses
+  and `matplotlib` for plot generation
+- LaTeX with `latexmk`, `pdflatex`, and BibTeX for the paper
+- Go 1.21+ for the Raft baseline
+- Java plus `tla2tools.jar` for TLA+ model checking
+- Android Studio or Gradle/JDK for the tablet app
+
+## Local Emulation
+
+Start one regional core, one command edge, and one responder edge:
+
 ```bash
 ./scripts/dev-up.sh
+./scripts/run-migrations.sh
+./scripts/run-migrations.sh edge
+```
+
+Start with more responder vehicles:
+
+```bash
+RESPONDERS=3 ./scripts/dev-up.sh
+./scripts/run-migrations.sh
+./scripts/run-migrations.sh edge
+```
+
+Default host ports used by the emulation include:
+
+- Core `sync-api`: `http://127.0.0.1:18000`
+- Command edge `ops-api`: `http://127.0.0.1:18080`
+- Command edge `syncd`: `http://127.0.0.1:18081`
+- First responder `ops-api`: `http://127.0.0.1:18101`
+- First responder `syncd`: `http://127.0.0.1:18201`
+
+Stop and remove the local emulation:
+
+```bash
+./scripts/dev-down.sh
+```
+
+## Evaluation Harness
+
+The main prototype evaluation drives bootstrap latency, field-edit
+propagation, WAN recovery, throughput, and idempotency scenarios against the
+running Docker emulation.
+
+```bash
+./scripts/dev-up.sh
+./scripts/run-migrations.sh
+./scripts/run-migrations.sh edge
 python3 scripts/evaluate-pilot.py
 python3 paper/scripts/generate_plots.py
+python3 paper/scripts/generate_tables.py
 ```
-The harness writes `eval_metrics.jsonl`. Plot generation only emits a figure when real non-null measurements exist; the current paper does not embed numerical performance results.
 
----
+The canonical output is `paper/data/eval_metrics.jsonl`. Generated paper
+outputs include `paper/figures/fig_recovery.pdf` and
+`paper/tables/tab_evaluation.tex`.
 
-## 📁 Repository Layout
+Do not hand-edit measured data files or generated tables. Rerun the harnesses
+and generator scripts instead.
 
-| Directory   | Description |
-| ----------- | ----------- |
-| `core/`     | Regional services *(PostGIS, Martin, GeoServer, Nginx, sync-api, audit-api, feed-importer, publisher)* |
-| `edge/`     | Vehicle K430 services *(PostGIS, Martin, ops-api, syncd, package-cache, audit-forwarder)* |
-| `tablet/`   | Kotlin / Jetpack Compose / MapLibre Native Android application |
-| `infra/`    | Ansible playbooks, RUTX50 templates, Rajant notes |
-| `docs/`     | Architecture, deployment, runbooks, and ADR tracking |
-| `paper/`    | LaTeX files, research scripts, and generated figures |
-| `scripts/`  | Developer convenience & test runner scripts |
+## Raft Baseline
 
----
+The Raft baseline is a deliberately small comparison target for the paper. It
+mirrors only the journal-commit path and omits the Rescue OIS outbox, audit,
+promotion, mTLS, tile, package, and durable-storage machinery.
 
-## 🤝 Contributing & License
-
-Open a pull request following the template in `.github/pull_request_template.md`.
-
-This software is released under the **Apache License 2.0** — see [LICENSE](LICENSE).
-
-# Tiered Sync — Design System
-
-## Overview
-
-This design system covers two related artifacts derived from a research project on offline-first incident information management for Swedish rescue services:
-
-1. **The ISCRAM Paper** — a two-column academic manuscript targeting ISCRAM 2027 (Information Systems for Crisis Response and Management). LaTeX-based, using `lmodern` (Latin Modern) fonts and a standard academic typographic register.
-
-2. **The Tiered Sync System UI** — a conceptual design for the three-tier field system described in the paper: a regional core, vehicle edge nodes, and field tablets used by Swedish rescue services (räddningstjänst) at incident scenes. Since no production UI codebase was provided, this design system proposes a coherent visual language grounded in Swedish public safety conventions and field-use ergonomics.
-
-## Sources
-
-- **Codebase:** `paper/` (mounted via File System Access API) — LaTeX paper scaffold with full section stubs, bibliography seed, and figure/table placeholders
-- **No Figma links provided**
-- **No production app codebase provided** — UI kit is a conceptual proposal
-
----
-
-## CONTENT FUNDAMENTALS
-
-### Voice and Tone
-The paper is written in **third-person academic register** — impersonal, precise, and direct. Sentences are declarative and often short. Hedging is present but not excessive; claims are scoped explicitly ("in this domain", "for this deployment scale"). There is no marketing language, no first person "I" or "we" outside of standard academic usage.
-
-**Copy conventions:**
-- Casing: Sentence case for headings and labels. Technical terms are not title-cased unless they are proper nouns (e.g. "WireGuard", "PostgreSQL/PostGIS").
-- No emoji anywhere.
-- Abbreviations spelled out on first use: WAN, CRDT, VLAN, LTE, MSB, RAKEL.
-- Numbers: spelled out below ten; numeral form above.
-- Swedish terms appear where operationally exact (e.g. "räddningstjänst"), always italicized on first use.
-
-**UI copy conventions (tablet app):**
-- Extremely terse — labels, not sentences. "Command vehicle", "Outbox (3)", "Sync pending".
-- Status language is neutral and operational: "Partition detected", "Promoting to command", "Edit queued".
-- No softening language. No "Oops!" or friendly error copy. Rescue workers need unambiguous states.
-- All caps used only for status badges (OFFLINE, LIVE, QUEUED).
-
----
-
-## VISUAL FOUNDATIONS
-
-### Colors
-Two palettes in play:
-
-**Paper palette:** Monochrome academic. Near-black body text (#1a1a1a on white). Hyperlinks suppressed (hidelinks). Tables use booktabs rules — no vertical lines, light gray mid-rules. Figures are boxed placeholders.
-
-**Tablet UI palette:** Dark-mode-first, high-contrast, field-readable.
-- Background: deep charcoal `#0f1117`
-- Surface: `#1c2030`
-- Card/panel: `#252b3b`
-- Border: `#2e3650`
-- Primary accent: Swedish rescue orange `#f5681e` (maps to räddningstjänst red-orange livery)
-- Alert/critical: `#e8302a`
-- Info/authority: Swedish MSB blue `#0057a8`
-- Success/safe: `#2db67d`
-- Warning: `#f5b21e`
-- Text primary: `#f0f2f7`
-- Text secondary: `#8a94b0`
-- Text muted: `#4a5168`
-
-### Typography
-- **Paper:** Latin Modern (lmodern, Computer Modern family). Closest Google Fonts substitute: **Source Serif 4** (used in preview cards). Monospace: Latin Modern Mono → **JetBrains Mono**.
-- **Tablet UI:** **IBM Plex Sans** for all UI. Compact, authoritative, legible at small sizes and in bright outdoor light. Monospace data: **JetBrains Mono**.
-
-### Spacing & Layout
-- Paper: 1.65 cm margins, 0.7 cm column gutter, 10pt base type, tight list spacing (2pt item/top sep).
-- Tablet: 8px base unit. Comfortable 44px minimum touch targets. Dense but not cramped — information is safety-critical.
-
-### Backgrounds & Surfaces
-- Paper: white page only.
-- Tablet: layered dark surfaces. No gradients except for a subtle top-bar protection vignette. No decorative imagery. Maps are the primary "background" in operational views.
-
-### Animation & Interaction
-- Paper: N/A (static document).
-- Tablet: minimal animation. Status transitions use 150ms opacity fades. Sync indicator pulses at 1s interval. No bouncy or playful easing. `ease-in-out` or `linear` only.
-
-### Corner Radii
-- Tablet: 4px for compact chips/badges, 8px for cards and panels, 12px for modals. No pill shapes except status badges.
-
-### Shadows & Elevation
-- Tablet: `0 1px 3px rgba(0,0,0,0.5)` for cards, `0 4px 16px rgba(0,0,0,0.6)` for modals and overlays. Elevation expressed through shadow darkness, not blur radius.
-
-### Iconography
-See ICONOGRAPHY section below.
-
-### Cards
-Cards have a `#252b3b` background, `1px solid #2e3650` border, 8px radius, and 12px/16px padding. No colored left-border accents. Critical state cards add a top border `2px solid #e8302a`.
-
-### Hover / Press States
-- Hover: background lightens by one surface step (e.g. `#252b3b` → `#2e3650`).
-- Press: slight scale `0.98` + background darkens slightly. No color change for standard actions.
-- Destructive actions: red tint on hover (`rgba(232,48,42,0.15)`).
-
-### Color vibe of imagery
-Maps (OSM/vector tile based) are the main imagery. Style: dark basemap, muted terrain, high-contrast road labels. Photos if any: desaturated, functional (site photos for pre-incident plans).
-
----
-
-## ICONOGRAPHY
-
-No icon font or sprite sheet is bundled with the paper codebase. The tablet UI design system uses **Lucide Icons** (CDN: `https://unpkg.com/lucide@latest`) — stroke-based, 1.5px weight, 24px grid. This is a **proposed substitution**; the real system would likely use a similar lightweight stroke icon set.
-
-Key icons in use:
-- `map-pin` — incident location
-- `radio` — mesh/comms status
-- `wifi-off` — partition / offline
-- `shield` — command authority
-- `truck` — vehicle node
-- `tablet-smartphone` — field tablet
-- `clock` — sync timestamp
-- `send` — outbox submit
-- `arrow-up-from-line` — forward-only replication
-- `alert-triangle` — warning/critical state
-- `check-circle-2` — confirmed/committed
-
-No emoji used. No Unicode chars as icons.
-
----
-
-## File Index
-
+```bash
+docker network inspect rescue-ois-net >/dev/null 2>&1 || docker network create rescue-ois-net
+docker compose -p baseline-raft -f baseline-raft/docker-compose.yml up -d --build
+(cd baseline-raft && go build ./...)
+python3 scripts/evaluate-raft-baseline.py
+python3 paper/scripts/generate_baseline_table.py
+docker compose -p baseline-raft -f baseline-raft/docker-compose.yml down
 ```
-README.md                   This file
-SKILL.md                    Agent skill definition
-colors_and_type.css         CSS custom properties for all colors, type, spacing
-assets/                     Logos and visual assets
-preview/                    Design system card previews (registered in Design System tab)
-  colors_base.html
-  colors_semantic.html
-  type_paper.html
-  type_tablet.html
-  spacing_tokens.html
-  components_badges.html
-  components_buttons.html
-  components_cards.html
-  components_status.html
-  brand_overview.html
-ui_kits/
-  tablet/                   Field tablet UI kit (conceptual)
-    index.html
-    README.md
+
+Run the evaluator and table generator from the repository root. The baseline
+HTTP APIs are exposed on `18001`, `18002`, and `18003`.
+
+The canonical output is `paper/data/eval_metrics_raft.jsonl`, with the
+comparison table generated at `paper/tables/tab_baseline.tex`.
+
+## Formal Verification
+
+The adopted promotion protocol is checked in TLA+ and mirrored by Python
+property tests.
+
+Python state-machine tests:
+
+```bash
+cd formal/python
+pip install -e .
+pytest
 ```
+
+Optional real-stack property tests:
+
+```bash
+./scripts/dev-up.sh
+cd formal/python
+RESCUE_OIS_REAL_STACK=1 pytest tests/test_against_real.py
+```
+
+TLA+ model checking:
+
+```bash
+cd formal/tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_strict.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak_journal.cfg RescueOIS.tla
+```
+
+The strict configuration is expected to verify the adopted safety invariants.
+The weak configurations are expected to produce counterexamples that show why
+manual, authority-preserving promotion is required.
+
+## Paper Build
+
+Build the paper:
+
+```bash
+cd paper
+latexmk -pdf -interaction=nonstopmode main.tex
+```
+
+Useful pre-submission checks from the repository root:
+
+```bash
+grep -c "Citation .* undefined" paper/main.log
+grep -c "Reference .* undefined" paper/main.log
+grep -c "% verify" paper/refs.bib
+pdfinfo paper/main.pdf
+```
+
+Before any double-blind submission, also run an anonymisation scan over the
+submitted paper and artefact tree, then inspect the PDF manually.
+
+## Tablet App
+
+Build and test the Android tablet scaffold:
+
+```bash
+cd tablet
+./gradlew assembleDebug
+./gradlew test
+```
+
+The tablet app is intended to talk only to its local vehicle edge endpoint and
+to render operational maps from local/offline tile data.
+
+## Operational Documentation
+
+- [docs/architecture/README.md](docs/architecture/README.md) - three-tier
+  architecture overview
+- [docs/architecture/sync-protocol.md](docs/architecture/sync-protocol.md) -
+  protocol flows
+- [docs/architecture/network-topology.md](docs/architecture/network-topology.md)
+  - IP plan, VLANs, and firewall model
+- [docs/architecture/security-model.md](docs/architecture/security-model.md) -
+  security boundaries and identity model
+- [docs/runbooks/](docs/runbooks/) - incident bootstrap, command failover, and
+  device revocation procedures
+- [docs/adr/](docs/adr/) - architecture decision records
+
+## License
+
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
