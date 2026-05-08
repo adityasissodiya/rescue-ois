@@ -11,5 +11,4 @@
 - [ ] Topic tags: Distributed Systems & Platforms; Cloud, Edge, Computing Continuum; Mobile Ad-Hoc Networks (if multi-tag allowed).
 - [ ] Authors entered in EDAS in submission order: Aditya Sissodiya, Eric Chiquito, Johan Kristiansson, Ulf Bodin.
 - [ ] Affiliations entered (camera-ready only, NOT for double-blind submission).
-- [ ] Anonymous artefact mirror URL ready (footnote in Section VI).
 - [ ] Submission completed >=48 hours before deadline (target: Wed 17 Jun 2026).
