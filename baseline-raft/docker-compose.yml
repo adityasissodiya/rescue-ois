@@ -1,0 +1,48 @@
+networks:
+  default:
+    name: rescue-ois-net
+    external: true
+
+services:
+  raftd-1:
+    build: .
+    ports:
+      - "18001:8000"
+    environment:
+      NODE_ID: raftd-1
+      RAFT_BIND: "0.0.0.0:7000"
+      RAFT_ADVERTISE: "raftd-1:7000"
+      HTTP_ADDR: "0.0.0.0:8000"
+      RAFT_BOOTSTRAP: "true"
+      RAFT_PEERS: "raftd-2=raftd-2:7000,raftd-3=raftd-3:7000"
+    networks:
+      default:
+        aliases: [raftd-1, raftd.baseline-1]
+
+  raftd-2:
+    build: .
+    ports:
+      - "18002:8000"
+    environment:
+      NODE_ID: raftd-2
+      RAFT_BIND: "0.0.0.0:7000"
+      RAFT_ADVERTISE: "raftd-2:7000"
+      HTTP_ADDR: "0.0.0.0:8000"
+      RAFT_PEERS: "raftd-1=raftd-1:7000,raftd-3=raftd-3:7000"
+    networks:
+      default:
+        aliases: [raftd-2, raftd.baseline-2]
+
+  raftd-3:
+    build: .
+    ports:
+      - "18003:8000"
+    environment:
+      NODE_ID: raftd-3
+      RAFT_BIND: "0.0.0.0:7000"
+      RAFT_ADVERTISE: "raftd-3:7000"
+      HTTP_ADDR: "0.0.0.0:8000"
+      RAFT_PEERS: "raftd-1=raftd-1:7000,raftd-2=raftd-2:7000"
+    networks:
+      default:
+        aliases: [raftd-3, raftd.baseline-3]
