@@ -1,35 +1,38 @@
 \section{Implementation}
 \label{sec:implementation}
 
-The system is implemented as a set of containerized microservices (core and edge tiers) and a native Android application (tablet tier). All Python services target Python~3.12 and use FastAPI with Pydantic models, asyncpg for database access, and uvicorn as the ASGI server. Each service exposes a \texttt{GET /health} endpoint. Database schemas are managed through numbered, forward-only plain SQL migrations. Infrastructure is provisioned with Ansible playbooks and role-based templates for PostgreSQL, Martin, Nginx, and WireGuard.
+The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}.
 
-\begin{table}[t]
+The evaluated path is intentionally narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
+
+\begin{table*}[t]
   \centering
-  \caption{Implementation stack summary.}
+  \caption{Prototype status and evaluation coverage.}
   \label{tab:implementation}
-  \begin{tabularx}{\columnwidth}{@{}lX@{}}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{@{}p{0.20\textwidth} X p{0.18\textwidth}@{}}
     \toprule
-    Component & Stack \\
+    \textbf{Component} & \textbf{Repository status} & \textbf{Evaluated?} \\
     \midrule
-    Core DB & PostgreSQL~16 + PostGIS~3.5 (SRID~3006). Schemas: \texttt{staging}, \texttt{master}, \texttt{publication}, \texttt{audit}. GiST indexes on all geometry columns. \\
-    Core services & \texttt{sync-api} (baseline sync, bootstrap bundles), \texttt{audit-api} (centralized audit ingest/query), \texttt{publisher} (PMTiles + attachment packaging via tippecanoe), \texttt{feed-importer} (SMHI, Trafikverket, Lantm\"ateriet, Naturv\r{a}rdsverket). \\
-    Tile serving & Martin (vector/raster, PMTiles native) + GeoServer~2.28 (WMS/WFS). \\
-    Edge services & \texttt{ops-api} (tablet-facing incident API), \texttt{syncd} (pull, push, accept, forward flows), \texttt{audit-forwarder} (batch forwarding to core), \texttt{package-cache} (PMTiles/attachment caching with SHA-256 verification). \\
-    Edge DB & PostgreSQL~16 + PostGIS~3.5. Schemas: \texttt{cache}, \texttt{incident} (journal + materialized state), \texttt{outbox} (device\_outbox with forwarded\_at index). \\
-    Tablet & Kotlin, Jetpack Compose, Room~2.6.1 (SQLite), MapLibre Native~11.5.2, Retrofit~2.11.0 + OkHttp~4.12.0. Min SDK~29, target SDK~35. \\
-    Network & Rajant Hawk (mesh, L3 transit on \texttt{10.253.0.0/16}), Teltonika RUTX50 (5-VLAN per vehicle, nftables firewall), WireGuard overlay (\texttt{10.252.0.0/24}). \\
-    Proxy & Nginx~1.27 (JSON access logs, mTLS termination, client cert DN extraction). \\
-    Provisioning & Ansible roles for PostgreSQL, Martin, Nginx, WireGuard. Docker Compose~3.9 per tier. \\
+    Core/edge Docker services & Compose stacks and Python services for \texttt{sync-api}, \texttt{ops-api}, \texttt{syncd}, and PostgreSQL. & Yes, in plain-HTTP emulation. \\
+    Bootstrap path & Synthetic AOI/manifest response in \texttt{sync-api}; not the full package publisher. & Yes. \\
+    Responder outbox forwarding & Local outbox insert, polling push, command accept, and forwarded marking implemented for prototype path. & Yes, without crash injection. \\
+    Command sequencing/idempotency & Transactional \texttt{event\_seq} allocation and unique \texttt{client\_event\_id} indexes. & Yes, replay-tested. \\
+    Core backfill & Command journal forwarder and idempotent core ingest route. & Yes, for WAN recovery. \\
+    Logical replication/packages & Schemas, publisher, and cache scaffolding exist; full package pipeline not exercised. & No. \\
+    mTLS/WireGuard/Rajant & Nginx and WireGuard templates plus Rajant/RUTX50 design notes. & No. \\
+    Android tablet & Kotlin/Compose/Room/MapLibre scaffold and unit tests; local persistence incomplete. & No; Python stub used. \\
+    Promotion/fencing & Interactive promotion script and formal model; no durable epoch/fencing implementation in services. & Model only. \\
+    Audit/provisioning & Audit services and Ansible roles are partial scaffolds. & No end-to-end validation. \\
     \bottomrule
   \end{tabularx}
-\end{table}
+\end{table*}
 
-The core tier comprises four Python microservices behind an Nginx reverse proxy. The \texttt{sync-api} serves baseline synchronization endpoints and incident bootstrap bundles. The \texttt{publisher} stages geodata through validation, promotes it to master tables, builds PMTiles via tippecanoe, bundles attachments into \texttt{tar.zst} archives, and atomically swaps signed manifests into a publication directory. The \texttt{feed-importer} ingests external data from four Swedish authorities. The \texttt{audit-api} provides batch ingest and query for forwarded audit events.
+\begin{figure*}[t]
+\centering
+\input{figures/fig_coverage_map}
+\caption{Coverage map for the prototype and evaluation. Marked cells distinguish target design, implemented or scaffolded artifacts, behavior exercised by the reported Docker/Python experiments, model-only evidence, and components not measured here. Physical mesh, VPN, mTLS, Android client behavior, full crash injection, and durable epoch rejection are not evaluated in this paper.}
+\label{fig:coverage-map}
+\end{figure*}
 
-Each edge node runs a Docker Compose stack with PostgreSQL, Martin, Nginx, and three application services. The \texttt{ops-api} is the tablet-facing interface: it serves incident bootstraps, accepts field edits, proxies tiles, and streams attachment files. The \texttt{syncd} daemon implements four synchronization flows: pulling master data from core (Flow~1), pushing outbox entries from responder to command (Flow~4), accepting and sequencing events on the command node (Flow~4, server side), and forwarding the incident journal to core (Flow~5). The \texttt{audit-forwarder} batches local audit events and posts them to the core audit endpoint with exponential backoff on transient failures.
-
-The tablet application is a single-activity Kotlin Android app. It uses Retrofit for HTTPS communication with the local vehicle \texttt{ops-api}, Room for local structured data, and MapLibre Native for offline map rendering from locally cached PMTiles. A \texttt{SyncManager} orchestrates baseline bootstrap, field edit submission with idempotency keys, and incremental event polling. The application enforces \texttt{usesCleartextTraffic=false} and disables backup.
-
-Authentication follows a layered model. WireGuard provides network-level encryption between vehicles and core. Nginx terminates mTLS and extracts client certificate subjects, which are passed as headers to backend services. Tablets authenticate to their local vehicle via mTLS with certificates distributed through Knox Manage MDM. No parallel identity system is introduced; the deployment consumes the authority's existing organizational CA and IdP.
-
-\paragraph{Implementation status.} At the time of writing, the system is a working scaffold rather than a complete implementation. Core PostgreSQL logical replication, end-to-end mTLS enforcement, and the Ansible provisioning roles are partially implemented; the tablet's Room database schema and DAO layer are in active development; \texttt{syncd} accept-and-sequence behaviour, idempotency, and audit forwarding are scaffolded but not yet validated under crash-injection testing. The validation reported in \cref{sec:validation} therefore exercises the protocol on the current emulation, not the full production stack.
+Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers. Figure~\ref{fig:coverage-map} summarizes the same evidence boundary for the prototype as a whole.

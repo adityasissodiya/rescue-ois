@@ -9,16 +9,23 @@ All measurements reported in this section come from a Docker Compose
 emulation that instantiates one regional core, one command-role edge node,
 and three responder-role edge nodes as separate Compose projects sharing a
 single Docker bridge network. The emulation does not include the Rajant mesh
-radio link, the WireGuard overlay, mTLS termination at Nginx, or real-world
-mobile network conditions; container-to-container traffic runs over plain
-HTTP within the shared bridge network. Synthetic field events are submitted
-through a Python tablet stub at configurable rates, and partitions are
+radio link, the WireGuard overlay, mTLS termination at Nginx, Android
+tablets, or real-world mobile network conditions; container-to-container
+traffic runs over plain HTTP within the shared bridge network. Synthetic
+field events are submitted through a Python tablet stub. WAN partitions are
 injected by disconnecting and re-attaching containers from the bridge
-network with the original DNS aliases preserved. Each scenario cell repeats
-$N=30$ times unless otherwise noted; we report median and 95th-percentile
-values. The complete record set (365 rows across six scenarios) is bundled
-with the artefact in
-\texttt{paper/data/eval\_metrics.jsonl}.
+network with the original DNS aliases preserved. Each measured scenario cell
+repeats $N=30$ times unless otherwise noted; we report median and
+95th-percentile values.
+
+The primary metrics file contains 390 records:
+120 bootstrap-latency records, 90 field-edit propagation records, 90
+WAN-recovery records, 30 throughput records, 30 duplicate-replay records,
+and 30 explicit ``skipped'' command-promotion records. The Raft metrics file
+contains 160 measured baseline records. The harness records scenario
+parameters, timestamps, and outcomes, but not host CPU/RAM, operating-system
+release, Docker version, or TLS/VPN settings; this limits independent
+reproduction of absolute latency values.
 
 \subsection{Sync Protocol Latency and Recovery}
 \label{sec:eval-latency}
@@ -29,29 +36,43 @@ command journal, and recovery to the regional core after a WAN partition.
 Summary statistics are in Table~\ref{tab:evaluation}; the recovery
 distribution is plotted in Figure~\ref{fig:recovery}.
 
-Bootstrap latency scales sub-linearly with AOI complexity: the median rises
-from 4.2 ms at 10 polygons to 10.5 ms at 1000 polygons, dominated by
-polygon serialisation rather than database access. Field-edit propagation,
-measuring the path from \texttt{POST /api/events} on the responder to a
-committed row in \texttt{incident.journal} on the command edge, is
-approximately constant at queue depth $\le 10$ (median $\approx 616$ ms)
-and rises to 914 ms at queue depth 100, reflecting the 250 ms
-responder-syncd poll interval compounded with batch processing on the
-command side.
+Bootstrap latency in this emulation remains below 20\,ms at the 95th
+percentile across the tested AOI sizes. The medians are non-monotonic
+(7.24, 3.76, 2.83, and 9.88\,ms for 10, 50, 200, and 1000 polygons), so
+these runs should not be interpreted as a scaling law; fixed HTTP and
+serialization overheads dominate this synthetic bootstrap path.
 
-Recovery from a WAN partition is monotonic in partition duration. For
-1\,s partitions the median recovery is 728\,ms; for 10\,s partitions
-3.39\,s; for 60\,s partitions the distribution is bimodal, with a small
-low-side population near 12\,s and a tight cluster at 49.7\,s. The
-49.7\,s cluster reflects the per-batch HTTP timeout (10\,s) of the
-long-lived \texttt{httpx.AsyncClient} used by the command-to-core
-forwarder: the client retains the stale connection across the
-disconnect/reconnect cycle and times out once per outbound batch on
-resume. The protocol-level claim from this scenario is the monotonicity
-in partition duration, not the absolute recovery number at 60\,s;
-closing the connection pool on partition events would collapse the
-60\,s distribution onto the single-second order of magnitude seen in
-the 1\,s and 10\,s cells.
+Field-edit propagation measures from the start of one or more
+\texttt{POST /api/events} calls against the responder API until the command
+database contains the expected rows in \texttt{incident.journal}. It
+therefore includes responder API handling, local outbox insertion,
+responder \texttt{syncd} polling, command-side accept-and-sequence work, and
+database commit. It does not include Android local enqueue, tablet
+acknowledgement UI, materialized-view fan-out back to all responders, or
+core backhaul. The result is approximately constant at queue depth $\le 10$
+(median $\approx 947$ ms) and rises to 1.22\,s at queue depth 100,
+reflecting the 250 ms responder-syncd poll interval, batch processing on
+the command side, and a per-iteration TCP setup cost.
+
+The WAN-recovery scenario, scoped in Figure~\ref{fig:partition-timeline},
+isolates the command edge from the regional core and measures how long
+committed command-journal rows take to appear in the core after the WAN
+link is restored. It does not exercise responder isolation from command,
+command isolation from responders, process crashes, or container restarts.
+For 1\,s partitions the median recovery is 2.07\,s; for 10\,s partitions
+5.79\,s; for 60\,s partitions 706\,ms (p95 2.73\,s). The non-monotonic
+shape reflects implementation timers rather than partition duration alone:
+the 10\,s cell pays the configured asyncpg \texttt{command\_timeout}, while
+the 60\,s cell usually has discarded the broken connection before the link
+heals. The protocol-level claim is therefore an empirical bound for this
+implementation configuration, not a general network-recovery law.
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_partition_timeline}
+\caption{WAN recovery experiment scope. The reported partition delays command-to-core backhaul while command-local journaling remains available under the stated assumptions; responder-command mesh partitions are not measured in this experiment.}
+\label{fig:partition-timeline}
+\end{figure}
 
 \begin{table}[t]
 \centering
@@ -71,8 +92,7 @@ percentile across $n$ runs.}
 \centering
 \includegraphics[width=\columnwidth]{figures/fig_recovery.pdf}
 \caption{WAN recovery time distribution per partition duration. Boxes show
-quartiles; whiskers the 1.5$\times$IQR range; outliers as crosses. The
-60 s cell is bimodal: see Section~\ref{sec:eval-latency} for discussion.}
+quartiles; whiskers the 1.5$\times$IQR range; outliers as crosses.}
 \label{fig:recovery}
 \end{figure}
 
@@ -84,8 +104,8 @@ run and measure end-to-end commit throughput. The first run of each
 saturation pass exhibits a documented warm-up artefact at $\sim$54 ev/s
 (connection pool establishment, JIT optimisation); we exclude
 \texttt{run\_index = 0} from the reported summary. Across the remaining 29
-runs, the command edge sustains a median of 169.2 events/s, with a
-95th percentile of 173.4 events/s and a maximum of 173.7 events/s. The
+runs, the command edge sustains a median of 156.7 events/s, with a
+95th percentile of 160.4 events/s. The
 narrow distribution reflects per-incident serialisation through a
 \texttt{FOR UPDATE} row lock on \texttt{incident.state}; under heavier loads
 the lock would be the bottleneck.
@@ -94,13 +114,22 @@ the lock would be the bottleneck.
 \label{sec:eval-safety}
 
 The protocol's idempotency claim and the single-writer authority property
-are verified by three independent methods.
+are checked at three levels. These checks validate the model and prototype
+paths under stated bounds; they are not a proof of production
+implementation correctness.
 
 \textbf{Empirical idempotency (Phase~2).} The duplicate-replay scenario
 issues 50 unique \texttt{client\_event\_id} values and replays each five
-times against a clean responder, then counts journal rows on the command
-edge. Across $n=30$ runs no replay produced more than the 50 expected
-journal rows: \texttt{stored} equals \texttt{unique\_events} in every run.
+times against a clean responder. The responder outbox and command journal
+both enforce uniqueness on \texttt{client\_event\_id}; duplicates are
+recognized and mapped to the existing command-side entry rather than being
+assigned a fresh \texttt{event\_seq}. Across $n=30$ runs no replay produced
+more than the 50 expected journal rows: \texttt{stored} equals
+\texttt{unique\_events} in every run. The test exercises steady-state
+idempotency over the emulated \texttt{syncd} accept-and-sequence path.
+Crash/restart cases are not yet validated, including restart after local
+enqueue, after command append before acknowledgement, or during forwarded
+marking.
 
 \textbf{Formal model (Phase~3).} A TLA+ specification of the protocol's
 authority machinery (single-writer journal, manual promotion, partition
@@ -121,7 +150,13 @@ side, both sides commit at $\textit{seq}=1$ with distinct
 \texttt{client\_event\_id}s. The weak counterexample is not a defect of the
 adopted system; it is a confirmation that the strict precondition encoded
 in the manual promotion procedure is what makes \textsf{NoForkedJournal}
-hold.
+hold under the model. These bounds are intentionally small: the split-brain
+witness at depth~5 shows that $\textit{MaxJournal}=2$ exposes the relevant
+failure mode; $|V|=3$ admits a partition with majority, minority, and a
+third observer; $|\textit{Cids}|=2$ distinguishes duplicates from distinct
+events. The model does not cover storage crashes, fsync behavior,
+certificate revocation, transport authentication, deployment
+misconfiguration, operator mistakes, or physical compromise.
 
 \textbf{Implementation-level testing (Phase~3).} A Hypothesis state-machine
 test mirrors the TLA+ model in Python and exercises the same operations
@@ -129,19 +164,19 @@ under randomly generated schedules. Across 2000 examples of length~50, no
 violation of \textsf{SingleAuthority}, \textsf{NoForkedJournal}, or
 \textsf{LocalIdempotency} was found under the strict variant. A separate
 test reproduces the weak counterexample by direct construction, confirming
-the simulator and the spec model the same property. A small smoke layer
-exercises the equivalent properties against the running prototype: ten-fold
-replay of a single \texttt{client\_event\_id} produces exactly one journal
-row, and five distinct ids produce five.
+that the simulator and the spec model the same abstract property. A small
+smoke layer checks the idempotency path against the running prototype:
+ten-fold replay of a single \texttt{client\_event\_id} produces exactly one
+journal row, and five distinct ids produce five.
 
 \subsection{Comparison with Consensus-Based Replication}
 \label{sec:eval-baseline}
 
 To position the trade-off the architecture makes against a textbook
-single-leader consensus baseline, we ran the same two latency scenarios
-against a 3-voter \texttt{hashicorp/raft} cluster on the same Docker
-Compose substrate, with the leader serving writes and quorum requiring two
-voters. The full results are in
+single-leader consensus baseline, we ran selected comparison points against
+a 3-voter \texttt{hashicorp/raft} cluster on the same Docker Compose
+substrate, with the leader serving writes and quorum requiring two voters.
+The full results are in
 \texttt{paper/data/eval\_metrics\_raft.jsonl}; summary statistics are in
 Table~\ref{tab:baseline}.
 
@@ -153,32 +188,45 @@ overheads --- outbox, polling interval, multi-tier forwarding --- which
 we leave to future work. The comparison here isolates a single
 architectural property: write availability under partition. The latency
 cells in Table~\ref{tab:baseline} are reported for context, not as a
-head-to-head claim.
+head-to-head claim. A recent systematic review of offline-first
+emergency-response systems identifies the absence of direct empirical
+comparisons between replication designs in disaster-relevant settings as
+an open gap~\cite{aboualola2023edgesurvey}; the comparison reported here
+addresses that gap only in emulation, with a physical-network version
+remaining future work in line with the limitations stated in
+Section~\ref{sec:eval-limits}.
 
 Under no partition, the direct Raft leader path is faster than the
 prototype's end-to-end field-edit path at queue depth~10 (median 10.5\,ms
-versus 615.9\,ms), as expected: the baseline commits directly at the
-leader and does not include the responder outbox or the responder-syncd
-poll interval. After a 60\,s isolation of one voter, Raft follower
-catch-up is also shorter (median 4.1\,s) than the prototype's
-command-to-core WAN-recovery drain (median 49.6\,s, dominated by the
-HTTP-client artefact discussed in Section~\ref{sec:eval-latency}); the
-two paths measure different recovery mechanisms and are not directly
-comparable on absolute time.
+versus 946.3\,ms), as expected: the baseline commits directly at the
+leader and does not include the responder outbox, the responder-syncd
+poll interval, or the per-iteration TCP-setup cost imposed by the
+fresh-client-per-iteration policy that bounds recovery in
+Section~\ref{sec:eval-latency}. After a 60\,s isolation of one voter,
+the prototype's command-to-core recovery drain (median 706\,ms) is
+shorter than Raft follower catch-up (median 4.1\,s) on this substrate;
+the two paths measure different recovery mechanisms and the comparison
+is reported for context, not as a head-to-head claim.
 
 The architectural difference that matters for R3 appears when quorum is
 lost. With two of three voters isolated, the Raft cluster cannot make
 progress: all ten write attempts fail throughout the partition window.
-The prototype's command vehicle is by construction unaffected by the
-isolation of responder peers; it commits to its local journal regardless
-of responder-fleet connectivity. This is the trade-off encoded in R3:
-write availability under partition is preserved at the cost of automatic
-write failover.
+This generalises directly: a Raft cluster with $n$ voting members requires
+a reachable majority of $\lfloor n/2 \rfloor + 1$ voters to make progress,
+so progress is lost once at least $\lceil n/2 \rceil$ voters are
+unreachable. For $n=3$, losing two voters prevents progress. By contrast,
+because the command writer does not require a responder quorum, responder
+isolation alone does not block command-local commits. That is an analytic
+consequence of the architecture under the assumption that the command node
+and its local storage remain available; it is not a measured quorum-loss
+experiment for Rescue OIS. This is the trade-off encoded in R3:
+command-local write availability under responder partition is preserved at
+the cost of automatic write failover.
 
 \begin{table}[t]
 \centering
-\caption{Phase~4 comparison: Rescue OIS versus a single-leader Raft
-baseline on equivalent scenarios.}
+\caption{Phase~4 selected comparison points: Rescue OIS and a
+single-leader Raft baseline.}
 \label{tab:baseline}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lrrr@{}}
@@ -187,21 +235,42 @@ baseline on equivalent scenarios.}
 \midrule
 \input{tables/tab_baseline}
 \end{tabular}
+\par\smallskip
+\footnotesize\raggedright
+Latency rows are contextual rather than workflow-equivalent. The
+quorum-loss row is a measured Raft result; the corresponding Rescue OIS
+claim is discussed analytically in the text because the prototype has no
+responder quorum requirement.
 \end{table}
 
 \subsection{Limitations and Threats to Validity}
 \label{sec:eval-limits}
 
-The measurements above are emulation results, not field measurements. We
-do not exercise real Rajant mesh radio behaviour, vegetation-driven
-connectivity loss reported by~\cite{zimbelman2022mesh}, sustained tablet
-operation under battery and thermal constraints, or multi-incident
-concurrency at the regional core. The 60 s-partition recovery distribution
-is dominated by an HTTP-client artefact rather than by protocol behaviour;
-the protocol-level claim is the monotonicity in partition duration, not the
-absolute number. The TLA+ verification holds over a bounded state space
-(3 vehicles, journal length 2, 2 client ids); the bound is small enough to
-exhaust but does not by itself imply correctness at fleet scales beyond the
-bound. A physical pilot in the methodology of~\cite{lindstrom2025tripod}
-remains required before any field-realistic latency or survivability claim
-can be made.
+The measurements above are emulation results, not field measurements. The
+main limits are:
+\begin{itemize}
+  \item real Rajant mesh radio behavior, vegetation-driven connectivity loss
+  reported by~\cite{zimbelman2022mesh}, WireGuard overhead, and mTLS
+  overhead are not measured;
+  \item Android tablet behavior is represented by a Python stub, so battery,
+  thermal, Room persistence, MapLibre rendering, and MDM/certificate
+  enrollment are outside the experiment;
+  \item crash injection is incomplete: the evaluation does not restart
+  services at every durable boundary, including after local enqueue, after
+  command append before acknowledgement, or while marking forwarded rows;
+  \item promotion/fencing is validated in the abstract model, but durable
+  command epochs and stale-epoch rejection are not implemented in the
+  running services;
+  \item WAN-recovery times are bounded by the configured \texttt{syncd}
+  iteration deadline and asyncpg \texttt{command\_timeout}; under different
+  deadline values the absolute recovery numbers will change;
+  \item the workload is single-incident and limited-scale, and host
+  hardware/container-runtime metadata was not captured in the metrics file;
+  \item the security validation does not cover compromised nodes, offline
+  revocation under total isolation, physical tamper resistance, or
+  misconfigured certificate forwarding.
+\end{itemize}
+These limitations bound the claim to the prototype and emulation
+environment. They do not invalidate the architectural trade-off, but they
+mean physical mesh evaluation, crash-injection validation, and production
+hardening remain future work.

@@ -16,7 +16,9 @@ async def get_pool(dsn: str) -> asyncpg.Pool:
         plain_dsn = dsn.replace("postgresql+asyncpg://", "postgresql://")
         for attempt in range(30):
             try:
-                _pool = await asyncpg.create_pool(plain_dsn, min_size=1, max_size=8)
+                _pool = await asyncpg.create_pool(
+                    plain_dsn, min_size=1, max_size=8, command_timeout=10.0
+                )
                 break
             except (OSError, asyncpg.PostgresError):
                 if attempt == 29:

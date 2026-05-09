@@ -2,19 +2,27 @@
 
 \subsection{Why Single Writer Instead of CRDTs}
 
-Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems~\cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not satisfy R3. Incident state contains command decisions, ordered status transitions, and resource assignments for which CRDT-based merge has no defensible application semantics: there is no commutative merge function for a status transition that two responders attempt to drive in different directions, and any resolution rule that picks one of them implicitly invents the authority that R3 requires be explicit. The single-writer design adopted here makes that authority operational rather than emergent, at the cost of write availability at responder nodes during partition.
+Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems~\cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not by itself satisfy R3. Incident state contains command decisions, ordered status transitions, and resource assignments for which CRDT-based merge has no defensible application semantics: there is no commutative merge function for a status transition that two responders attempt to drive in different directions, and any resolution rule that picks one of them implicitly invents the authority that R3 requires be explicit. The single-writer design adopted here makes that authority operational rather than emergent, at the cost of write availability at responder nodes during partition.
 
-The single-writer design adopted here intentionally trades some write availability at responder nodes for a smaller operational reasoning surface. In this domain, that is a feature rather than a defect. If a responder is partitioned from command, it is acceptable for that responder to continue collecting locally useful information while deferring authoritative incident-state commitment.
+The design therefore applies single-writer sequencing only to authority-bearing incident-journal entries. Reference data, immutable packages, field observations waiting in outboxes, and materialized views use weaker contracts. If a responder is partitioned from command, it can continue collecting locally useful information while deferring authoritative incident-state commitment.
+
+\subsection{Threat Model and Security Scope}
+
+The target deployment assumes an organizational CA or identity provider, enrolled devices and users, and backend trust in certificate-derived identity only when the reverse proxy and service boundary are correctly configured. It handles replayed field submissions through \texttt{client\_event\_id} idempotency and limits tablet reachability through local edge APIs and network segmentation.
+
+Several threats remain outside the prototype evaluation. A stolen or compromised tablet can be revoked only when nodes regain contact with the authority infrastructure or receive an updated trust bundle; instantaneous revocation during total disconnection is not provided. A stolen vehicle node is more serious because it may hold cached data and, if it is the command node, operational authority; the architecture relies on device encryption, operational fencing, and audit rather than Byzantine tolerance. The design also does not address a compromised organizational CA, Byzantine command behavior, physical tamper resistance beyond deployment controls, or audit-log integrity against a fully compromised node. These are deployment and hardening questions, not properties established by the emulation.
 
 \subsection{Limitations}
 
 The architecture has several limitations that bound the scope of the contribution:
 \begin{itemize}
   \item the command role remains a temporary single point of failure;
-  \item promotion is manual and therefore slower than automatic failover;
+  \item promotion is manual and requires fencing, so it is slower and less available than automatic failover;
   \item polling-based synchronization adds bounded but real latency;
-  \item the present validation is an emulation, not a physical pilot, and therefore does not establish field-realistic latency, mesh behaviour, or sustained tablet survivability;
-  \item evaluation at very large fleet sizes and under multi-incident concurrency at the regional core is not addressed.
+  \item the present validation is an emulation, not a physical pilot, and therefore does not establish physical-network latency, mesh behaviour, or sustained tablet survivability;
+  \item crash safety at all durable boundaries and offline revocation under full isolation are not yet validated;
+  \item evaluation at very large fleet sizes and under multi-incident concurrency at the regional core is not addressed;
+  \item the comparison against alternative replication designs is currently a single Raft baseline; broader head-to-head evaluation against intermittent-connectivity-adapted consensus (e.g.~\cite{jahanian2022conice}) and CRDT-based emergency-management replication (e.g.~\cite{hanssen2025emergency}) remains future work.
 \end{itemize}
 
 \subsection{Generalizability}

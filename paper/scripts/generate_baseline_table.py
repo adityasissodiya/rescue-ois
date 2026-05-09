@@ -92,7 +92,6 @@ def main() -> None:
                 r"\addlinespace",
                 r"\textit{Quorum loss (2 of 3 isolated)} & & & \\",
                 f"  Raft writes succeeded & {len(quorum_results)} & {succeeded_pct:.0f}\\% & --- \\\\",
-                r"  Rescue OIS writes succeeded & --- & 100\% & --- \\",
             ]
         )
 
