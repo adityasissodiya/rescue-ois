@@ -28,6 +28,7 @@ async def lifespan(app: FastAPI):
     if settings.edge_role == "responder":
         bg = asyncio.create_task(push.run(), name="push")
     elif settings.edge_role == "command":
+        await accept.init_epoch_cache()
         bg = asyncio.create_task(forward.run(), name="forward")
     try:
         yield
