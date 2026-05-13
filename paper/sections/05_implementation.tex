@@ -1,7 +1,51 @@
 \section{Implementation}
 \label{sec:implementation}
 
-The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}.
+The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}. Table~\ref{tab:impl-mapping} maps the protocol concepts from Section~\ref{sec:sync} to the repository artefacts that realise them and records the evidence boundary per concept.
+
+\begin{table}[!htbp]
+\centering
+\caption{Mapping from protocol concepts to prototype artifacts.}
+\label{tab:impl-mapping}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabularx}{\columnwidth}{@{}p{0.25\columnwidth}p{0.36\columnwidth}X@{}}
+\toprule
+\textbf{Concept} & \textbf{Prototype artifact} & \textbf{Status} \\
+\midrule
+Core bootstrap and backhaul &
+\path{core/sync-api}; \path{core/db/migrations/003_incident_tables.sql} &
+Synthetic bootstrap and journal backfill; evaluated in Docker. \\
+Vehicle edge roles &
+\path{edge/docker-compose.yml}; \path{edge/syncd/src/main.py}; \path{EDGE_ROLE} &
+Command and responder edges in Compose. \\
+Responder durable outbox &
+\path{edge/ops-api/src/routes/api.py}; \path{outbox.device_outbox}; \path{edge/syncd/src/push.py} &
+Implemented; evaluated for responder forwarding. \\
+Command journal and \textit{event\_seq} &
+\path{edge/syncd/src/accept.py}; \path{incident.journal}; \path{incident.state} &
+Implemented; evaluated on the command \textit{syncd} accept path. \\
+\textit{client\_event\_id} idempotency &
+\path{edge/db/migrations/004_idempotency_and_sync_state.sql}; \path{accept.py} &
+Implemented; evaluated by duplicate replay (§\ref{sec:eval-safety}). \\
+Command-to-core forwarding &
+\path{edge/syncd/src/forward.py}; \path{core/sync-api/src/routes/sync.py}; \path{sync.state} &
+Implemented; evaluated for WAN recovery/backfill. \\
+Direct command accept partition &
+\path{scripts/evaluate-command-local-partition.py}; \path{/accept/event-batch} &
+Evaluated for the direct command \textit{syncd} accept path during responder isolation; tablet-facing command \textit{ops-api} not exercised. \\
+Promotion and fencing &
+\path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{scripts/promote-responder.sh}; \path{scripts/evaluate-fenced-promotion.py}; \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
+Durable command-epoch table and stale-epoch rejection implemented at service level; complemented by TLA+/Hypothesis model checks; measured in §\ref{sec:eval-fenced-promotion}. \\
+Tablet client &
+\path{scripts/tablet-stub.py}; \path{tablet/} &
+Python stub in evaluation; Android scaffold only. \\
+Transit and security controls &
+\path{docs/deployment/mesh-commissioning.md}; \path{core/wireguard/}; \path{edge/wireguard/} &
+Target-deployment documentation and configuration; physical mesh and security overhead are out of scope for the reported evaluation. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 The evaluated path is intentionally narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
 
