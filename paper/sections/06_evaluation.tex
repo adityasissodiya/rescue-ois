@@ -171,64 +171,48 @@ smoke layer checks the idempotency path against the running prototype:
 ten-fold replay of a single \texttt{client\_event\_id} produces exactly one
 journal row, and five distinct ids produce five.
 
-\subsection{Comparison with Consensus-Based Replication}
+\subsection{Quorum-Progress Illustration}
 \label{sec:eval-baseline}
 
-To position the trade-off the architecture makes against a textbook
-single-leader consensus baseline, we ran selected comparison points against
-a 3-voter \texttt{hashicorp/raft} cluster on the same Docker Compose
-substrate, with the leader serving writes and quorum requiring two voters.
-The full results are in
-\texttt{paper/data/eval\_metrics\_raft.jsonl}; summary statistics are in
-Table~\ref{tab:baseline}.
+We do not propose Rescue OIS as a replacement for Raft or Paxos. The
+microbenchmark below is included \emph{only as a quorum-progress
+illustration}: a Raft cluster with $n=3$ voters and 2 voters isolated
+cannot commit by construction, as Raft requires by
+design~\cite{ongaro2014raft}. We report this to motivate the design
+choice of avoiding a quorum requirement at intermittently-connected
+edges, not as a like-for-like comparison. Raft and Rescue OIS have
+different progress dependencies (quorum availability versus
+single-commander availability), different failure models, and different
+operation classes. We deliberately do not compare latency or throughput
+between them. The Raft runs use a 3-voter \texttt{hashicorp/raft}
+cluster on the same Docker Compose substrate; full results are in
+\texttt{paper/data/eval\_metrics\_raft.anon.jsonl} and summary
+statistics in Table~\ref{tab:baseline}.
 
-We do not present Raft as a workflow-equivalent alternative. The
-responder-outbox plus manual-promotion pattern is structurally different
-from leader-and-followers consensus, and a like-for-like latency
-comparison would require a Raft variant with equivalent client-side
-overheads --- outbox, polling interval, multi-tier forwarding --- which
-we leave to future work. The comparison here isolates a single
-architectural property: write availability under partition. The latency
-cells in Table~\ref{tab:baseline} are reported for context, not as a
-head-to-head claim. A recent systematic review of offline-first
-emergency-response systems identifies the absence of direct empirical
-comparisons between replication designs in disaster-relevant settings as
-an open gap~\cite{aboualola2023edgesurvey}; the comparison reported here
-addresses that gap only in emulation, with a physical-network version
-remaining future work in line with the limitations stated in
-Section~\ref{sec:eval-limits}.
+Under no partition the direct Raft leader path is faster than the
+prototype's end-to-end field-edit path at queue depth~10 (median
+10.5\,ms versus 946.3\,ms) because the baseline commits directly at the
+leader without the responder outbox or syncd poll. After a 60\,s
+isolation of one voter, the prototype's command-to-core recovery drain
+(median 706\,ms) is shorter than Raft follower catch-up (median 4.1\,s)
+on this substrate; the two paths measure different recovery mechanisms
+and the numbers are reported for context only.
 
-Under no partition, the direct Raft leader path is faster than the
-prototype's end-to-end field-edit path at queue depth~10 (median 10.5\,ms
-versus 946.3\,ms), as expected: the baseline commits directly at the
-leader and does not include the responder outbox, the responder-syncd
-poll interval, or the per-iteration TCP-setup cost imposed by the
-fresh-client-per-iteration policy that bounds recovery in
-Section~\ref{sec:eval-latency}. After a 60\,s isolation of one voter,
-the prototype's command-to-core recovery drain (median 706\,ms) is
-shorter than Raft follower catch-up (median 4.1\,s) on this substrate;
-the two paths measure different recovery mechanisms and the comparison
-is reported for context, not as a head-to-head claim.
-
-The architectural difference that matters for R3 appears when quorum is
-lost. With two of three voters isolated, the Raft cluster cannot make
-progress: all ten write attempts fail throughout the partition window.
-This generalises directly: a Raft cluster with $n$ voting members requires
-a reachable majority of $\lfloor n/2 \rfloor + 1$ voters to make progress,
-so progress is lost once at least $\lceil n/2 \rceil$ voters are
-unreachable. For $n=3$, losing two voters prevents progress. By contrast,
-because the command writer does not require a responder quorum, responder
-isolation alone does not block command-local commits. That is an analytic
-consequence of the architecture under the assumption that the command node
-and its local storage remain available; it is not a measured quorum-loss
-experiment for Rescue OIS. This is the trade-off encoded in R3:
-command-local write availability under responder partition is preserved at
-the cost of automatic write failover.
+With two of three voters isolated, the Raft cluster commits 0 of 10
+attempts throughout the partition window, as expected: a cluster with
+$n$ voting members requires $\lfloor n/2 \rfloor + 1$ reachable voters,
+so for $n=3$, losing two prevents progress. Rescue OIS imposes no
+responder quorum, so command-local commits proceed during responder
+isolation (20 of 20 in the partition run reported in
+Section~\ref{sec:eval-safety}). This is the trade-off encoded in R3:
+command-local write availability under responder partition at the cost
+of automatic write failover.
 
 \begin{table}[t]
 \centering
-\caption{Phase~4 selected comparison points: Rescue OIS and a
-single-leader Raft baseline.}
+\caption{Quorum-progress illustration: a 3-voter Raft cluster cannot
+commit with 2 voters isolated, by construction; Rescue OIS has no
+quorum requirement on responders.}
 \label{tab:baseline}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lrrr@{}}
