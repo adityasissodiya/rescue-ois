@@ -24,7 +24,3 @@ The architecture has several limitations that bound the scope of the contributio
   \item evaluation at very large fleet sizes and under multi-incident concurrency at the regional core is not addressed;
   \item the comparison against alternative replication designs is currently a single Raft baseline; broader head-to-head evaluation against intermittent-connectivity-adapted consensus (e.g.~\cite{jahanian2022conice}) and CRDT-based emergency-management replication (e.g.~\cite{hanssen2025emergency}) remains future work.
 \end{itemize}
-
-\subsection{Generalizability}
-
-The architectural pattern transfers to operational settings whose requirements include R3 in particular: environments in which one principal has stated, operationally designated authority over shared state. Maritime search and rescue, military command and control, and industrial-incident response all share this structure. The pattern is unlikely to transfer cleanly to flat peer groups without such an authority --- collaborative documents, distributed sensor networks, and consumer-facing local-first applications --- where commutative merge is both available and operationally appropriate.
