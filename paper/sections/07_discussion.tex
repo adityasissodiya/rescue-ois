@@ -13,15 +13,26 @@ The target deployment assumes an organizational CA or identity provider, enrolle
 
 Several threats remain outside the prototype evaluation. A stolen or compromised tablet can be revoked only when nodes regain contact with the authority infrastructure or receive an updated trust bundle; instantaneous revocation during total disconnection is not provided. A stolen vehicle node is more serious because it may hold cached data and, if it is the command node, operational authority; the architecture relies on device encryption, operational fencing, and audit rather than Byzantine tolerance. The design also does not address a compromised organizational CA, Byzantine command behavior, physical tamper resistance beyond deployment controls, or audit-log integrity against a fully compromised node. These are deployment and hardening questions, not properties established by the emulation.
 
-\subsection{Limitations}
+\subsection{What This Paper Does Not Claim}
+\label{sec:non-claims}
 
-The architecture has several limitations that bound the scope of the contribution:
-\begin{itemize}
-  \item the command role remains a temporary single point of failure;
-  \item promotion is manual and requires fencing, so it is slower and less available than automatic failover;
-  \item polling-based synchronization adds bounded but real latency;
-  \item the present validation is an emulation, not a physical pilot, and therefore does not establish physical-network latency, mesh behaviour, or sustained tablet survivability;
-  \item crash safety at all durable boundaries and offline revocation under full isolation are not yet validated;
-  \item evaluation at very large fleet sizes and under multi-incident concurrency at the regional core is not addressed;
-  \item the comparison against alternative replication designs is currently a single Raft baseline; broader head-to-head evaluation against intermittent-connectivity-adapted consensus (e.g.~\cite{jahanian2022conice}) and CRDT-based emergency-management replication (e.g.~\cite{hanssen2025emergency}) remains future work.
-\end{itemize}
+We list the claims this paper does \emph{not} make, to make the evaluation
+scope unambiguous:
+\begin{enumerate}
+  \item production readiness;
+  \item physical field deployment;
+  \item physical Rajant mesh behavior;
+  \item Android client end-to-end validation;
+  \item full crash-safety at the service level;
+  \item fully verified implementation (only the TLA+ specification and the Hypothesis model are checked; the Python code is not extracted from the model);
+  \item service-level durable command epochs (model-level only);
+  \item automatic failover (promotion is operator-initiated);
+  \item replacement of Raft or Paxos;
+  \item generic offline-first database behavior;
+  \item generic mesh-platform behavior;
+  \item Byzantine fault tolerance;
+  \item measured WireGuard or mTLS overhead.
+\end{enumerate}
+The next immediate experiments are a multi-host netem evaluation with
+bandwidth, loss, and jitter, and a measured fenced-promotion run under
+sustained writes.
