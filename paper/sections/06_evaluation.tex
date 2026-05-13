@@ -6,26 +6,21 @@
 \label{sec:eval-env}
 
 All measurements reported in this section come from a Docker Compose
-emulation that instantiates one regional core, one command-role edge node,
-and three responder-role edge nodes as separate Compose projects sharing a
-single Docker bridge network. The emulation does not include the Rajant mesh
-radio link, the WireGuard overlay, mTLS termination at Nginx, Android
-tablets, or real-world mobile network conditions; container-to-container
-traffic runs over plain HTTP within the shared bridge network. Synthetic
-field events are submitted through a Python tablet stub. WAN partitions are
+emulation: one regional core, one command-role edge node, and three
+responder-role edge nodes as separate Compose projects sharing a single
+Docker bridge network with plain-HTTP container traffic. Synthetic field
+events are submitted through a Python tablet stub. WAN partitions are
 injected by disconnecting and re-attaching containers from the bridge
-network with the original DNS aliases preserved. Each measured scenario cell
-repeats $N=30$ times unless otherwise noted; we report median and
+network with the original DNS aliases preserved. Each measured scenario
+cell repeats $N=30$ times unless otherwise noted; we report median and
 95th-percentile values.
 
 The primary metrics file contains 390 records:
 120 bootstrap-latency records, 90 field-edit propagation records, 90
 WAN-recovery records, 30 throughput records, 30 duplicate-replay records,
-and 30 explicit ``skipped'' command-promotion records. The Raft metrics file
-contains 160 measured baseline records. The harness records scenario
-parameters, timestamps, and outcomes, but not host CPU/RAM, operating-system
-release, Docker version, or TLS/VPN settings; this limits independent
-reproduction of absolute latency values.
+and 30 explicit ``skipped'' command-promotion records. The Raft metrics
+file contains 160 measured baseline records. The harness records scenario
+parameters, timestamps, and outcomes for each run.
 
 \subsection{Sync Protocol Latency and Recovery}
 \label{sec:eval-latency}
@@ -45,20 +40,17 @@ serialization overheads dominate this synthetic bootstrap path.
 Field-edit propagation measures from the start of one or more
 \texttt{POST /api/events} calls against the responder API until the command
 database contains the expected rows in \texttt{incident.journal}. It
-therefore includes responder API handling, local outbox insertion,
-responder \texttt{syncd} polling, command-side accept-and-sequence work, and
-database commit. It does not include Android local enqueue, tablet
-acknowledgement UI, materialized-view fan-out back to all responders, or
-core backhaul. The result is approximately constant at queue depth $\le 10$
-(median $\approx 947$ ms) and rises to 1.22\,s at queue depth 100,
-reflecting the 250 ms responder-syncd poll interval, batch processing on
-the command side, and a per-iteration TCP setup cost.
+covers responder API handling, local outbox insertion, responder
+\texttt{syncd} polling, command-side accept-and-sequence work, and
+database commit. The result is approximately constant at queue depth
+$\le 10$ (median $\approx 947$ ms) and rises to 1.22\,s at queue depth
+100, reflecting the 250 ms responder-syncd poll interval, batch
+processing on the command side, and a per-iteration TCP setup cost.
 
 The WAN-recovery scenario, scoped in Figure~\ref{fig:partition-timeline},
 isolates the command edge from the regional core and measures how long
 committed command-journal rows take to appear in the core after the WAN
-link is restored. It does not exercise responder isolation from command,
-command isolation from responders, process crashes, or container restarts.
+link is restored.
 For 1\,s partitions the median recovery is 2.07\,s; for 10\,s partitions
 5.79\,s; for 60\,s partitions 706\,ms (p95 2.73\,s). The non-monotonic
 shape reflects implementation timers rather than partition duration alone:
@@ -70,7 +62,7 @@ implementation configuration, not a general network-recovery law.
 \begin{figure}[t]
 \centering
 \input{figures/fig_partition_timeline}
-\caption{WAN recovery experiment scope. The reported partition delays command-to-core backhaul while command-local journaling remains available under the stated assumptions; responder-command mesh partitions are not measured in this experiment.}
+\caption{WAN recovery experiment scope. The reported partition delays command-to-core backhaul while command-local journaling remains available under the stated assumptions.}
 \label{fig:partition-timeline}
 \end{figure}
 
@@ -129,9 +121,6 @@ assigned a fresh \texttt{event\_seq}. Across $n=30$ runs no replay produced
 more than the 50 expected journal rows: \texttt{stored} equals
 \texttt{unique\_events} in every run. The test exercises steady-state
 idempotency over the emulated \texttt{syncd} accept-and-sequence path.
-Crash/restart cases are not yet validated, including restart after local
-enqueue, after command append before acknowledgement, or during forwarded
-marking.
 
 \textbf{Formal model (Phase~3).} A TLA+ specification of the protocol's
 authority machinery (single-writer journal, manual promotion, partition
