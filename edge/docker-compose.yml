@@ -64,6 +64,10 @@ services:
       EDGE_ROLE: ${EDGE_ROLE:-responder}
       CORE_BASE_URL: ${CORE_BASE_URL:-https://core.rescue-ois.local}
       COMMAND_PEER_URL: ${COMMAND_PEER_URL:-}
+    # NET_ADMIN allows `tc qdisc add` for the Phase 5 netem evaluation
+    # harness; harmless in dev and not required at production.
+    cap_add:
+      - NET_ADMIN
     depends_on: [postgres]
     networks:
       default:
