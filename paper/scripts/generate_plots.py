@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate paper figures from paper/data/eval_metrics.jsonl.
+"""Generate paper figures from paper/data/eval_metrics.anon.jsonl.
 
 Per ADR-0006, this script is the single transformation from measurements
 to figures. It does not embed default values; if the data file is missing
@@ -20,7 +20,7 @@ matplotlib.rcParams["ps.fonttype"] = 42
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-DATA = Path("paper/data/eval_metrics.jsonl")
+DATA = Path("paper/data/eval_metrics.anon.jsonl")
 OUT = Path("paper/figures")
 OUT.mkdir(exist_ok=True)
 
