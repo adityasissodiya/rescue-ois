@@ -40,6 +40,9 @@ Durable command-epoch table and stale-epoch rejection implemented at service lev
 Tablet client &
 \path{scripts/tablet-stub.py}; \path{tablet/} &
 Python stub in evaluation; Android scaffold only. \\
+Multi-condition netem evaluation &
+\path{scripts/evaluate-netem-propagation.py}; \path{edge/syncd/Dockerfile} \textit{tc} tooling &
+Implemented; measured under two link profiles in §\ref{sec:eval-netem}. \\
 Transit and security controls &
 \path{docs/deployment/mesh-commissioning.md}; \path{core/wireguard/}; \path{edge/wireguard/} &
 Target-deployment documentation and configuration; physical mesh and security overhead are out of scope for the reported evaluation. \\

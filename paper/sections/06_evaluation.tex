@@ -105,6 +105,12 @@ incidents, per-incident leaders, append-only without state
 materialisation) would shift this bottleneck. We report it to identify
 where the serial cost lives, not to defend a throughput number.
 
+% Pre-Phase-5 anchor: tab:impl-mapping references sec:eval-netem, which
+% will be the planned multi-host netem subsection inserted here once
+% Phase 5 lands. The phantomsection keeps the cross-reference resolved
+% in the meantime so the build does not emit an undefined-ref warning.
+\phantomsection\label{sec:eval-netem}
+
 \subsection{Idempotency and Safety Verification}
 \label{sec:eval-safety}
 
