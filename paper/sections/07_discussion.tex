@@ -14,23 +14,18 @@ Several threats remain outside the prototype evaluation. A stolen or compromised
 \subsection{What This Paper Does Not Claim}
 \label{sec:non-claims}
 
-We list the claims this paper does \emph{not} make, to make the evaluation
-scope unambiguous:
-\begin{enumerate}
-  \item production readiness;
-  \item physical field deployment;
-  \item physical Rajant mesh behavior;
-  \item Android client end-to-end validation;
-  \item full crash-safety at the service level;
-  \item fully verified implementation (only the TLA+ specification and the Hypothesis model are checked; the Python code is not extracted from the model);
-  \item automatic failover (promotion is operator-initiated);
-  \item replacement of Raft or Paxos;
-  \item generic offline-first database behavior;
-  \item generic mesh-platform behavior;
-  \item Byzantine fault tolerance;
-  \item measured WireGuard or mTLS overhead.
-\end{enumerate}
-The next planned experiment is a multi-host \texttt{tc-netem} evaluation
+To keep the evaluation scope unambiguous, we state the claims this paper
+does \emph{not} make. We do not claim production readiness or physical
+field deployment, and in particular we do not claim physical Rajant mesh
+behavior, measured WireGuard or mTLS overhead, or end-to-end validation
+of the Android client. We do not claim full crash-safety at the service
+level or a fully verified implementation: only the TLA+ specification
+and the Hypothesis model are checked, and the Python service code is
+not extracted from the model. We do not claim automatic failover --
+promotion is operator-initiated -- and we do not propose Rescue OIS as
+a replacement for Raft or Paxos, nor as generic offline-first database
+or mesh-platform behavior. Byzantine fault tolerance is also outside
+the threat model. The next planned experiment is a multi-host \texttt{tc-netem} evaluation
 across three link profiles motivated by published emergency-network
 measurements: \emph{good mesh} (20\,ms~$\pm$~10\,ms delay, 0.5\,\% loss),
 \emph{stressed mesh} (80\,ms~$\pm$~30\,ms delay, 2\,\% loss), and
