@@ -5,8 +5,6 @@
 
 Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems~\cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not by itself satisfy R3. Incident state contains command decisions, ordered status transitions, and resource assignments for which CRDT-based merge has no defensible application semantics: there is no commutative merge function for a status transition that two responders attempt to drive in different directions, and any resolution rule that picks one of them implicitly invents the authority that R3 requires be explicit. The single-writer design adopted here makes that authority operational rather than emergent, at the cost of write availability at responder nodes during partition.
 
-The design therefore applies single-writer sequencing only to authority-bearing incident-journal entries. Reference data, immutable packages, field observations waiting in outboxes, and materialized views use weaker contracts. If a responder is partitioned from command, it can continue collecting locally useful information while deferring authoritative incident-state commitment.
-
 \subsection{Threat Model and Security Scope}
 
 The target deployment assumes an organizational CA or identity provider, enrolled devices and users, and backend trust in certificate-derived identity only when the reverse proxy and service boundary are correctly configured. It handles replayed field submissions through \texttt{client\_event\_id} idempotency and limits tablet reachability through local edge APIs and network segmentation.
@@ -32,6 +30,11 @@ scope unambiguous:
   \item Byzantine fault tolerance;
   \item measured WireGuard or mTLS overhead.
 \end{enumerate}
-The next immediate experiments are a multi-host netem evaluation with
-bandwidth, loss, and jitter, and a measured fenced-promotion run under
-sustained writes.
+The next planned experiment is a multi-host \texttt{tc-netem} evaluation
+across three link profiles motivated by published emergency-network
+measurements: \emph{good mesh} (20\,ms~$\pm$~10\,ms delay, 0.5\,\% loss),
+\emph{stressed mesh} (80\,ms~$\pm$~30\,ms delay, 2\,\% loss), and
+\emph{degraded mesh} (200\,ms~$\pm$~80\,ms delay,
+8\,\% loss)~\cite{zimbelman2022mesh,kumbhar2015legacy}. Physical Rajant
+mesh deployment with vehicle-mounted radios remains the longer-term
+step.

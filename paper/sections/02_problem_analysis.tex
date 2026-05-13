@@ -80,15 +80,13 @@ authority-bearing operations at the commander, lets non-authority data
 converge locally, and encodes manual command transfer as a fenced promotion.
 Both designs are valid for distinct deployment models.
 
-Public-safety networking research covers narrowband systems, LTE/5G
-public-safety services, vehicular and ad hoc networking, and deployable mesh
-infrastructure~\cite{kumbhar2015legacy,hoyhtya2018critical,wang2023overview}.
-Offline crisis-mapping and vehicle-assisted disaster systems focus on
-availability and opportunistic connectivity~\cite{paul2019crimp,li2017vehicleassist}.
-Edge and fog systems place resilient storage, content distribution, or
-coordination near responders~\cite{sagor2024distressnetng,tran2021ndn,haroon2022edgecoord,aboualola2023edgesurvey,alwakeel2025edgefog}.
-These systems motivate local services at vehicle edges. We are not aware of
-prior work that explicitly uses operational command authority as the
+Public-safety networking research covers narrowband and 5G systems,
+vehicular ad-hoc networking, and deployable mesh
+infrastructure~\cite{kumbhar2015legacy,wang2023overview}, and edge/fog work
+places resilient storage and coordination near
+responders~\cite{sagor2024distressnetng,aboualola2023edgesurvey}. These
+systems motivate local services at vehicle edges. We are not aware of prior
+work that explicitly uses operational command authority as the
 linearization boundary while assigning weaker contracts to non-authority
 incident data. Rescue OIS aligns the serialization point with the current
 operational command authority.

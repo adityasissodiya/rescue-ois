@@ -274,28 +274,11 @@ quorum requirement on responders.}
 \subsection{Limitations and Threats to Validity}
 \label{sec:eval-limits}
 
-The measurements above are emulation results, not field measurements. The
-main limits are:
-\begin{itemize}
-  \item real Rajant mesh radio behavior, vegetation-driven connectivity loss
-  reported by~\cite{zimbelman2022mesh}, WireGuard overhead, and mTLS
-  overhead are not measured;
-  \item Android tablet behavior is represented by a Python stub, so battery,
-  thermal, Room persistence, MapLibre rendering, and MDM/certificate
-  enrollment are outside the experiment;
-  \item crash injection is incomplete: the evaluation does not restart
-  services at every durable boundary, including after local enqueue, after
-  command append before acknowledgement, or while marking forwarded rows;
-  \item promotion/fencing is validated in the abstract model, but durable
-  command epochs and stale-epoch rejection are not implemented in the
-  running services;
-  \item WAN-recovery times are bounded by the configured \texttt{syncd}
-  iteration deadline and asyncpg \texttt{command\_timeout}; under different
-  deadline values the absolute recovery numbers will change;
-  \item the workload is single-incident and limited-scale, and host
-  hardware/container-runtime metadata was not captured in the metrics file;
-  \item the security validation does not cover compromised nodes, offline
-  revocation under total isolation, physical tamper resistance, or
-  misconfigured certificate forwarding.
-\end{itemize}
-Section~\ref{sec:non-claims} lists the corresponding non-claims.
+The measurements above are emulation results. Beyond the scope statements in
+Section~\ref{sec:non-claims}, two measurement-specific threats apply:
+WAN-recovery times are bounded by the configured \texttt{syncd} iteration
+deadline and asyncpg \texttt{command\_timeout}, so the absolute recovery
+numbers will shift under different deadline values; and the workload is
+single-incident and limited-scale, with host hardware and container-runtime
+metadata captured per-run in the artefact file but not varied as an
+independent factor.
