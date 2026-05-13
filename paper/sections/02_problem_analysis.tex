@@ -16,10 +16,13 @@ operational authority.
 \subsection{Why Existing Designs Are Not Enough}
 
 The Rescue OIS contribution recombines well-known mechanisms (single-leader
-replication, transactional outbox, idempotency keys, manual fencing) under a
-domain-specific rule: the linearization point is the current operational
-command authority, set by an external operational protocol rather than chosen
-by liveness-driven leader election. The novelty is therefore in (i) which
+replication, transactional outbox~\cite{richardson2018microservices},
+idempotency keys, manual fencing) under a domain-specific rule: the
+linearization point is the current operational command authority, set by an
+external operational protocol rather than chosen by liveness-driven leader
+election. The incident-state entity owns its decision history; external
+actors interact through forward-only events rather than mutate state
+directly~\cite{helland2017life}. The novelty is therefore in (i) which
 operations are placed under that linearization point and which are not, and
 (ii) the fenced-promotion rule that preserves single-authority across command
 changes. The mechanisms themselves are not claimed as novel.
@@ -35,10 +38,12 @@ partition.
 local availability, user control, and continued operation under poor
 connectivity~\cite{kleppmann2019localfirst}. Mobile offline-first architectures
 often combine local stores, retry, and queued submission~\cite{pothineni2024offlinefirst}.
-Those mechanisms help responders keep working during a partition. They do not
-define when a locally accepted assignment or hazard decision becomes
-authoritative. Rescue OIS uses outboxes for local durability and forwarding, but
-treats outbox entries as pending until command acceptance.
+The underlying single-leader-plus-idempotency-key patterns are textbook
+(e.g.,~\cite{kleppmann2017ddia}, Ch.~5). Those mechanisms help responders keep
+working during a partition. They do not define when a locally accepted
+assignment or hazard decision becomes authoritative. Rescue OIS uses outboxes
+for local durability and forwarding, but treats outbox entries as pending
+until command acceptance.
 
 \subsubsection{CRDTs and local-first replication} CRDT and strong-eventual-consistency
 work provides convergence for mergeable replicated state~\cite{almeida2014delta,gomes2017verifyingsec}.
@@ -138,6 +143,12 @@ Existing identity integration & Integration constraint & mTLS/CA integration and
 
 The system does not apply one consistency model to all data. The single-writer
 rule applies only to authority-bearing incident-journal entries.
+This split echoes the RedBlue consistency framework~\cite{li2012redblue},
+which separates fast/eventual (``blue'') from slow/strong (``red'')
+operations in geo-replicated systems. Rescue OIS instantiates a RedBlue-style
+split for rescue-service incident operations, with authority-bearing
+decisions in the strong set and forward-only field submissions, cached
+reference data, and materialized state in the weaker classes.
 Figure~\ref{fig:state-contracts} summarizes the main state classes.
 
 Master and reference data are owned by the regional core and cached at edges.
