@@ -22,6 +22,11 @@
   pdfproducer={},
   pdfcreator={}
 }
+% Suppress pdfTeX-generated CreationDate/ModDate and the random trailer ID;
+% these fields can carry the build host's local timezone and otherwise
+% identify the build environment under double-blind review.
+\pdfinfoomitdate=1
+\pdftrailerid{}
 \usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds}
