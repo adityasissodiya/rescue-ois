@@ -105,11 +105,60 @@ incidents, per-incident leaders, append-only without state
 materialisation) would shift this bottleneck. We report it to identify
 where the serial cost lives, not to defend a throughput number.
 
-% Pre-Phase-5 anchor: tab:impl-mapping references sec:eval-netem, which
-% will be the planned multi-host netem subsection inserted here once
-% Phase 5 lands. The phantomsection keeps the cross-reference resolved
-% in the meantime so the build does not emit an undefined-ref warning.
-\phantomsection\label{sec:eval-netem}
+\subsection{Field-Edit Propagation under Emulated Mesh Conditions}
+\label{sec:eval-netem}
+
+To take one step beyond the unimpaired Docker-bridge measurement, we
+re-run the field-edit propagation scenario from
+Section~\ref{sec:eval-latency} with Linux \texttt{tc-netem} qdiscs
+applied symmetrically on the responder and command \texttt{syncd}
+container interfaces. Two link-condition profiles, informed by
+published mesh-network measurements: \emph{stressed mesh}
+(80\,ms~$\pm$~30\,ms delay, 2\,\% loss) and \emph{degraded mesh}
+(200\,ms~$\pm$~80\,ms delay,
+8\,\% loss)~\cite{zimbelman2022mesh,kumbhar2015legacy}. Each cell
+runs 20 measurements at queue depths 1 and 10; all 80 cells
+complete and no events are dropped. Table~\ref{tab:netem}
+summarises the results.
+
+The latency ordering is monotonic in both directions: at each queue
+depth, degraded exceeds stressed; within each profile, queue depth
+10 exceeds queue depth 1. Stressed mesh at queue depth 1 (median
+1.21\,s) sits roughly 250\,ms above the unimpaired
+$\sim$947\,ms baseline reported in
+Section~\ref{sec:eval-latency}, consistent with the 80\,ms one-way
+delay applied to each direction plus occasional TCP retransmits at
+2\,\% loss. The degraded queue depth 10 cell carries substantially
+heavier tail latency (median 8.1\,s, p95 10.9\,s): an 8\,\% loss
+rate inflates the tail because the probability of at least one
+retransmit grows with the number of HTTP exchanges per cell.
+
+\begin{table}[t]
+\centering
+\caption{Field-edit propagation latency under emulated mesh
+impairment. Median and 95th percentile across $n=20$ runs per cell.}
+\label{tab:netem}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+\textbf{Profile} & \textbf{Queue depth} & \textbf{Median (ms)} & \textbf{p95 (ms)} \\
+\midrule
+Stressed (80\,ms\,$\pm$\,30\,ms, 2\,\%)  & 1  & 1215 & 1494 \\
+Stressed                                   & 10 & 2860 & 3355 \\
+Degraded (200\,ms\,$\pm$\,80\,ms, 8\,\%) & 1  & 3647 & 5329 \\
+Degraded                                   & 10 & 8104 & 10895 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These numbers are not a model of physical Rajant mesh behaviour:
+\texttt{tc-netem} reproduces statistical delay, jitter, and loss
+on a per-packet basis, but not radio fading, mobility-induced
+topology change, RF contention with other traffic, or
+InstaMesh-specific routing decisions. We use the profiles as a
+step beyond bridge-network measurement, not as a substitute for
+physical evaluation.
 
 \subsection{Idempotency and Safety Verification}
 \label{sec:eval-safety}

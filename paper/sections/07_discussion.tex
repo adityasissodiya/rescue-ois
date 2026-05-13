@@ -25,11 +25,7 @@ not extracted from the model. We do not claim automatic failover --
 promotion is operator-initiated -- and we do not propose Rescue OIS as
 a replacement for Raft or Paxos, nor as generic offline-first database
 or mesh-platform behavior. Byzantine fault tolerance is also outside
-the threat model. The next planned experiment is a multi-host
-\texttt{tc-netem} evaluation across two link-condition profiles ---
-moderately stressed mesh (80\,ms~$\pm$~30\,ms delay, 2\,\% loss) and
-degraded mesh (200\,ms~$\pm$~80\,ms delay, 8\,\%
-loss)~\cite{zimbelman2022mesh,kumbhar2015legacy} --- informed by
-mesh-network measurements in the cited references. Physical Rajant
-mesh deployment with vehicle-mounted radios remains the longer-term
-step.
+the threat model. Section~\ref{sec:eval-netem} measures field-edit
+propagation under two emulated mesh profiles informed by published
+measurements; physical Rajant mesh deployment with vehicle-mounted
+radios remains the longer-term step.
