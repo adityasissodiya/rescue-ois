@@ -9,7 +9,7 @@ The repository contains a prototype service path for the core and edge tiers, pl
 \label{tab:impl-mapping}
 \scriptsize
 \setlength{\tabcolsep}{2pt}
-\begin{tabularx}{\columnwidth}{@{}p{0.25\columnwidth}p{0.36\columnwidth}X@{}}
+\begin{tabularx}{\columnwidth}{@{}p{0.23\columnwidth}p{0.40\columnwidth}X@{}}
 \toprule
 \textbf{Concept} & \textbf{Prototype artifact} & \textbf{Status} \\
 \midrule
@@ -32,10 +32,10 @@ Command-to-core forwarding &
 \path{edge/syncd/src/forward.py}; \path{core/sync-api/src/routes/sync.py}; \path{sync.state} &
 Implemented; evaluated for WAN recovery/backfill. \\
 Direct command accept partition &
-\path{scripts/evaluate-command-local-partition.py}; \path{/accept/event-batch} &
+\path{evaluate-command-local-partition.py} (in \path{scripts/}); \path{/accept/event-batch} &
 Evaluated for the direct command \textit{syncd} accept path during responder isolation; tablet-facing command \textit{ops-api} not exercised. \\
 Promotion and fencing &
-\path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{scripts/promote-responder.sh}; \path{scripts/evaluate-fenced-promotion.py}; \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
+\path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{promote-responder.sh}, \path{evaluate-fenced-promotion.py} (in \path{scripts/}); \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
 Durable command-epoch table and stale-epoch rejection implemented at service level; complemented by TLA+/Hypothesis model checks; measured in §\ref{sec:eval-fenced-promotion}. \\
 Tablet client &
 \path{scripts/tablet-stub.py}; \path{tablet/} &

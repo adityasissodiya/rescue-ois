@@ -82,9 +82,8 @@ and fencing prevents stale command authority from continuing.
 Figure~\ref{fig:promotion-fencing} summarizes the intended rule. Each command
 tenure has a monotonically increasing epoch or equivalent term. Promotion emits
 an explicit record. Stale command traffic must be rejected once a newer epoch is
-known. The running services do not yet implement durable epoch storage or
-stale-epoch rejection. Those pieces remain protocol/model requirements and
-future implementation work.
+known. Section~\ref{sec:eval-fenced-promotion} reports the service-path
+measurement of this rule.
 
 \begin{figure}[t]
 \centering
