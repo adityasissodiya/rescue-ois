@@ -15,6 +15,15 @@ operational authority.
 
 \subsection{Why Existing Designs Are Not Enough}
 
+The Rescue OIS contribution recombines well-known mechanisms (single-leader
+replication, transactional outbox, idempotency keys, manual fencing) under a
+domain-specific rule: the linearization point is the current operational
+command authority, set by an external operational protocol rather than chosen
+by liveness-driven leader election. The novelty is therefore in (i) which
+operations are placed under that linearization point and which are not, and
+(ii) the fenced-promotion rule that preserves single-authority across command
+changes. The mechanisms themselves are not claimed as novel.
+
 Existing systems solve adjacent parts of the problem. Offline-first systems preserve
 local work. CRDTs merge concurrent updates. Consensus protocols order replicated
 commands. Emergency networking and edge systems improve connectivity and local
@@ -54,19 +63,30 @@ protocol. The command vehicle is the serialization point while its service and
 storage are available, and command transfer is a manual fenced event rather than
 leader election.
 
-\subsubsection{Emergency consensus, networking, and edge systems} CoNICE is closer
-than standard consensus because it adapts agreement to intermittently connected
-emergency-response settings~\cite{jahanian2022conice}. Public-safety networking
-research covers narrowband systems, LTE/5G public-safety services, vehicular and
-ad hoc networking, and deployable mesh infrastructure~\cite{kumbhar2015legacy,hoyhtya2018critical,wang2023overview}.
+\subsubsection{Emergency consensus, networking, and edge systems} CoNICE~\cite{jahanian2022conice}
+targets agreement among infrastructure-less peers under intermittent
+connectivity, using a One-Third-Rule consensus with vector clocks and
+hierarchical namespaces, evaluated on shared map-pin updates. CoNICE is the
+right tool when no peer is privileged. Rescue OIS targets a different problem
+class: rescue-service incident command has a designated operational commander
+at every moment, and the network is not allowed to vote on incident decisions.
+Rescue OIS therefore does not pursue peer consensus; it linearizes
+authority-bearing operations at the commander, lets non-authority data
+converge locally, and encodes manual command transfer as a fenced promotion.
+Both designs are valid for distinct deployment models.
+
+Public-safety networking research covers narrowband systems, LTE/5G
+public-safety services, vehicular and ad hoc networking, and deployable mesh
+infrastructure~\cite{kumbhar2015legacy,hoyhtya2018critical,wang2023overview}.
 Offline crisis-mapping and vehicle-assisted disaster systems focus on
 availability and opportunistic connectivity~\cite{paul2019crimp,li2017vehicleassist}.
 Edge and fog systems place resilient storage, content distribution, or
 coordination near responders~\cite{sagor2024distressnetng,tran2021ndn,haroon2022edgecoord,aboualola2023edgesurvey,alwakeel2025edgefog}.
-These systems motivate local services at vehicle edges. We did not find prior
-work that explicitly uses operational command authority as the linearization
-boundary while assigning weaker contracts to non-authority incident data. Rescue
-OIS places the serialization point at the current operational command authority.
+These systems motivate local services at vehicle edges. We are not aware of
+prior work that explicitly uses operational command authority as the
+linearization boundary while assigning weaker contracts to non-authority
+incident data. Rescue OIS aligns the serialization point with the current
+operational command authority.
 
 \subsection{Requirements and Assumptions}
 \label{sec:requirements}
