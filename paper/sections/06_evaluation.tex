@@ -171,6 +171,53 @@ smoke layer checks the idempotency path against the running prototype:
 ten-fold replay of a single \texttt{client\_event\_id} produces exactly one
 journal row, and five distinct ids produce five.
 
+\subsection{Fenced-Promotion Service-Path Evidence}
+\label{sec:eval-fenced-promotion}
+
+The service-level command-epoch enforcement closes the gap between the
+model-level fenced-promotion evidence in Section~\ref{sec:eval-safety}
+and running-service behavior. Migration~005 adds
+\texttt{incident.command\_epoch} (monotonic \texttt{epoch\_id} per
+operationally designated command vehicle) and stamps every
+\texttt{incident.journal} row with the current epoch; the command
+\texttt{syncd}'s \texttt{/accept/event-batch} handler reads
+\texttt{X-Command-Epoch} from each request and accepts only when it
+matches the running command's cached epoch, returning HTTP~409 with the
+reason \texttt{stale\_epoch} (request behind) or \texttt{future\_epoch}
+(request ahead).
+
+We measure end-to-end behavior with
+\texttt{scripts/evaluate-fenced-promotion.py}. Each of $n=5$ runs
+issues three phases of 20 single-event POSTs against the command
+\texttt{syncd}: (A) at the baseline epoch (current), (B) after
+installing a new epoch row and restarting \texttt{syncd} so its cache
+advances, replaying the now-stale baseline epoch, and (C) at the new
+current epoch. The pre-registered acceptance invariants are
+\texttt{duplicate\_seqs\_across\_epochs} ${=}~0$,
+\texttt{stale\_epoch\_rejections} ${>}~0$, and
+\texttt{new\_epoch\_commits} ${>}~0$, with contiguity within each
+\texttt{command\_epoch}.
+
+All five runs pass: phase~A commits 20/20 at epoch~1, phase~B
+generates 20/20 HTTP~409 rejections at the stale epoch (zero events
+land in \texttt{incident.journal} during this phase, by inspection of
+the row count), phase~C commits 20/20 at epoch~2. Across the runs the
+journal contains exactly 200 rows total (40 per run) split 100/100
+between the two epochs, with no \texttt{event\_seq} value appearing
+under both epochs and contiguous sub-sequences within each epoch.
+Per-attempt commit latency medians are 6.3\,ms for phase~A and
+5.7\,ms for phase~C; the stale-epoch rejection path (phase~B) returns
+HTTP~409 in a median of 2.5\,ms, faster than the accept path because
+the request is short-circuited before journal I/O.
+
+This experiment is single-edge by design: each Rescue OIS edge owns
+its own Postgres, so a cross-edge promotion exercises a different
+shape of the property. The single-edge variant tests the
+journal-poisoning invariant the paper actually claims --- that
+stale-epoch traffic cannot land in the journal at the current
+command, even when replayed against a syncd that has just been told
+about the promotion.
+
 \subsection{Quorum-Progress Illustration}
 \label{sec:eval-baseline}
 

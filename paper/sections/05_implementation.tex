@@ -22,7 +22,7 @@ The evaluated path is intentionally narrower than the full target deployment. Th
     Logical replication/packages & Schemas, publisher, and cache scaffolding exist; full package pipeline not exercised. & No. \\
     mTLS/WireGuard/Rajant & Nginx and WireGuard templates plus Rajant/RUTX50 design notes. & No. \\
     Android tablet & Kotlin/Compose/Room/MapLibre scaffold and unit tests; local persistence incomplete. & No; Python stub used. \\
-    Promotion/fencing & \textbf{Not implemented at service level.} TLA+ and Hypothesis evidence only; \texttt{promote-responder.sh} is a manual operator procedure that flips \texttt{EDGE\_ROLE} and restarts syncd. The schema has no \texttt{command\_epoch} column; running services do not reject stale-epoch traffic. See Section~\ref{sec:non-claims} item~7. & Model only. \\
+    Promotion/fencing & Implemented in \texttt{edge/db/migrations/005\_command\_epoch.sql} (durable epoch table, journal stamping, \texttt{current\_epoch} view) and \texttt{edge/syncd/src/accept.py} (request validation, cache); \texttt{scripts/promote-responder.sh} inserts the new epoch row before restarting syncd. & Measured in Section~\ref{sec:eval-fenced-promotion}. \\
     Audit/provisioning & Audit services and Ansible roles are partial scaffolds. & No end-to-end validation. \\
     \bottomrule
   \end{tabularx}
