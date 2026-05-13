@@ -109,17 +109,25 @@ def reset_eval_tables() -> None:
 
 def install_new_epoch(operator: str, node_id: str) -> int:
     """Insert the next command_epoch row, restart syncd to refresh the cache."""
-    new_epoch = int(
-        psql(
-            CMD_PG_CONTAINER,
-            EDGE_DB,
-            f"""
-            INSERT INTO incident.command_epoch (started_by, node_id)
-            VALUES ('{operator}', '{node_id}')
-            RETURNING epoch_id
-            """,
-        )
+    raw = psql(
+        CMD_PG_CONTAINER,
+        EDGE_DB,
+        f"""
+        INSERT INTO incident.command_epoch (started_by, node_id)
+        VALUES ('{operator}', '{node_id}')
+        RETURNING epoch_id
+        """,
     )
+    # psql -tAc emits the RETURNING value plus 'INSERT 0 1' status when
+    # multiple statements are not all silent; take the first numeric line.
+    new_epoch: int | None = None
+    for line in raw.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            new_epoch = int(line)
+            break
+    if new_epoch is None:
+        raise RuntimeError(f"could not parse new epoch_id from psql output: {raw!r}")
     # Restart syncd so accept.init_epoch_cache() picks the new value up.
     run(["docker", "restart", CMD_SYNCD_CONTAINER])
     wait_for_http(f"{CMD_SYNCD}/health", timeout_s=30.0)
