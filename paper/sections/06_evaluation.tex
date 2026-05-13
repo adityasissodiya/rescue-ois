@@ -99,16 +99,18 @@ quartiles; whiskers the 1.5$\times$IQR range; outliers as crosses.}
 \subsection{Steady-State Throughput}
 \label{sec:eval-throughput}
 
-We saturate the command edge with concurrent submissions of 1000 events per
-run and measure end-to-end commit throughput. The first run of each
-saturation pass exhibits a documented warm-up artefact at $\sim$54 ev/s
-(connection pool establishment, JIT optimisation); we exclude
-\texttt{run\_index = 0} from the reported summary. Across the remaining 29
-runs, the command edge sustains a median of 156.7 events/s, with a
-95th percentile of 160.4 events/s. The
-narrow distribution reflects per-incident serialisation through a
-\texttt{FOR UPDATE} row lock on \texttt{incident.state}; under heavier loads
-the lock would be the bottleneck.
+We saturate the command edge with 1000 concurrent submissions per run and
+measure end-to-end commit rate. The first run of each pass exhibits a
+documented warm-up artefact ($\sim$54 ev/s) from connection-pool
+establishment and JIT optimisation; we exclude \texttt{run\_index = 0}.
+Across the remaining 29 runs, the command edge sustains a median of
+156.7 events/s (p95 160.4). This number characterises the \emph{chosen
+serialisation point in our prototype} -- a \texttt{FOR UPDATE} row lock
+on \texttt{incident.state} -- and is \emph{not a protocol-level
+throughput claim}. A different serialisation mechanism (sharded
+incidents, per-incident leaders, append-only without state
+materialisation) would shift this bottleneck. We report it to identify
+where the serial cost lives, not to defend a throughput number.
 
 \subsection{Idempotency and Safety Verification}
 \label{sec:eval-safety}
