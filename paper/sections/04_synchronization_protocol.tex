@@ -1,64 +1,101 @@
 \section{Synchronization Protocol}
 \label{sec:sync}
 
-The protocol design follows from the requirements and constraints in Section~\ref{sec:requirements}. Outbox durability at responder vehicles and tablets supports R2; sequence assignment by the command vehicle aligns the storage authority boundary with R3; and responders mark outbox entries forwarded only after acknowledgement from the command writer. The role asymmetry below --- command commits, responder forwards, tablet submits --- is the design point adopted for this operational setting, not a claim that no other protocol structure could satisfy related requirements.
+The protocol maps the roles and state classes from
+Section~\ref{sec:problem-analysis} to three paths: baseline sync, field-event
+forwarding, and command promotion. The main identifiers are
+\textit{incident\_id}, a client-supplied \textit{client\_event\_id}, and a
+command-assigned \textit{event\_seq}. The promotion model also uses a command
+epoch or equivalent term.
 
 \subsection{Baseline Sync}
 
-Baseline synchronization distributes master data from the core to vehicle edge nodes using one-way replication and package pulls. In the target design, logical replication can handle database schemas suited to that model, while heavier artifacts such as tiles and attachments are published as versioned bundles with signed or hashed manifests. The reported emulation exercises a synthetic bootstrap endpoint rather than the full logical-replication and package-publisher path.
+Baseline synchronization distributes master data from the core to vehicle edge
+nodes using one-way replication and package pulls. In the target design, logical
+replication handles schemas suited to that model. Heavier artifacts, such as
+tiles and attachments, are published as versioned bundles with signed or hashed
+manifests. The reported emulation exercises a synthetic bootstrap endpoint. It
+does not exercise the full logical-replication or package-publisher path.
 
 \subsection{Incident Bootstrap}
 
-On dispatch, the target protocol has the core prepare an incident-specific package consisting of the area of interest, referenced attachments, and an initial manifest. The command vehicle attempts to pull this package from the core first. Responder vehicles then either pull directly from core or bootstrap from the command node over the mesh if WAN access is absent. Tablets bootstrap only from their local vehicle node.
+On dispatch, the target protocol has the core prepare an incident-specific
+package. The package contains the area of interest, referenced attachments, and
+an initial manifest. The command vehicle tries to pull this package from the
+core first. Responder vehicles then either pull from core or bootstrap from the
+command node if WAN access is absent. Tablets bootstrap only from their local
+vehicle node.
 
 \subsection{Field Edit Flow}
 
-The steady-state field edit path is shown in Figure~\ref{fig:outbox-sequence}. The important boundary is the distinction between local durability and authoritative command commit: a responder may acknowledge local acceptance after the outbox insert, but it marks an item forwarded only after command-side journal acceptance or duplicate recognition. Command backhaul to the regional core is a later cursor-based step when WAN connectivity is present.
+Figure~\ref{fig:outbox-sequence} shows the steady-state field edit path. The
+boundary is between local durability and authoritative command commit.
+A responder may acknowledge local acceptance after the outbox insert. It marks
+an item forwarded only after command-side journal acceptance or duplicate
+recognition. Command backhaul to the regional core is a later cursor-based step
+when WAN connectivity is present.
 
 \begin{figure}[t]
 \centering
 \input{figures/fig_outbox_sequence}
-\caption{Responder outbox protocol. A tablet submission is acknowledged locally only after durable outbox insertion; the command journal later assigns the authoritative sequence number, and duplicate delivery is handled by \texttt{client\_event\_id}. Full crash injection at every durable boundary is outside this evaluation.}
+\caption{Responder outbox protocol. A tablet submission is acknowledged locally only after durable outbox insertion. The command journal later assigns the authoritative sequence number, and duplicate delivery is handled by \textit{client\_event\_id}.}
 \label{fig:outbox-sequence}
 \end{figure}
 
 \subsection{Protocol Contract}
 \label{sec:protocol-contract}
 
-The repository prototype implements the core idempotency path using \texttt{incident\_id} and \texttt{client\_event\_id}. The intended contract is:
+The repository prototype implements the core idempotency path using
+\textit{incident\_id} and \textit{client\_event\_id}. The intended contract is:
 \begin{itemize}
-  \item \textbf{Identity.} Each submission has a globally unique idempotency key, \texttt{client\_event\_id}, scoped by the incident and originating client identity.
-  \item \textbf{Durable local acceptance.} A responder accepts a submission only after the event is stored in its local outbox. In the present evaluation, the Python tablet stub posts directly to the responder API; Android-side local persistence is not exercised.
-  \item \textbf{Command commit.} The command node accepts a \texttt{client\_event\_id} once, assigns \texttt{event\_seq} atomically with journal insertion, and maps duplicates to the existing journal entry rather than resequencing them.
-  \item \textbf{Forwarding acknowledgement.} A responder may mark an outbox item forwarded only after the command writer acknowledges durable journal acceptance or duplicate recognition.
-  \item \textbf{Catch-up.} Consumers apply committed journal entries in \texttt{event\_seq} order after their last applied sequence. Materialized state is derived from the journal and can be rebuilt.
-  \item \textbf{Authority.} The command-side journal is authoritative for incident decisions. Responder outboxes, tablet caches, and materialized views are derived or pending state.
+  \item Each submission has a globally unique idempotency key, \textit{client\_event\_id}, scoped by the incident and originating client identity.
+  \item A responder accepts a submission only after the event is stored in its local outbox.
+  \item The command node accepts a \textit{client\_event\_id} once and assigns \textit{event\_seq} atomically with journal insertion. It maps duplicates to the existing journal entry rather than resequencing them.
+  \item A responder may mark an outbox item forwarded only after the command writer acknowledges durable journal acceptance or duplicate recognition.
+  \item Consumers apply committed journal entries in \textit{event\_seq} order after their last applied sequence. Materialized state is derived from the journal and can be rebuilt.
+  \item The command-side journal is authoritative for incident decisions. Responder outboxes, tablet caches, and materialized views are derived or pending state.
 \end{itemize}
 
-The current schema does not yet include a stored \texttt{command\_epoch}; promotion epochs and fencing are specified below as protocol design and model-level validation rather than as a fully implemented production path.
+The current schema does not yet include a stored \textit{command\_epoch}; Section~\ref{sec:implementation} records that implementation boundary.
+
+The safety properties are single authority for \textit{event\_seq} assignment,
+no forked journal under the strict promotion rule, and idempotent replay by
+\textit{client\_event\_id}. The progress assumptions are bounded.
+Command-local progress requires the command service and its local storage.
+Responder partitions defer responder-originated authoritative acceptance.
+Promotion is manual and fenced.
 
 \subsection{Partition Behavior}
 
-Partition handling is intentionally asymmetric, reflecting the tiered authority model:
+Partitions follow the tiered authority model:
 \begin{itemize}
-  \item If a responder loses mesh connectivity to command, tablets continue to operate from cache and local outbox entries accumulate until reconnection.
+  \item If a responder loses mesh connectivity to command, tablets continue from cache and local outbox entries accumulate until reconnection.
   \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
-  \item If the command vehicle is lost, a responder is promoted manually and becomes the new single writer for the incident.
+  \item If the command vehicle is lost, a responder can become command only through explicit promotion and fencing of stale authority.
 \end{itemize}
 
 \subsection{Command Promotion, Epochs, and Fencing}
 \label{sec:promotion}
 
-The design does not provide automatic failover. It chooses operator-confirmed promotion and fencing to preserve command authority and avoid implicit split brain. Figure~\ref{fig:promotion-fencing} summarizes the intended production rule: each command tenure has a monotonically increasing epoch or equivalent term, promotion emits an explicit record, and stale command traffic is rejected once a newer epoch is known.
+The design does not provide autonomous failover. An operator confirms promotion,
+and fencing prevents stale command authority from continuing.
+Figure~\ref{fig:promotion-fencing} summarizes the intended rule. Each command
+tenure has a monotonically increasing epoch or equivalent term. Promotion emits
+an explicit record. Stale command traffic must be rejected once a newer epoch is
+known. The running services do not yet implement durable epoch storage or
+stale-epoch rejection. Those pieces remain protocol/model requirements and
+future implementation work.
 
 \begin{figure}[t]
 \centering
 \input{figures/fig_promotion_fencing}
-\caption{Promotion preserves the single-writer invariant only under strict fencing. The evaluated services do not implement durable epoch rejection; the figure summarizes the protocol/model requirement and the weak-promotion counterexample.}
+\caption{Promotion preserves the single-writer invariant only under strict fencing. The figure summarizes the protocol requirement and the weak-promotion counterexample.}
 \label{fig:promotion-fencing}
 \end{figure}
 
-This strict rule sacrifices availability when the previous command cannot be fenced or its status cannot be established. The TLA+ model captures the same safety boundary abstractly: strict promotion revokes the previous authority and refreshes the promoted node's cursor, while weak promotion leaves an unreachable previous authority active and produces split-brain counterexamples. The prototype includes an interactive \texttt{promote-responder.sh} script and model-level validation, but not durable command epochs, automatic stale-epoch rejection, or crash-validated fencing in the running services.
+This strict rule sacrifices availability when the previous command cannot be
+fenced or its status cannot be established. Section~\ref{sec:eval-safety}
+checks this boundary by comparing strict promotion with a weak variant.
 
 \subsection{Consistency Guarantees}
 
@@ -71,4 +108,6 @@ The protocol provides the following consistency guarantees:
   \item There is no claim of causal ordering across independent responder outboxes before command assignment.
 \end{itemize}
 
-These guarantees hold under the assumption that at most one command node is active per incident at any time and that stale command tenures are fenced before a promoted node accepts authority-bearing commits. Weak promotion is deliberately excluded; it is the counterexample case used in Section~\ref{sec:eval-safety}.
+These guarantees depend on the promotion rule in Section~\ref{sec:promotion}.
+The prototype evaluates the implemented idempotency, outbox, sequencing, and
+forwarding paths. The epoch/fencing rule is evaluated only at model level.

@@ -1,26 +1,19 @@
 # NCA 2026 Decisions
 
 Submission deadline: 19 June 2026 AoE.
-Today: 5 May 2026.
-Working window: ~6.5 weeks. Schedule below uses that window with proper buffer
+Today: 12 May 2026.
+Working window: ~5.5 weeks. Schedule below uses that window with proper buffer
 rather than crash-program compression.
 
 1. Submission target: Y. Regular paper, 8 pages base, willing to pay for both
-   extras (10-page effective ceiling). The two extra pages go to the section 6
-   systems comparison table and the section 2 SMR-positioning paragraph; both are
-   core to the acceptance case.
+   extras (10-page effective ceiling). Primary topic framing is Network
+   Architectures & Protocols; secondary framing is Applications, Prototypes &
+   Experiences.
 
-2. Authorship: confirmed, in submission order:
-   1. Aditya Sissodiya
-   2. Eric Chiquito
-   3. Johan Kristiansson
-   4. Ulf Bodin
-   All four authors have agreed to (a) venue switch from ISCRAM to NCA 2026,
-   (b) double-blind submission, (c) in-person attendance requirement at
-   Ortigia-Syracuse, 10-13 November 2026, with at least one author registering
-   at full rate. Affiliations and corresponding-author designation to be
-   filled in for camera-ready, omitted from the submission PDF for double-
-   blind review.
+2. Authorship: confirmed out of band. Author names, affiliations,
+   acknowledgements, repository URLs, and institution-identifying artifact
+   metadata must stay out of the double-blind manuscript and any reviewer-facing
+   bundle. Camera-ready metadata is handled only after acceptance.
 
 3. Safety property strategy: C (both).
    Primary: TLA+ specification with `NoTwoWriters` invariant checked by TLC
@@ -33,13 +26,11 @@ rather than crash-program compression.
    Hard fallback to B only: if no TLC-checked model exists by end of day
    Sun 7 June 2026, switch to B exclusively and do not look back.
 
-4. Baseline: Raft-measured.
+4. Baseline: Raft-measured and contextual.
    Use hashicorp/raft (Go) wrapped behind a thin journal interface, deployed
-   as a 3-node cluster across the existing Docker Compose topology (command
-   edge + responder edge + regional core as the third voter). Run against
-   the same scenarios driving `eval_metrics.jsonl`. Estimated ~300 LOC of
-   glue. Hard fallback to analytical-only if the Raft glue is not running
-   end-to-end by end of day Sun 14 June 2026.
+   as a 3-node cluster across the existing Docker Compose topology. Treat it as
+   a quorum-progress illustration only, not a workflow-equivalent latency or
+   correctness baseline.
 
 5. Schedule with cut-over dates:
    - Phase 1 (IEEE migration, anonymisation, bib expansion, skeleton):
@@ -55,7 +46,7 @@ rather than crash-program compression.
    - Submission target: Wed 17 June 2026, 23:59 local. Do not aim later.
 
 6. Trigger dates:
-   - Plan D (skip submission, retarget to ICDCS / SRDS / ISCRAM 2027):
+   - Plan D (skip submission, retarget to a later systems or crisis-informatics venue):
      trigger Wed 27 May 2026 if Phase 2 has not produced >=1 non-null
      measurement per scenario.
    - Plan B (downgrade to Short Paper, 4 pages, if NCA 2026 reintroduces

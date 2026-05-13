@@ -1,9 +1,10 @@
 # Rescue OIS
 
-Rescue OIS is a research prototype for an offline-first operational information
-system for rescue-service incidents. It studies how authority-bearing incident
-data can be synchronized across intermittently connected regional, vehicle, and
-tablet tiers without turning field partitions into multi-writer conflicts.
+Rescue OIS is a research prototype for authority-aligned synchronization in
+rescue-service incident response. It studies how authority-bearing incident
+events can be linearized at the current command authority across
+intermittently connected regional, vehicle, and tablet tiers, while
+non-authority data remains locally useful and forwardable.
 
 The core design rule is:
 
@@ -13,6 +14,15 @@ The core design rule is:
 This repository contains the prototype services, local Docker emulation,
 formal safety models, evaluation harnesses, a Raft comparison baseline, Android
 tablet scaffold, and the LaTeX paper sources.
+
+This prototype evaluates authority-aligned synchronization for rescue-service
+incident data. It is not a general-purpose offline database and not a
+production mesh deployment. The implemented path covers responder outbox
+forwarding, command-side idempotent sequencing, command-to-core backfill,
+duplicate replay, selected partition behavior, and model-level promotion
+safety. Physical mesh behavior, Android tablet persistence, mTLS/WireGuard
+overhead, service-level durable command epochs, and full crash-boundary
+validation remain outside the measured path.
 
 ## Status
 
@@ -112,11 +122,17 @@ The main prototype evaluation drives bootstrap latency, field-edit
 propagation, WAN recovery, throughput, and idempotency scenarios against the
 running Docker emulation.
 
+The separate command-partition harness measures only command-originated writes
+submitted directly to the implemented command `syncd` `/accept/event-batch`
+path while responder `syncd` is isolated. It is not an end-to-end tablet or
+physical mesh measurement.
+
 ```bash
 ./scripts/dev-up.sh
 ./scripts/run-migrations.sh
 ./scripts/run-migrations.sh edge
 python3 scripts/evaluate-pilot.py
+python3 scripts/evaluate-command-local-partition.py
 python3 paper/scripts/generate_plots.py
 python3 paper/scripts/generate_tables.py
 ```

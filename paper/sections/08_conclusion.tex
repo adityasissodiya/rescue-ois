@@ -1,5 +1,16 @@
 \section{Conclusion}
 
-This paper presents an authority-aware, offline-first incident-information architecture for rescue-service operations under intermittent connectivity. The central design move is a tiered synchronization model that preserves one command-side writer for authority-bearing incident-journal state while allowing disconnected responders to continue durable forward submission. The prototype and model checking support the feasibility of this trade-off in Docker Compose emulation and in the bounded abstract promotion model.
+This paper presented authority-aligned linearization for rescue-service incident
+information under intermittent edge connectivity. The protocol places
+authority-bearing incident events at one serialization point: the node that
+holds current operational command authority. Other state uses weaker contracts
+for reference data, responder observations, artifacts, audit, and forwarding.
 
-The design deliberately does not provide automatic multi-writer failover. Strict promotion and fencing are required to avoid split brain, and the current implementation validates that rule at model level rather than as a crash-hardened production mechanism. Field-radio evaluation, full crash-injection validation, Android tablet evaluation, WireGuard/mTLS measurement, and production hardening remain future work.
+The prototype measures selected service paths. The abstract model checks the
+promotion/fencing boundary. Together, they support the architecture's
+consistency boundary under the stated assumptions.
+
+The results do not validate a completed public-safety deployment. Remaining work
+is to implement durable service-level epochs, add crash-boundary and Android
+end-to-end tests, run physical mesh or field trials, and compare more directly
+with emergency consensus and CRDT-based systems.

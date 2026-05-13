@@ -208,26 +208,21 @@ Section~\ref{sec:eval-safety}). This is the trade-off encoded in R3:
 command-local write availability under responder partition at the cost
 of automatic write failover.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \caption{Quorum-progress illustration: a 3-voter Raft cluster cannot
 commit with 2 voters isolated, by construction; Rescue OIS has no
 quorum requirement on responders.}
 \label{tab:baseline}
+\footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabularx}{\textwidth}{@{}llp{0.20\textwidth}p{0.22\textwidth}X@{}}
 \toprule
-\textbf{Scenario / system} & $n$ & \textbf{median} & \textbf{p95} \\
+\textbf{Scenario} & \textbf{System} & \textbf{Partition condition} & \textbf{Result} & \textbf{Interpretation} \\
 \midrule
 \input{tables/tab_baseline}
-\end{tabular}
-\par\smallskip
-\footnotesize\raggedright
-Latency rows are contextual rather than workflow-equivalent. The
-quorum-loss row is a measured Raft result; the corresponding Rescue OIS
-claim is discussed analytically in the text because the prototype has no
-responder quorum requirement.
-\end{table}
+\end{tabularx}
+\end{table*}
 
 \subsection{Limitations and Threats to Validity}
 \label{sec:eval-limits}

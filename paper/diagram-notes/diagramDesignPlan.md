@@ -11,7 +11,7 @@ Do not draw any figure that implies evidence the repository does not support.
 Specifically:
 
 - Do not imply a real field deployment was evaluated.
-- Do not imply Rajant mesh performance was measured.
+- Do not imply Rajant physical-mesh behavior was measured.
 - Do not imply WireGuard or mTLS overhead was measured.
 - Do not imply the Android tablet path was evaluated; the reported evaluation uses a Python stub.
 - Do not imply crash safety was fully validated at every durable boundary.
@@ -65,7 +65,7 @@ Do not rely on color alone. The paper should remain readable in grayscale.
 
 ### Terms to avoid in figure captions unless tightly qualified
 
-Avoid: `production-ready`, `field-tested`, `secure`, `verified implementation`, `automatic failover`, `mesh performance`, `zero data loss`, `Byzantine-tolerant`.
+Avoid: production deployment claims, field-evaluation claims, broad security claims, full implementation proof claims, autonomous failover claims, physical radio-performance claims, absolute data-loss guarantees, and Byzantine-fault-tolerance claims.
 
 Prefer: `target deployment`, `emulated path`, `bounded model`, `contextual comparison`, `under stated assumptions`, `not exercised in this evaluation`.
 
@@ -333,7 +333,7 @@ If only one promotion-related figure is possible, prefer this over a separate fo
 
 ## Reader problem solved
 
-The paper’s strongest safety claim depends on strict promotion/fencing. A diagram should make the safety/availability trade-off obvious without implying automatic failover.
+The paper’s strongest safety claim depends on strict promotion/fencing. A diagram should make the safety/availability trade-off obvious without implying autonomous failover.
 
 ## Recommended layout
 
@@ -452,9 +452,10 @@ Medium-high.
 
 ## Placement
 
-Place in `paper/sections/06_evaluation.tex` near the WAN recovery result and before or after `fig:recovery`.
+Place in `paper/sections/06_evaluation.tex` near the WAN recovery result.
 
-This figure should support the measured recovery plot, not replace it.
+The recovery plot was removed from the submitted manuscript for page budget.
+This figure should support the WAN recovery prose and table, not replace them.
 
 ## Reader problem solved
 
@@ -641,7 +642,7 @@ Entities:
 - `target deployment only`
 - `backend trusts reverse-proxy identity`
 - `offline revocation delay`
-- `not Byzantine tolerant`
+- `not Byzantine-fault-tolerant`
 - `emulation uses plain HTTP + synthetic IDs`
 
 ## Suggested caption
@@ -843,7 +844,7 @@ Before considering the diagram pass complete, verify:
 - At least one figure explicitly separates target deployment from evaluated emulation.
 - At least one figure explicitly distinguishes local ACK from command ACK.
 - At least one figure explicitly shows that `incident.journal` is authoritative and `incident.state` is derived.
-- Promotion/fencing is shown as strict/manual/model-level, not automatic failover.
+- Promotion/fencing is shown as strict/manual/model-level, not autonomous failover.
 - The evaluation coverage figure does not hide limitations.
 - The Raft comparison, if diagrammed, says `contextual` and `not workflow-equivalent`.
 - Security diagrams, if included, avoid decorative lock icons that imply measured security.

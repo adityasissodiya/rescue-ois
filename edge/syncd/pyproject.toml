@@ -23,6 +23,9 @@ target-version = "py312"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: requires the local Docker Compose rescue-ois stack",
+]
 
 [build-system]
 requires = ["setuptools>=68"]

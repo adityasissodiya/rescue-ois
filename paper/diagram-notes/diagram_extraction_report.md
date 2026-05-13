@@ -16,19 +16,12 @@
 - Existing labels: `sec:introduction`.
 - Overloaded paragraphs: lines 7-11 explain connectivity, durable submission, requirements, and why consensus/CRDT patterns do not directly match the workflow.
 
-### Section II - Background and Related Work
-- File: `paper/sections/02_related_work.tex`, lines 1-28.
-- Purpose: positions the architecture against consensus, replicated databases, CRDT/local-first work, event-sourcing/outbox patterns, and emergency edge systems.
-- Dense concepts: CoNICE vs command-local progress, writer chosen by workflow rather than consensus, composed mechanisms, mesh as intermittent transit.
-- Existing labels: `sec:related`.
-- Overloaded paragraphs: lines 8-20 combine related-work contrast with the paper's own consistency-boundary argument.
-
-### Section III - System Architecture
-- File: `paper/sections/03_system_architecture.tex`, lines 1-133.
-- Purpose: defines requirements, design principles, roles, state taxonomy, network segmentation, and the current topology figure.
-- Dense concepts: requirements vs assumptions vs constraints, single incident writer, target network components, state-specific replication contracts.
-- Existing labels: `sec:architecture`, `sec:requirements`, `tab:req-trace`, `sec:principles`, `sec:state-taxonomy`, `tab:state-taxonomy`, `fig:topology`.
-- Overloaded paragraphs: lines 9-17 define R1-R5; lines 37-49 define design principles; lines 53-67 define roles and tablet boundaries; lines 69-91 define the state taxonomy; lines 93-95 distinguish target segmentation from emulation.
+### Section II - Problem Analysis
+- File: `paper/sections/02_problem_analysis.tex`, lines 1-170.
+- Purpose: combines operational setting, related-work gap, requirements, state taxonomy, and architecture rationale.
+- Dense concepts: operational command authority, CRDT/local-first limits, consensus comparison, state-specific contracts, target-vs-evaluated path.
+- Existing labels: `sec:problem-analysis`, `sec:requirements`, `tab:req-trace`, `sec:state-taxonomy`, `fig:state-contracts`, `fig:topology-scope`.
+- Overloaded paragraphs: the related-work contrast and architecture consequence remain the densest parts, but the section now follows a problem-analysis sequence.
 
 ### Section IV - Synchronization Protocol
 - File: `paper/sections/04_synchronization_protocol.tex`, lines 1-70.
@@ -41,14 +34,14 @@
 - File: `paper/sections/05_implementation.tex`, lines 1-31.
 - Purpose: maps the prototype, scaffolding, and evaluated paths.
 - Dense concepts: service coverage, synthetic bootstrap/backfill, emulation plain HTTP, target authentication controls.
-- Existing labels: `sec:implementation`, `tab:implementation`.
+- Existing labels: `sec:implementation`.
 - Overloaded paragraphs: line 6 and lines 8-29 carry the main status taxonomy; line 31 carries an important target-vs-emulation caveat.
 
 ### Section VI - Evaluation
 - File: `paper/sections/06_evaluation.tex`, lines 1-285.
 - Purpose: describes the emulation environment, measured scenarios, results, safety/model checks, Raft comparison, and limitations.
 - Dense concepts: measured vs unmeasured paths, queue depths, WAN recovery timing, outbox polling, throughput lock bottleneck, formal-model bounds, Raft quorum comparison, limitations.
-- Existing labels: `sec:evaluation`, `sec:validation`, `sec:eval-env`, `sec:eval-latency`, `tab:evaluation`, `fig:recovery`, `sec:eval-throughput`, `sec:eval-safety`, `sec:eval-baseline`, `tab:baseline`, `sec:eval-limits`.
+- Existing labels: `sec:evaluation`, `sec:validation`, `sec:eval-env`, `sec:eval-latency`, `tab:evaluation`, `sec:eval-throughput`, `sec:eval-safety`, `sec:eval-baseline`, `tab:baseline`, `sec:eval-limits`.
 - Overloaded paragraphs: lines 8-28 define the evaluation substrate and data counts; lines 39-84 define measurement scope and caveats; lines 143-168 define formal-model scope; lines 184-233 define Raft comparison scope and quorum math; lines 258-285 list limitations.
 
 ### Section VII - Discussion
@@ -88,11 +81,10 @@
 - Status: should be replaced or split by Candidate A. Current figure is useful, but it risks blending target deployment components with the Docker/Python evaluation unless labels are made more explicit.
 - Claim type: architecture design. The caption caveat at lines 128-132 states that physical network components were not evaluated.
 
-### `tab:implementation`
-- Source: `paper/sections/05_implementation.tex`, lines 8-29.
-- Caption: prototype status and evaluation coverage.
+### Implementation status prose
+- Source: `paper/sections/05_implementation.tex`, lines 8-18.
 - Explains: implemented, scaffolded, model-only, and evaluated/not-evaluated components.
-- Status: keep as a table or convert into Candidate H. It is the clearest current status guardrail.
+- Status: table removed for page budget; keep prose guardrail or convert into Candidate H only if page budget allows.
 - Claim type: implementation-status claims.
 
 ### `tab:evaluation`
@@ -102,11 +94,10 @@
 - Status: keep; Candidate H and Candidate E can reference selected values without duplicating the full table.
 - Claim type: measured emulation data.
 
-### `fig:recovery`
-- Source: `paper/sections/06_evaluation.tex`, lines 100-106; generated file `paper/figures/fig_recovery.pdf`.
-- Caption: WAN recovery distribution per partition duration.
+### Recovery plot
+- Source: generated file `paper/figures/fig_recovery.pdf`; not included in the submitted manuscript after page-budget trimming.
 - Explains: recovery-time distribution for 1 s, 10 s, and 60 s WAN partitions.
-- Status: keep, but Candidate E can add the missing mechanism timeline around this result.
+- Status: do not re-add unless page budget allows; Candidate E can add mechanism context around the tabulated/prose result.
 - Claim type: measured emulation data, limited to command-core WAN isolation.
 
 ### `tab:baseline`
@@ -157,7 +148,7 @@
 ### Promotion, epochs, and fencing
 - References: `paper/sections/04_synchronization_protocol.tex`, lines 52-57; `paper/sections/06_evaluation.tex`, lines 143-168; `formal/tla/RescueOIS.tla`, lines 114-140 and 173-199; `scripts/promote-responder.sh`, lines 1-43; `docs/runbooks/command-failover.md`, lines 1-30; `docs/adr/0004-promotion-authority-model.md`, lines 1-40.
 - Why hard: the desired strict-promotion rule exists in the model and procedure, but durable epochs and stale-epoch rejection are not implemented in services.
-- Likely misunderstanding: readers may infer production-grade automatic failover or durable epoch fencing.
+- Likely misunderstanding: readers may infer production-grade autonomous failover or durable epoch fencing.
 - Diagram role: Candidate F should show strict and weak paths, with weak promotion explicitly unsafe.
 
 ### Raft comparison scope
@@ -190,7 +181,7 @@
 
 - Priority: High.
 - Proposed type: layered architecture diagram.
-- Target section: System Architecture, `paper/sections/03_system_architecture.tex`.
+- Target section: Problem Analysis, `paper/sections/02_problem_analysis.tex`.
 - Replace or support: replace existing `fig:topology` or split it into architecture and evaluation-scope figures.
 - Reader problem solved: makes core, command edge, responder edge, tablet, WAN, mesh, and emulation boundaries obvious.
 - Entities to show: regional core, command K430, responder K430s, field tablets, Docker bridge emulation, Rajant mesh, WireGuard overlay, Nginx/mTLS, Python tablet stub.
@@ -198,7 +189,7 @@
 - Required labels: `regional core`, `command edge`, `responder edge`, `tablet leaf client`, `target deployment`, `evaluated Docker path`, `not measured`.
 - Data/results to include: none, or a small badge saying "Docker Compose, N=30 cells" from `paper/sections/06_evaluation.tex`, lines 8-19.
 - Assumptions/caveats to show visually: Rajant, WireGuard, mTLS, and Android are target/scaffolded, not evaluated.
-- Source references: `paper/sections/03_system_architecture.tex`, lines 53-67 and 97-133; `paper/sections/06_evaluation.tex`, lines 8-19; `docs/deployment/vehicle-edge-setup.md`, lines 1-22.
+- Source references: `paper/sections/02_problem_analysis.tex`; `paper/sections/06_evaluation.tex`, lines 8-19; `docs/deployment/vehicle-edge-setup.md`, lines 1-22.
 - Risk if drawn badly: implies field-radio, VPN, TLS, or Android performance was measured.
 - Suggested caption idea: "Target deployment layers and the narrower Docker/Python path used for the reported emulation."
 
@@ -206,7 +197,7 @@
 
 - Priority: High.
 - Proposed type: matrix or layered contract diagram.
-- Target section: System Architecture, `paper/sections/03_system_architecture.tex`.
+- Target section: Problem Analysis, `paper/sections/02_problem_analysis.tex`.
 - Replace or support: replace or compress `tab:state-taxonomy`.
 - Reader problem solved: prevents the false impression that one consistency model applies to all data.
 - Entities to show: master/reference data, immutable artifacts, field observations, command decisions, materialized state, audit events.
@@ -214,7 +205,7 @@
 - Required labels: `one-way replication`, `manifest/hash validation`, `append-only outbox`, `single-writer journal`, `derived/rebuildable`, `eventual audit forwarding`.
 - Data/results to include: none.
 - Assumptions/caveats to show visually: audit forwarding validation remains incomplete; single-writer applies only to authority-bearing journal entries.
-- Source references: `paper/sections/03_system_architecture.tex`, lines 69-91; `paper/sections/07_discussion.tex`, lines 5-7; `docs/architecture/sync-protocol.md`, lines 5-52.
+- Source references: `paper/sections/02_problem_analysis.tex`; `paper/sections/07_discussion.tex`, lines 5-7; `docs/architecture/sync-protocol.md`, lines 5-52.
 - Risk if drawn badly: overgeneralizes the command-writer rule.
 - Suggested caption idea: "State classes use different synchronization contracts; only command decisions require a single authoritative sequencer."
 
@@ -255,7 +246,7 @@
 - Priority: High.
 - Proposed type: timeline.
 - Target section: Evaluation, `paper/sections/06_evaluation.tex`.
-- Replace or support: support WAN recovery prose and `fig:recovery`.
+- Replace or support: support WAN recovery prose and `tab:evaluation`.
 - Reader problem solved: shows what continues during command-core WAN isolation and what resumes after reconnect.
 - Entities to show: responder outbox, command journal, core backhaul, partition window, reconnect, replay.
 - Flows or relationships to show: normal operation, WAN disconnect, local enqueue, command-local commit, core-forward pause, reconnect, cursor-based catch-up.
@@ -263,7 +254,7 @@
 - Data/results to include: 1 s partition median/p95 2073/2227 ms, 10 s 5793/5922 ms, 60 s 706/2727 ms from `paper/tables/tab_evaluation.tex`, lines 14-17.
 - Assumptions/caveats to show visually: only command-core WAN isolation was measured; responder isolation, crashes, restarts, and physical radio behavior were not measured.
 - Source references: `scripts/evaluate-pilot.py`, lines 174-225; `scripts/inject-partition.sh`, lines 1-68; `paper/sections/06_evaluation.tex`, lines 57-84.
-- Risk if drawn badly: suggests a general network-recovery law or mesh performance result.
+- Risk if drawn badly: suggests a general network-recovery law or physical radio-performance result.
 - Suggested caption idea: "WAN recovery measures command-to-core catch-up after Docker network isolation, not radio mesh recovery."
 
 ### F. Promotion, Epochs, and Fencing
@@ -279,7 +270,7 @@
 - Data/results to include: weak `SingleAuthority` counterexample depth 3 and weak `NoForkedJournal` counterexample depth 5 from `formal/tla/README.md`, lines 21-27 and 54-57.
 - Assumptions/caveats to show visually: durable `command_epoch` and stale-epoch rejection are design/model requirements, not service implementation in the evaluated path.
 - Source references: `formal/tla/RescueOIS.tla`, lines 114-140 and 173-199; `paper/sections/04_synchronization_protocol.tex`, lines 52-57; `docs/runbooks/command-failover.md`, lines 1-30; `docs/adr/0004-promotion-authority-model.md`, lines 15-35.
-- Risk if drawn badly: implies automatic failover or implemented epoch fencing.
+- Risk if drawn badly: implies autonomous failover or implemented epoch fencing.
 - Suggested caption idea: "Promotion is safe only under strict fencing; the weak path admits split-brain counterexamples in the abstract model."
 
 ### G. Raft Comparison Scope
@@ -303,7 +294,7 @@
 - Priority: Highest.
 - Proposed type: coverage matrix.
 - Target section: Implementation or Evaluation, `paper/sections/05_implementation.tex` or `paper/sections/06_evaluation.tex`.
-- Replace or support: support `tab:implementation` and evaluation environment prose.
+- Replace or support: support implementation status prose and evaluation environment prose.
 - Reader problem solved: makes evidence boundaries readable at a glance.
 - Entities to show: target components, implemented prototype components, Docker-evaluated components, model-only components, not-evaluated components.
 - Flows or relationships to show: target vs prototype vs evaluated/emulated path.
@@ -323,7 +314,7 @@
 - Reader problem solved: turns a list of security technologies into a scoped model.
 - Entities to show: organizational CA/IdP, core, command edge, responder edge, tablets, RUTX50 VLANs, WireGuard overlay, Rajant transit, audit path.
 - Flows or relationships to show: certificate-derived identity, local tablet reachability, K430-to-core overlay, K430-to-K430 mesh transit, CRL/OCSP refresh on reconnect.
-- Required labels: `target deployment only`, `offline revocation delay`, `backend trusts reverse-proxy identity`, `not Byzantine tolerant`.
+- Required labels: `target deployment only`, `offline revocation delay`, `backend trusts reverse-proxy identity`, `not Byzantine-fault-tolerant`.
 - Data/results to include: none.
 - Assumptions/caveats to show visually: mTLS and revocation behavior are not exercised by the emulation.
 - Source references: `paper/sections/07_discussion.tex`, lines 9-13; `docs/architecture/network-topology.md`, lines 44-60; `docs/adr/0005-revocation-under-partition.md`, lines 7-21; `edge/nginx/nginx.conf`, lines 33-43.
@@ -463,7 +454,7 @@
 - Authority markers: thick border or crown-like text label `authoritative` on `incident.journal`; avoid implying authority for `incident.state`.
 - Derived-state markers: lighter border and label `derived/rebuildable` on materialized state.
 - Evidence badges: `measured`, `configured`, `modeled`, `analytic`, `missing from repo`, `not evaluated`.
-- Terms to avoid in captions unless carefully qualified: `production-ready`, `field-tested`, `secure`, `verified implementation`, `automatic failover`, `mesh performance`, `zero data loss`, `Byzantine-tolerant`.
+- Terms to avoid in captions unless carefully qualified: production deployment claims, field-evaluation claims, broad security claims, full implementation proof claims, autonomous failover claims, physical radio-performance claims, absolute data-loss guarantees, and Byzantine-fault-tolerance claims.
 
 ## 8. Claim-Safety Notes
 

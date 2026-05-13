@@ -10,7 +10,7 @@ The Rescue OIS edge tier consists of multiple vehicle K430s that may be operatin
 
 ## Decision
 
-Only **one K430 per incident** writes to `incident.journal` and `incident.state`. That K430 is designated as the **command vehicle** at incident bootstrap. All other K430s operate in **responder** mode: they accept tablet edits into `outbox.device_outbox` and forward them to the command K430 over the Rajant mesh. The command K430 sequences incoming events with a monotonically increasing `event_seq` and forwards the resulting journal to the regional core.
+Only **one K430 per incident** writes authority-bearing events to `incident.journal` and `incident.state`. That K430 is designated as the **command vehicle** at incident bootstrap. All other K430s operate in **responder** mode: they accept tablet edits into `outbox.device_outbox` and forward them to the command K430 over the target inter-vehicle network. The command K430 sequences incoming events with a monotonically increasing `event_seq` and forwards the resulting journal to the regional core.
 
 ## Consequences
 
@@ -22,9 +22,9 @@ Only **one K430 per incident** writes to `incident.journal` and `incident.state`
 
 **Negative:**
 
-- The command vehicle is a single point of write availability for the incident. Recovery requires an explicit promotion procedure (`scripts/promote-responder.sh`) and a documented runbook (`docs/runbooks/command-failover.md`).
+- The command vehicle is a single point of write availability for authority-bearing incident events. Recovery requires explicit fenced promotion; the current service implementation does not yet persist durable command epochs or reject stale epochs.
 - Responder vehicles must persist outbox entries durably until acked.
-- Promotion must be auditable to prevent split-brain.
+- Promotion must be auditable and fenced to prevent split authority.
 
 ## Implementation Notes
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate paper/tables/tab_evaluation.tex from eval_metrics.jsonl."""
+"""Generate paper/tables/tab_evaluation.tex from evaluation JSONL files."""
 
 from __future__ import annotations
 
@@ -9,7 +9,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-DATA = Path("paper/data/eval_metrics.jsonl")
+DATA = Path("paper/data/eval_metrics.anon.jsonl")
+COMMAND_PARTITION_DATA = Path("paper/data/eval_command_local_partition.anon.jsonl")
 OUT = Path("paper/tables/tab_evaluation.tex")
 OUT.parent.mkdir(exist_ok=True)
 
@@ -19,6 +20,32 @@ def load_records():
         sys.exit(f"ERROR: {DATA} missing")
     with DATA.open(encoding="utf-8") as handle:
         return [json.loads(line) for line in handle]
+
+
+def load_command_partition_summary():
+    if not COMMAND_PARTITION_DATA.exists():
+        sys.exit(f"ERROR: {COMMAND_PARTITION_DATA} missing")
+    records = []
+    with COMMAND_PARTITION_DATA.open(encoding="utf-8") as handle:
+        for line in handle:
+            records.append(json.loads(line))
+    summary = next(
+        (
+            record["scenario_params"]
+            for record in records
+            if record.get("metric_name") == "summary"
+        ),
+        None,
+    )
+    if summary is None:
+        sys.exit(f"ERROR: no summary record in {COMMAND_PARTITION_DATA}")
+    latencies = [
+        record["value_ms"]
+        for record in records
+        if record.get("metric_name") == "command_local_commit_latency_ms"
+        and record.get("value_ms") is not None
+    ]
+    return summary, latencies
 
 
 def percentile(xs, p):
@@ -33,11 +60,7 @@ def percentile(xs, p):
 
 def main():
     records = load_records()
-
-    boot = defaultdict(list)
-    for record in records:
-        if record["scenario"] == "bootstrap_latency" and record.get("value_ms") is not None:
-            boot[record["scenario_params"]["aoi_polygons"]].append(record["value_ms"])
+    partition_summary, partition_latencies = load_command_partition_summary()
 
     prop = defaultdict(list)
     for record in records:
@@ -57,39 +80,47 @@ def main():
             tput.append(record["scenario_params"]["events_per_sec"])
 
     rows = []
-    rows.append(r"\textit{Bootstrap latency vs.\ AOI complexity} & & & \\")
-    for key in sorted(boot.keys()):
-        values = boot[key]
-        rows.append(
-            f"  \\hspace{{2mm}}AOI polygons = {key} & {len(values)} & "
-            f"{statistics.median(values):.2f} & {percentile(values, 95):.2f} \\\\"
-        )
-    rows.append(r"\addlinespace")
-    rows.append(r"\textit{Field-edit propagation vs.\ queue depth} & & & \\")
+    rows.append(r"\textit{Field-edit propagation to command journal} & & & \\")
     for key in sorted(prop.keys()):
         values = prop[key]
         rows.append(
             f"  \\hspace{{2mm}}queue depth = {key} & {len(values)} & "
-            f"{statistics.median(values):.1f} & {percentile(values, 95):.1f} \\\\"
+            f"median {statistics.median(values):.1f}\\,ms; p95 {percentile(values, 95):.1f}\\,ms & "
+            r"responder \texttt{ops-api} to command journal \\"
         )
     rows.append(r"\addlinespace")
-    rows.append(r"\textit{WAN recovery vs.\ partition duration} & & & \\")
+    rows.append(r"\textit{WAN recovery to regional core} & & & \\")
     for key in sorted(rec.keys()):
         values = rec[key]
         rows.append(
             f"  \\hspace{{2mm}}partition = {key}\\,s & {len(values)} & "
-            f"{statistics.median(values):.0f} & {percentile(values, 95):.0f} \\\\"
+            f"median {statistics.median(values):.0f}\\,ms; p95 {percentile(values, 95):.0f}\\,ms & "
+            r"command journal to core after WAN restore \\"
         )
     rows.append(r"\addlinespace")
-    rows.append(r"\textit{Command-edge throughput (run\_index 1--29)} & & & \\")
+    rows.append(r"\textit{Command-edge throughput} & & & \\")
     rows.append(
         f"  \\hspace{{2mm}}events/s & {len(tput)} & "
-        f"{statistics.median(tput):.1f} & {percentile(tput, 95):.1f} \\\\"
+        f"median {statistics.median(tput):.1f}; p95 {percentile(tput, 95):.1f} & "
+        r"\texttt{run\_index}=1--29 \\"
+    )
+    rows.append(r"\addlinespace")
+    seqs = partition_summary["sequence_numbers"]
+    rows.append(r"\textit{Direct command \texttt{syncd} accept path during responder \texttt{syncd} isolation} & & & \\")
+    rows.append(
+        "  \\hspace{2mm}command-originated writes "
+        f"& {partition_summary['attempted_writes']} & "
+        f"{partition_summary['successful_commits']}/{partition_summary['attempted_writes']} commits; "
+        f"seq. {min(seqs)}--{max(seqs)}; "
+        f"{partition_summary['duplicate_sequence_count']} duplicate seqs. & "
+        f"direct \\texttt{{/accept/event-batch}} path; median/max {statistics.median(partition_latencies):.2f}/"
+        f"{max(partition_latencies):.2f}\\,ms sanity check; "
+        "journal unchanged after recovery \\\\"
     )
 
     with OUT.open("w", encoding="utf-8") as handle:
         handle.write("% Auto-generated by paper/scripts/generate_tables.py.\n")
-        handle.write("% Do not edit; re-run the script after eval_metrics.jsonl changes.\n")
+        handle.write("% Do not edit; re-run the script after evaluation JSONL changes.\n")
         for line in rows:
             handle.write(line + "\n")
         handle.write(r"\bottomrule" + "\n")
