@@ -1,38 +1,8 @@
 \section{Implementation}
 \label{sec:implementation}
 
-We mark every component in Table~\ref{tab:implementation} with its actual implementation status to prevent the paper from implying that model-level evidence is service-level evidence. The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}.
+The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}.
 
 The evaluated path is intentionally narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
 
-\begin{table*}[t]
-  \centering
-  \caption{Prototype status and evaluation coverage.}
-  \label{tab:implementation}
-  \footnotesize
-  \begin{tabularx}{\textwidth}{@{}p{0.20\textwidth} X p{0.18\textwidth}@{}}
-    \toprule
-    \textbf{Component} & \textbf{Repository status} & \textbf{Evaluated?} \\
-    \midrule
-    Core/edge Docker services & Compose stacks and Python services for \texttt{sync-api}, \texttt{ops-api}, \texttt{syncd}, and PostgreSQL. & Yes, in plain-HTTP emulation. \\
-    Bootstrap path & Synthetic AOI/manifest response in \texttt{sync-api}; not the full package publisher. & Yes. \\
-    Responder outbox forwarding & Local outbox insert, polling push, command accept, and forwarded marking implemented for prototype path. & Yes, without crash injection. \\
-    Command sequencing/idempotency & Transactional \texttt{event\_seq} allocation and unique \texttt{client\_event\_id} indexes. & Yes, replay-tested. \\
-    Core backfill & Command journal forwarder and idempotent core ingest route. & Yes, for WAN recovery. \\
-    Logical replication/packages & Schemas, publisher, and cache scaffolding exist; full package pipeline not exercised. & No. \\
-    mTLS/WireGuard/Rajant & Nginx and WireGuard templates plus Rajant/RUTX50 design notes. & No. \\
-    Android tablet & Kotlin/Compose/Room/MapLibre scaffold and unit tests; local persistence incomplete. & No; Python stub used. \\
-    Promotion/fencing & Implemented in \texttt{edge/db/migrations/005\_command\_epoch.sql} (durable epoch table, journal stamping, \texttt{current\_epoch} view) and \texttt{edge/syncd/src/accept.py} (request validation, cache); \texttt{scripts/promote-responder.sh} inserts the new epoch row before restarting syncd. & Measured in Section~\ref{sec:eval-fenced-promotion}. \\
-    Audit/provisioning & Audit services and Ansible roles are partial scaffolds. & No end-to-end validation. \\
-    \bottomrule
-  \end{tabularx}
-\end{table*}
-
-\begin{figure*}[t]
-\centering
-\input{figures/fig_coverage_map}
-\caption{Coverage map for the prototype and evaluation. Marked cells distinguish target design, implemented or scaffolded artifacts, behavior exercised by the reported Docker/Python experiments, model-only evidence, and components not measured here. Physical mesh, VPN, mTLS, Android client behavior, full crash injection, and durable epoch rejection are not evaluated in this paper.}
-\label{fig:coverage-map}
-\end{figure*}
-
-Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers. Figure~\ref{fig:coverage-map} summarizes the same evidence boundary for the prototype as a whole.
+Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers.
