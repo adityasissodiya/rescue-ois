@@ -31,18 +31,15 @@ even when responders are isolated, and the serialization point characterizes
 the cost of single-writer journaling.
 
 \textbf{Direct command commit during responder isolation.}
-We exercise the direct command \textit{syncd} accept path while a responder
-edge is partitioned from the command mesh. The harness
-(\texttt{evaluate-command-local-partition.py}) isolates one responder
-\textit{syncd} container from the command edge for ten seconds and, during the
-partition, issues 20 single-event POSTs from the tablet stub directly to the
-command \texttt{/accept/event-batch} endpoint. All 20 of 20 attempts commit
-(HTTP~200, contiguous \texttt{event\_seq} assignment) with no responder
-reachable, confirming that the M1 authority boundary keeps the command-side
-write path available under responder partition. Per-attempt commit latency on
-this path has a median of $\sim$2.8\,ms and p95 $\sim$7.1\,ms. This experiment
-exercises the direct command \textit{syncd} accept path only; the
-tablet-facing command \textit{ops-api} is not exercised here.
+The \texttt{evaluate-command-local-partition.py} harness isolates one
+responder \textit{syncd} from the command edge for ten seconds and, during
+the partition, issues 20 single-event POSTs directly to the command
+\texttt{/accept/event-batch} endpoint. All 20/20 attempts commit (HTTP~200,
+contiguous \texttt{event\_seq}) with no responder reachable, confirming that
+the M1 authority boundary keeps the command-side write path available under
+responder partition. Per-attempt commit latency has a median of $\sim$2.8\,ms
+and p95 $\sim$7.1\,ms. The tablet-facing command \textit{ops-api} is not
+exercised here.
 
 \textbf{Steady-state throughput.}
 We saturate the command edge with 1000 concurrent submissions per run and
@@ -292,12 +289,8 @@ about the promotion.
 This subsection is included as a contextual quorum-progress illustration
 and not as a workflow-equivalent baseline; see
 Section~\ref{sec:protocol-m4} for why the authority-aligned design does
-not adopt quorum-based promotion.
-
-We do not propose Rescue OIS as a replacement for Raft or Paxos. The
-microbenchmark below is included \emph{only as a quorum-progress
-illustration}: a Raft cluster with $n=3$ voters and 2 voters isolated
-cannot commit by construction, as Raft requires by
+not adopt quorum-based promotion. A Raft cluster with $n=3$ voters and 2
+voters isolated cannot commit by construction, as Raft requires by
 design~\cite{ongaro2014raft}. We report this to motivate the design
 choice of avoiding a quorum requirement at intermittently-connected
 edges, not as a like-for-like comparison. Raft and Rescue OIS have
@@ -355,10 +348,3 @@ numbers will shift under different deadline values; and the workload is
 single-incident and limited-scale, with host hardware and container-runtime
 metadata captured per-run in the artefact file but not varied as an
 independent factor.
-
-Bootstrap-latency cells in the primary metrics file (10, 50, 200, and 1000
-polygons) exercise the synthetic \texttt{sync-api} bootstrap endpoint rather
-than the production logical-replication or package-publisher path; we
-include them in the artefact for completeness but they do not bear on any
-M1--M4 claim, and we do not interpret their non-monotonic medians as a
-scaling law.

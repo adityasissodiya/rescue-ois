@@ -37,11 +37,9 @@ epoch or equivalent term.
 M1 makes precise the state-contract distinction introduced in
 Section~\ref{sec:state-taxonomy}: which operations require linearization at the
 command, and which use weaker contracts. The command-side journal is
-authoritative for incident decisions. Responder outboxes, tablet caches, and
+authoritative for incident decisions; responder outboxes, tablet caches, and
 materialized views are derived or pending state. The single-writer rule applies
-only to authority-bearing incident-journal entries; master/reference data,
-local field submissions before command acceptance, and materialized projections
-use the weaker contracts summarized in Figure~\ref{fig:state-contracts}.
+only to authority-bearing incident-journal entries.
 
 \subsection{Command Journal Sequencing (M2)}
 \label{sec:protocol-m2}
@@ -49,10 +47,9 @@ use the weaker contracts summarized in Figure~\ref{fig:state-contracts}.
 M2 specifies how the command authority linearizes authority-bearing operations
 into a totally ordered journal. The command node accepts a
 \textit{client\_event\_id} once and assigns \textit{event\_seq} atomically with
-journal insertion. It maps duplicates to the existing journal entry rather than
-resequencing them. Consumers apply committed journal entries in
-\textit{event\_seq} order after their last applied sequence; materialized state
-is derived from the journal and can be rebuilt.
+journal insertion, mapping duplicates to the existing journal entry rather than
+resequencing them. Consumers apply committed entries in \textit{event\_seq}
+order; materialized state is derived from the journal and can be rebuilt.
 
 \subsection{Durable Outbox and Idempotent Submission (M3)}
 \label{sec:protocol-m3}
@@ -79,9 +76,9 @@ The M3 contract has three parts:
   \item A responder may mark an outbox item forwarded only after the command writer acknowledges durable journal acceptance or duplicate recognition.
 \end{itemize}
 
-Outbox delivery from responders is at least once and must be deduplicated by
-durable event identifiers at the command. There is no claim of causal ordering
-across independent responder outboxes before command assignment.
+Outbox delivery is at least once and is deduplicated at the command; there is
+no claim of causal ordering across independent responder outboxes before
+command assignment.
 
 \subsection{Fenced Promotion (M4)}
 \label{sec:protocol-m4}
@@ -103,43 +100,22 @@ measurement of this rule.
 \end{figure}
 
 This strict rule sacrifices availability when the previous command cannot be
-fenced or its status cannot be established. Section~\ref{sec:eval-m4}
-checks this boundary by comparing strict promotion with a weak variant.
-
-The safety properties are single authority for \textit{event\_seq} assignment,
-no forked journal under the strict promotion rule, and idempotent replay by
-\textit{client\_event\_id}. The progress assumptions are bounded:
-command-local progress requires the command service and its local storage;
-responder partitions defer responder-originated authoritative acceptance;
-promotion is manual and fenced.
+fenced or its status cannot be established; Section~\ref{sec:eval-m4} checks
+this boundary by comparing strict promotion with a weak variant.
 
 \subsection{Partition Behavior and Cross-Cutting Paths}
 \label{sec:protocol-partition}
 
 This subsection summarizes how the four mechanisms interact under network
-partition, and gathers the cross-cutting paths (baseline master-data
-distribution, incident bootstrap, command-to-core backhaul) that lie outside
-the authority-aligned contribution.
-
-Baseline master-data distribution from the regional core to vehicle edges uses
-one-way replication and package pulls; this path is outside the authority-aligned
-contribution and we do not evaluate it. Incident bootstrap, in which the core
-prepares an incident-specific package on dispatch, is similarly out of scope as a
-contribution; we describe both paths only to position the authority-bearing
-mechanisms (M1--M4) against the rest of the system surface.
-
-Partitions follow the tiered authority model:
+partition, and gathers the cross-cutting paths that lie outside the
+authority-aligned contribution: baseline master-data distribution (one-way
+replication and package pulls from core to edge), incident bootstrap (a
+dispatch-time package prepared by the core), and command-to-core backhaul
+(cursor-based forwarding of committed journal entries to the core when WAN
+is available). We do not evaluate these paths as contributions; partition
+behavior of the authority-bearing mechanisms is as follows:
 \begin{itemize}
   \item If a responder loses mesh connectivity to command, tablets continue from cache and local outbox entries accumulate until reconnection.
   \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
   \item If the command vehicle is lost, a responder can become command only through explicit promotion and fencing of stale authority.
 \end{itemize}
-
-Command-to-core backhaul is cursor-based and runs whenever the command vehicle
-has WAN connectivity to the regional core; it carries committed journal
-entries forward without changing their assigned \textit{event\_seq}. Master
-data converges eventually from core to edge, and tablets converge eventually
-with their local vehicle edge. The current schema records command epochs
-durably (Section~\ref{sec:implementation}); the prototype evaluates the
-implemented idempotency, outbox, sequencing, forwarding, and epoch-fencing
-paths.
