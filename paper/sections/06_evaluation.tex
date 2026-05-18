@@ -278,7 +278,7 @@ the request is short-circuited before journal I/O.
 This experiment is single-edge by design: each Rescue OIS edge owns
 its own Postgres, so a cross-edge promotion exercises a different
 shape of the property. The single-edge variant tests the
-journal-poisoning invariant the paper actually claims --- that
+journal-poisoning invariant the paper actually claims: that
 stale-epoch traffic cannot land in the journal at the current
 command, even when replayed against a syncd that has just been told
 about the promotion.

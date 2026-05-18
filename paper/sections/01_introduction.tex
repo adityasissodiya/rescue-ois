@@ -8,7 +8,7 @@ A Swedish municipal rescue service, R\"addningstj\"ansten Storg\"oteborg (RSG), 
 This paper asks: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?} It answers with a tiered synchronization architecture combining core-to-edge reference-data distribution, responder outboxes, a single command-side incident journal, and explicit manual promotion. The contributions are:
 \begin{enumerate}
   \item a consistency discipline for rescue-service incident response that separates authority-bearing from non-authority operations and makes the operational command the linearization point for the former;
-  \item model-level evidence (TLA+ with TLC and Hypothesis state-machine tests) that a strict fenced-promotion rule preserves single-authority and no-forked-journal invariants, complemented by a service-path measurement that stale-epoch traffic is rejected at the current command and cannot poison the journal;
+  \item model-level evidence (TLA+ with TLC and Hypothesis state-machine tests) that a strict fenced-promotion rule preserves single-authority and no-forked-journal invariants, together with a service-path measurement that stale-epoch traffic is rejected at the current command and cannot poison the journal;
   \item a Docker Compose service-path prototype measuring field-edit propagation, WAN recovery, single-row commit throughput, idempotent replay, fenced promotion, and direct command-side commit during responder isolation.
 \end{enumerate}
 

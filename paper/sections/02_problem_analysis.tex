@@ -6,9 +6,9 @@
 The target setting is municipal rescue-service incident response. A regional
 core supports dispatch, reference data, and backhaul; vehicle edge nodes run
 near the incident site; field tablets attach to a local vehicle and act as leaf
-clients. Connectivity is intermittent --- vehicles may move between wide-area
+clients. Connectivity is intermittent: vehicles may move between wide-area
 connectivity, mesh-only contact, and total
-isolation~\cite{zimbelman2022mesh,wang2023overview} --- and one vehicle is
+isolation~\cite{zimbelman2022mesh,wang2023overview}. One vehicle is
 designated as command for the incident; command can move to another vehicle,
 but only through an explicit human decision, and the protocol must respect that
 operational authority.
@@ -27,12 +27,12 @@ operations are placed under that linearization point and which are not, and
 (ii) the fenced-promotion rule that preserves single-authority across command
 changes. The mechanisms themselves are not claimed as novel.
 
-Existing systems solve adjacent parts of the problem. Offline-first systems preserve
-local work. CRDTs merge concurrent updates. Consensus protocols order replicated
-commands. Emergency networking and edge systems improve connectivity and local
-service placement. None of these mechanisms, by itself, states which
-rescue-service actor may issue non-commutative command decisions during a
-partition.
+Existing systems solve adjacent parts of the problem: offline-first systems
+preserve local work, CRDTs merge concurrent updates, consensus protocols order
+replicated commands, and emergency networking and edge systems improve
+connectivity and local service placement. None of these mechanisms, by itself,
+states which rescue-service actor may issue non-commutative command decisions
+during a partition.
 
 \subsubsection{Offline-first and local-first systems} Local-first systems prioritize
 local availability, user control, and continued operation under poor
@@ -48,8 +48,8 @@ until command acceptance.
 \subsubsection{CRDTs and local-first replication} CRDT and strong-eventual-consistency
 work provides convergence for mergeable replicated state~\cite{almeida2014delta,gomes2017verifyingsec}.
 Recent local-first work adds richer safety and invariant models~\cite{haas2023lore,kohler2025consistent,jannes2021owebsync,lewchenko2025boltonsc}.
-Hanssen applies CRDT replication to distributed emergency-management systems,
-which makes the comparison directly relevant here~\cite{hanssen2025emergency}.
+Hanssen applies CRDT replication to distributed emergency-management systems
+and is the closest comparison to the design here~\cite{hanssen2025emergency}.
 These systems fit data whose merge semantics are well defined. For
 authority-bearing decisions, mergeability is not the only question. The protocol
 also needs to identify the actor allowed to issue the decision. Rescue OIS

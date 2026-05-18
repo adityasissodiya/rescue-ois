@@ -39,7 +39,7 @@ Implemented; evaluated by duplicate replay (§\ref{sec:eval-m3}). \\
 \midrule
 Promotion and fencing &
 \path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{promote-responder.sh}, \path{evaluate-fenced-promotion.py} (in \path{scripts/}); \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
-Durable command-epoch table and stale-epoch rejection implemented at service level; complemented by TLA+/Hypothesis model checks; measured in §\ref{sec:eval-m4}. \\
+Durable command-epoch table and stale-epoch rejection implemented at service level; matching TLA+/Hypothesis model checks; measured in §\ref{sec:eval-m4}. \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{Supporting infrastructure (not authority-aligned)}} \\
 \midrule
@@ -65,6 +65,6 @@ Target-deployment documentation and configuration; physical mesh and security ov
 \end{tabularx}
 \end{table}
 
-The evaluated path is intentionally narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
+The evaluated path is narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
 
 Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers.
