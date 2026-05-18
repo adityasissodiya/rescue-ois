@@ -22,21 +22,59 @@ and 30 explicit ``skipped'' command-promotion records. The Raft metrics
 file contains 160 measured baseline records. The harness records scenario
 parameters, timestamps, and outcomes for each run.
 
-\subsection{Sync Protocol Latency and Recovery}
-\label{sec:eval-latency}
+\subsection{Authority Boundary Evidence (M1)}
+\label{sec:eval-m1}
 
-We exercise three protocol-level scenarios: incident bootstrap from the
-core, end-to-end field-edit propagation through the responder outbox to the
-command journal, and recovery to the regional core after a WAN partition.
-Summary statistics are in Table~\ref{tab:evaluation}; the recovery
-distribution is plotted in Figure~\ref{fig:recovery}.
+This subsection reports the evidence for M1 (authority boundary) and M2
+(command journal sequencing): writes commit on the command's authority path
+even when responders are isolated, and the serialization point characterizes
+the cost of single-writer journaling.
 
-Bootstrap latency in this emulation remains below 20\,ms at the 95th
-percentile across the tested AOI sizes. The medians are non-monotonic
-(7.24, 3.76, 2.83, and 9.88\,ms for 10, 50, 200, and 1000 polygons), so
-these runs should not be interpreted as a scaling law; fixed HTTP and
-serialization overheads dominate this synthetic bootstrap path.
+\textbf{Direct command commit during responder isolation.}
+We exercise the direct command \textit{syncd} accept path while a responder
+edge is partitioned from the command mesh. The harness
+(\texttt{evaluate-command-local-partition.py}) isolates one responder
+\textit{syncd} container from the command edge for ten seconds and, during the
+partition, issues 20 single-event POSTs from the tablet stub directly to the
+command \texttt{/accept/event-batch} endpoint. All 20 of 20 attempts commit
+(HTTP~200, contiguous \texttt{event\_seq} assignment) with no responder
+reachable, confirming that the M1 authority boundary keeps the command-side
+write path available under responder partition. Per-attempt commit latency on
+this path has a median of $\sim$2.8\,ms and p95 $\sim$7.1\,ms. This experiment
+exercises the direct command \textit{syncd} accept path only; the
+tablet-facing command \textit{ops-api} is not exercised here.
 
+\textbf{Steady-state throughput.}
+We saturate the command edge with 1000 concurrent submissions per run and
+measure end-to-end commit rate. The first run of each pass exhibits a
+documented warm-up artefact ($\sim$54 ev/s) from connection-pool
+establishment and JIT optimisation; we exclude \texttt{run\_index = 0}.
+Across the remaining 29 runs, the command edge sustains a median of
+156.7 events/s (p95 160.4). This number characterises the \emph{chosen
+serialisation point in our prototype} -- a \texttt{FOR UPDATE} row lock
+on \texttt{incident.state} -- and is \emph{not a protocol-level
+throughput claim}. A different serialisation mechanism (sharded
+incidents, per-incident leaders, append-only without state
+materialisation) would shift this bottleneck. We report it to identify
+where the serial cost lives, not to defend a throughput number.
+
+\subsection{Command Journal Sequencing Evidence (M2)}
+\label{sec:eval-m2}
+
+M2's evidence is shared with M1 and M4. That writes commit at the command
+authority is shown in Section~\ref{sec:eval-m1}; that sequencing remains
+contiguous and non-forked across command transfer is shown by both the
+model-level invariants and the service-path measurement in
+Section~\ref{sec:eval-m4}. We do not duplicate those results here.
+
+\subsection{Durable Outbox and Idempotency Evidence (M3)}
+\label{sec:eval-m3}
+
+This subsection reports evidence for M3 (durable outbox and idempotent
+submission): propagation latency, WAN recovery, replay deduplication, and
+behavior under emulated mesh impairment.
+
+\textbf{Field-edit propagation.}
 Field-edit propagation measures from the start of one or more
 \texttt{POST /api/events} calls against the responder API until the command
 database contains the expected rows in \texttt{incident.journal}. It
@@ -47,6 +85,7 @@ $\le 10$ (median $\approx 947$ ms) and rises to 1.22\,s at queue depth
 100, reflecting the 250 ms responder-syncd poll interval, batch
 processing on the command side, and a per-iteration TCP setup cost.
 
+\textbf{WAN recovery.}
 The WAN-recovery scenario, scoped in Figure~\ref{fig:partition-timeline},
 isolates the command edge from the regional core and measures how long
 committed command-journal rows take to appear in the core after the WAN
@@ -57,7 +96,10 @@ shape reflects implementation timers rather than partition duration alone:
 the 10\,s cell pays the configured asyncpg \texttt{command\_timeout}, while
 the 60\,s cell usually has discarded the broken connection before the link
 heals. The protocol-level claim is therefore an empirical bound for this
-implementation configuration, not a general network-recovery law.
+implementation configuration, not a general network-recovery law. Summary
+statistics for the propagation and recovery scenarios are in
+Table~\ref{tab:evaluation}; the recovery distribution is plotted in
+Figure~\ref{fig:recovery}.
 
 \begin{figure}[t]
 \centering
@@ -89,29 +131,20 @@ quartiles; whiskers the 1.5$\times$IQR range; outliers as crosses.}
 \label{fig:recovery}
 \end{figure}
 
-\subsection{Steady-State Throughput}
-\label{sec:eval-throughput}
+\textbf{Empirical idempotency.} The duplicate-replay scenario
+issues 50 unique \texttt{client\_event\_id} values and replays each five
+times against a clean responder. The responder outbox and command journal
+both enforce uniqueness on \texttt{client\_event\_id}; duplicates are
+recognized and mapped to the existing command-side entry rather than being
+assigned a fresh \texttt{event\_seq}. Across $n=30$ runs no replay produced
+more than the 50 expected journal rows: \texttt{stored} equals
+\texttt{unique\_events} in every run. The test exercises steady-state
+idempotency over the emulated \texttt{syncd} accept-and-sequence path.
 
-We saturate the command edge with 1000 concurrent submissions per run and
-measure end-to-end commit rate. The first run of each pass exhibits a
-documented warm-up artefact ($\sim$54 ev/s) from connection-pool
-establishment and JIT optimisation; we exclude \texttt{run\_index = 0}.
-Across the remaining 29 runs, the command edge sustains a median of
-156.7 events/s (p95 160.4). This number characterises the \emph{chosen
-serialisation point in our prototype} -- a \texttt{FOR UPDATE} row lock
-on \texttt{incident.state} -- and is \emph{not a protocol-level
-throughput claim}. A different serialisation mechanism (sharded
-incidents, per-incident leaders, append-only without state
-materialisation) would shift this bottleneck. We report it to identify
-where the serial cost lives, not to defend a throughput number.
-
-\subsection{Field-Edit Propagation under Emulated Mesh Conditions}
-\label{sec:eval-netem}
-
+\textbf{Field-edit propagation under emulated mesh conditions.}
 To take one step beyond the unimpaired Docker-bridge measurement, we
-re-run the field-edit propagation scenario from
-Section~\ref{sec:eval-latency} with Linux \texttt{tc-netem} qdiscs
-applied symmetrically on the responder and command \texttt{syncd}
+re-run the field-edit propagation scenario above with Linux \texttt{tc-netem}
+qdiscs applied symmetrically on the responder and command \texttt{syncd}
 container interfaces. Two link-condition profiles, informed by
 published mesh-network measurements: \emph{stressed mesh}
 (80\,ms~$\pm$~30\,ms delay, 2\,\% loss) and \emph{degraded mesh}
@@ -125,8 +158,8 @@ The latency ordering is monotonic in both directions: at each queue
 depth, degraded exceeds stressed; within each profile, queue depth
 10 exceeds queue depth 1. Stressed mesh at queue depth 1 (median
 1.21\,s) sits roughly 250\,ms above the unimpaired
-$\sim$947\,ms baseline reported in
-Section~\ref{sec:eval-latency}, consistent with the 80\,ms one-way
+$\sim$947\,ms baseline reported earlier in this subsection, consistent
+with the 80\,ms one-way
 delay applied to each direction plus occasional TCP retransmits at
 2\,\% loss. The degraded queue depth 10 cell carries substantially
 heavier tail latency (median 8.1\,s, p95 10.9\,s): an 8\,\% loss
@@ -160,25 +193,14 @@ InstaMesh-specific routing decisions. We use the profiles as a
 step beyond bridge-network measurement, not as a substitute for
 physical evaluation.
 
-\subsection{Idempotency and Safety Verification}
-\label{sec:eval-safety}
+\subsection{Fenced Promotion Evidence (M4)}
+\label{sec:eval-m4}
 
-The protocol's idempotency claim and the single-writer authority property
-are checked at three levels. These checks validate the model and prototype
-paths under stated bounds; they are not a proof of production
-implementation correctness.
+This subsection reports evidence for M4 (fenced promotion): model-level
+invariants under strict and weak promotion variants, and a service-path
+measurement of fenced promotion under load.
 
-\textbf{Empirical idempotency (Phase~2).} The duplicate-replay scenario
-issues 50 unique \texttt{client\_event\_id} values and replays each five
-times against a clean responder. The responder outbox and command journal
-both enforce uniqueness on \texttt{client\_event\_id}; duplicates are
-recognized and mapped to the existing command-side entry rather than being
-assigned a fresh \texttt{event\_seq}. Across $n=30$ runs no replay produced
-more than the 50 expected journal rows: \texttt{stored} equals
-\texttt{unique\_events} in every run. The test exercises steady-state
-idempotency over the emulated \texttt{syncd} accept-and-sequence path.
-
-\textbf{Formal model (Phase~3).} A TLA+ specification of the protocol's
+\textbf{Formal model.} A TLA+ specification of the protocol's
 authority machinery (single-writer journal, manual promotion, partition
 state) is checked with TLC under bounded parameters $|V|=3$,
 $\textit{MaxJournal}=2$, $|\textit{Cids}|=2$, with full symmetry over
@@ -204,8 +226,11 @@ third observer; $|\textit{Cids}|=2$ distinguishes duplicates from distinct
 events. The model does not cover storage crashes, fsync behavior,
 certificate revocation, transport authentication, deployment
 misconfiguration, operator mistakes, or physical compromise.
+The model also checks \textsf{LocalIdempotency}, which is the model-level
+counterpart of the M3 duplicate-replay evidence in
+Section~\ref{sec:eval-m3}.
 
-\textbf{Implementation-level testing (Phase~3).} A Hypothesis state-machine
+\textbf{Implementation-level testing.} A Hypothesis state-machine
 test mirrors the TLA+ model in Python and exercises the same operations
 under randomly generated schedules. Across 2000 examples of length~50, no
 violation of \textsf{SingleAuthority}, \textsf{NoForkedJournal}, or
@@ -216,12 +241,10 @@ smoke layer checks the idempotency path against the running prototype:
 ten-fold replay of a single \texttt{client\_event\_id} produces exactly one
 journal row, and five distinct ids produce five.
 
-\subsection{Fenced-Promotion Service-Path Evidence}
-\label{sec:eval-fenced-promotion}
-
+\textbf{Service-path fenced promotion.}
 The service-level command-epoch enforcement closes the gap between the
-model-level fenced-promotion evidence in Section~\ref{sec:eval-safety}
-and running-service behavior. Migration~005 adds
+model-level fenced-promotion evidence above and running-service behavior.
+Migration~005 adds
 \texttt{incident.command\_epoch} (monotonic \texttt{epoch\_id} per
 operationally designated command vehicle) and stamps every
 \texttt{incident.journal} row with the current epoch; the command
@@ -264,7 +287,12 @@ command, even when replayed against a syncd that has just been told
 about the promotion.
 
 \subsection{Quorum-Progress Illustration}
-\label{sec:eval-baseline}
+\label{sec:eval-raft}
+
+This subsection is included as a contextual quorum-progress illustration
+and not as a workflow-equivalent baseline; see
+Section~\ref{sec:protocol-m4} for why the authority-aligned design does
+not adopt quorum-based promotion.
 
 We do not propose Rescue OIS as a replacement for Raft or Paxos. The
 microbenchmark below is included \emph{only as a quorum-progress
@@ -296,7 +324,7 @@ $n$ voting members requires $\lfloor n/2 \rfloor + 1$ reachable voters,
 so for $n=3$, losing two prevents progress. Rescue OIS imposes no
 responder quorum, so command-local commits proceed during responder
 isolation (20 of 20 in the partition run reported in
-Section~\ref{sec:eval-safety}). This is the trade-off encoded in R3:
+Section~\ref{sec:eval-m1}). This is the trade-off encoded in R3:
 command-local write availability under responder partition at the cost
 of automatic write failover.
 
@@ -316,7 +344,7 @@ quorum requirement on responders.}
 \end{tabularx}
 \end{table*}
 
-\subsection{Limitations and Threats to Validity}
+\subsection{Measurement Threats to Validity}
 \label{sec:eval-limits}
 
 The measurements above are emulation results. Beyond the scope statements in
@@ -327,3 +355,10 @@ numbers will shift under different deadline values; and the workload is
 single-incident and limited-scale, with host hardware and container-runtime
 metadata captured per-run in the artefact file but not varied as an
 independent factor.
+
+Bootstrap-latency cells in the primary metrics file (10, 50, 200, and 1000
+polygons) exercise the synthetic \texttt{sync-api} bootstrap endpoint rather
+than the production logical-replication or package-publisher path; we
+include them in the artefact for completeness but they do not bear on any
+M1--M4 claim, and we do not interpret their non-monotonic medians as a
+scaling law.
