@@ -1,51 +1,26 @@
 \section{Synchronization Protocol}
 \label{sec:sync}
 
-The protocol realizes the consistency discipline through four mechanisms, in
-parallel with their implementation evidence (Section~\ref{sec:implementation})
-and empirical evidence (Section~\ref{sec:evaluation}). Table~\ref{tab:nav}
-summarizes the parallel structure: each row points to the protocol description
-of the mechanism, the corresponding rows in the implementation mapping, and the
-evaluation subsection that supplies evidence.
-
-\begin{table}[!htbp]
-\centering
-\caption{Parallel structure across the three technical sections.}
-\label{tab:nav}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\columnwidth}{@{}p{0.30\columnwidth}XXX@{}}
-\toprule
-\textbf{Mechanism} & \textbf{Protocol} & \textbf{Implementation} & \textbf{Evidence} \\
-\midrule
-M1: Authority boundary & \cref{sec:protocol-m1} & \cref{tab:impl-mapping} (M1) & \cref{sec:eval-m1} \\
-M2: Command journal sequencing & \cref{sec:protocol-m2} & \cref{tab:impl-mapping} (M2) & \cref{sec:eval-m2} \\
-M3: Durable outbox \& idempotency & \cref{sec:protocol-m3} & \cref{tab:impl-mapping} (M3) & \cref{sec:eval-m3} \\
-M4: Fenced promotion & \cref{sec:protocol-m4} & \cref{tab:impl-mapping} (M4) & \cref{sec:eval-m4} \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
 The main identifiers are
 \textit{incident\_id}, a client-supplied \textit{client\_event\_id}, and a
 command-assigned \textit{event\_seq}. The promotion model also uses a command
 epoch or equivalent term.
 
-\subsection{Authority Boundary (M1)}
+\subsection{Linearization Boundary (M1)}
 \label{sec:protocol-m1}
 
-M1 makes precise the state-contract distinction introduced in
-Section~\ref{sec:state-taxonomy}: which operations require linearization at the
-command, and which use weaker contracts. The command-side journal is
+M1 defines the state-contract distinction introduced in
+Section~\ref{sec:state-taxonomy}: which operations require
+incident-journal linearization, and which use weaker contracts. The incident journal is
 authoritative for incident decisions; responder outboxes, tablet caches, and
 materialized views are derived or pending state. The single-writer rule applies
 only to authority-bearing incident-journal entries.
 
-\subsection{Command Journal Sequencing (M2)}
+\subsection{Incident Journal Sequencing (M2)}
 \label{sec:protocol-m2}
 
-M2 specifies how the command authority linearizes authority-bearing operations
-into a totally ordered journal. The command node accepts a
+M2 specifies how the command edge linearizes authority-bearing operations
+into a totally ordered journal. The command edge accepts a
 \textit{client\_event\_id} once and assigns \textit{event\_seq} atomically with
 journal insertion, mapping duplicates to the existing journal entry rather than
 resequencing them. Consumers apply committed entries in \textit{event\_seq}
@@ -55,67 +30,62 @@ order; materialized state is derived from the journal and can be rebuilt.
 \label{sec:protocol-m3}
 
 M3 specifies the responder-side path for non-authority data: locally durable,
-idempotent, and eventually forwarded to the command journal.
-Figure~\ref{fig:outbox-sequence} shows the steady-state field edit path. The
+idempotent, and eventually forwarded to the incident journal.
+Figure~\ref{fig:outbox-sequence} shows the steady-state field-submission path. The
 boundary is between local durability and authoritative command commit. A
 responder may acknowledge local acceptance after the outbox insert. It marks
-an item forwarded only after command-side journal acceptance or duplicate
+an item forwarded only after incident-journal acceptance or duplicate
 recognition.
 
 \begin{figure}[t]
 \centering
-\input{figures/fig_outbox_sequence}
-\caption{Responder outbox protocol. A tablet submission is acknowledged locally only after durable outbox insertion. The command journal later assigns the authoritative sequence number, and duplicate delivery is handled by \textit{client\_event\_id}.}
+\includegraphics[width=\columnwidth]{figures/fig_outbox_sequence.drawio.pdf}
+\caption{Responder outbox protocol. The local acknowledgement (ACK) to the tablet is not the command acknowledgement: a submission is acknowledged locally after durable outbox insertion, but the row is only marked forwarded after incident-journal acceptance. The incident journal assigns the authoritative sequence number, and duplicate delivery is handled by \textit{client\_event\_id}. Line weight encodes hop kind: thick arrows cross hosts (HTTP/mTLS), thin arrows are in-process or DB operations.}
 \label{fig:outbox-sequence}
 \end{figure}
 
 The M3 contract has three parts:
-\begin{itemize}
+\begin{enumerate}
   \item Each submission has a globally unique idempotency key, \textit{client\_event\_id}, scoped by the incident and originating client identity.
   \item A responder accepts a submission only after the event is stored in its local outbox.
-  \item A responder may mark an outbox item forwarded only after the command writer acknowledges durable journal acceptance or duplicate recognition.
-\end{itemize}
+  \item A responder may mark an outbox item forwarded only after the command edge acknowledges durable incident-journal acceptance or duplicate recognition.
+\end{enumerate}
 
-Outbox delivery is at least once and is deduplicated at the command; there is
+Outbox delivery is at least once and is deduplicated at the command edge; there is
 no claim of causal ordering across independent responder outboxes before
 command assignment.
 
 \subsection{Fenced Promotion (M4)}
 \label{sec:protocol-m4}
 
-M4 specifies how command authority is transferred between vehicles without
+M4 specifies fenced promotion, the mechanism used to transfer command authority without
 forking the journal. The design does not provide autonomous failover. An
-operator confirms promotion, and fencing prevents stale command authority from
+operator confirms fenced promotion, and fencing prevents stale command authority from
 continuing. Figure~\ref{fig:promotion-fencing} summarizes the intended rule.
 Each command tenure has a monotonically increasing epoch or equivalent term.
 Promotion emits an explicit record. Stale command traffic must be rejected once
-a newer epoch is known. Section~\ref{sec:eval-m4} reports the service-path
+a newer epoch is known. Section~\ref{sec:eval-promotion} reports the service-path
 measurement of this rule.
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
-\input{figures/fig_promotion_fencing}
-\caption{Promotion preserves the single-writer invariant only under strict fencing. The figure summarizes the protocol requirement and the weak-promotion counterexample.}
+\includegraphics[width=0.7\columnwidth]{figures/fig_promotion_fencing.drawio.pdf}
+\caption{Fenced promotion preserves the single-writer invariant. Left (single-border): with fencing, the stale command is forced to rejoin as a responder. Right (double-border): without fencing, two command authorities can append concurrently, producing a forked journal. The unsafe branch appears as a 3-state TLA+ trace for split authority and a 5-state trace for a forked journal; durable epoch storage and stale-epoch rejection are implemented in the prototype and measured in \cref{sec:eval-m4}.}
 \label{fig:promotion-fencing}
 \end{figure}
 
 This strict rule sacrifices availability when the previous command cannot be
-fenced or its status cannot be established; Section~\ref{sec:eval-m4} checks
+fenced or its status cannot be established; Section~\ref{sec:eval-promotion} checks
 this boundary by comparing strict promotion with a weak variant.
 
-\subsection{Partition Behavior and Cross-Cutting Paths}
+\subsection{Partition Behavior}
 \label{sec:protocol-partition}
 
-This subsection summarizes how the four mechanisms interact under network
-partition, and gathers the cross-cutting paths that lie outside the
-authority-aligned contribution: baseline master-data distribution (one-way
-replication and package pulls from core to edge), incident bootstrap (a
-dispatch-time package prepared by the core), and command-to-core backhaul
-(cursor-based forwarding of committed journal entries to the core when WAN
-is available). We do not evaluate these paths as contributions; partition
-behavior of the authority-bearing mechanisms is as follows:
-\begin{itemize}
-  \item If a responder loses mesh connectivity to command, tablets continue from cache and local outbox entries accumulate until reconnection.
-  \item If the command vehicle loses WAN connectivity to core, local incident operations continue and the journal backfills upstream later.
-  \item If the command vehicle is lost, a responder can become command only through explicit promotion and fencing of stale authority.
-\end{itemize}
+If a responder is cut off from command, it can keep using cached data and store
+new submissions in its local outbox, but those submissions are not authoritative
+until the command edge accepts them and assigns \textit{event\_seq}. If command is cut
+off from the regional core, command-edge incident work continues and the core
+catches up later from the committed incident journal. If command must move to another
+vehicle, \systemname{} does not elect a replacement automatically: an operator must
+promote the new command edge and prevent stale command authority from continuing to
+write, otherwise promotion is blocked.

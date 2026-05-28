@@ -35,6 +35,7 @@ METRICS_PATH = Path(os.environ.get("RESCUE_OIS_METRICS_PATH", "paper/data/eval_m
 
 CORE_BASE = os.environ.get("CORE_BASE", "http://127.0.0.1:18000")
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
+CMD_SYNCD = os.environ.get("CMD_SYNCD", "http://127.0.0.1:18081")
 
 
 def now_iso() -> str:
@@ -225,40 +226,93 @@ async def scenario_recovery(handle, run_id: str) -> None:
                 )
 
 
+def _journal_count(inc_id: uuid.UUID) -> int:
+    out = docker_exec(
+        "edge-cmd-postgres-1",
+        "psql",
+        "-U",
+        "postgres",
+        "rescue_ois_edge",
+        "-tAc",
+        f"SELECT count(*) FROM incident.journal WHERE incident_id = '{inc_id}'",
+    )
+    return int(out.stdout.strip() or "0")
+
+
+def _current_command_epoch() -> int:
+    """Read the command's current epoch so direct accept-path posts carry a
+    matching X-Command-Epoch header (the responder push path self-corrects via
+    409 bodies, but direct posts must supply it)."""
+    out = docker_exec(
+        "edge-cmd-postgres-1",
+        "psql",
+        "-U",
+        "postgres",
+        "rescue_ois_edge",
+        "-tAc",
+        "SELECT epoch_id FROM incident.current_epoch",
+    )
+    return int(out.stdout.strip() or "0")
+
+
 async def scenario_throughput(handle, run_id: str) -> None:
-    """Command-edge commit throughput at saturation."""
-    async with httpx.AsyncClient() as client:
+    """Command-edge commit throughput at saturation, two endpoints.
+
+    ``command_throughput`` (direct): 1000 concurrent single-event POSTs to the
+    command syncd ``/accept/event-batch`` endpoint. This isolates the command
+    accept handler and incident-journal serialization -- the prototype's
+    linearization point -- with no responder, outbox, or push-batching in the
+    path.
+
+    ``command_throughput_endtoend``: the same 1000-concurrent load issued to
+    the responder ``/api/events`` endpoint, traversing the full
+    responder ops-api -> outbox -> push-batching -> command-accept pipeline.
+    This characterizes M3 + M1/M2 together, not the journal serialization
+    point, and includes the push poll/batch sleeps by construction.
+    """
+    n = 1000
+
+    # --- direct: command syncd /accept/event-batch (linearization point) ---
+    epoch = _current_command_epoch()
+    epoch_headers = {"X-Command-Epoch": str(epoch)}
+    # The journal write serializes on a FOR UPDATE of incident.state, so a
+    # bounded in-flight count saturates the linearization point; an unbounded
+    # 1000 only exhausts the client connection pool.
+    direct_limits = httpx.Limits(max_connections=64, max_keepalive_connections=64)
+    direct_sem = asyncio.Semaphore(64)
+    async with httpx.AsyncClient(limits=direct_limits) as client:
         for i in range(RUNS_PER_CELL):
             reset_dbs()
             inc_id = uuid.uuid4()
-            n = 1000
             t0 = time.perf_counter_ns()
 
-            async def one(j: int) -> None:
+            async def one_direct(j: int) -> None:
                 body = {
-                    "client_event_id": str(uuid.uuid4()),
-                    "incident_id": str(inc_id),
-                    "event_type": "observation",
-                    "payload": {"j": j},
-                    "device_id": "tab-eval",
-                    "user_id": "u",
-                    "occurred_at": now_iso(),
+                    "events": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "incident_id": str(inc_id),
+                            "client_event_id": str(uuid.uuid4()),
+                            "device_id": "tab-eval",
+                            "user_id": "u",
+                            "event_type": "observation",
+                            "payload": {"j": j},
+                            "created_at": now_iso(),
+                        }
+                    ]
                 }
-                await client.post(f"{RESP_OPS}/api/events", json=body, timeout=15.0)
+                async with direct_sem:
+                    await client.post(
+                        f"{CMD_SYNCD}/accept/event-batch",
+                        json=body,
+                        headers=epoch_headers,
+                        timeout=15.0,
+                    )
 
-            await asyncio.gather(*[one(j) for j in range(n)])
+            await asyncio.gather(*[one_direct(j) for j in range(n)])
             deadline = time.perf_counter_ns() + int(120e9)
             while True:
-                out = docker_exec(
-                    "edge-cmd-postgres-1",
-                    "psql",
-                    "-U",
-                    "postgres",
-                    "rescue_ois_edge",
-                    "-tAc",
-                    f"SELECT count(*) FROM incident.journal WHERE incident_id = '{inc_id}'",
-                )
-                got = int(out.stdout.strip() or "0")
+                got = _journal_count(inc_id)
                 if got >= n or time.perf_counter_ns() > deadline:
                     break
                 await asyncio.sleep(0.02)
@@ -273,6 +327,69 @@ async def scenario_throughput(handle, run_id: str) -> None:
                 value_ms=None,
                 timestamp_iso=now_iso(),
                 scenario_params={
+                    "endpoint": "command-syncd /accept/event-batch (direct)",
+                    "target_n": n,
+                    "achieved": got,
+                    "elapsed_s": elapsed_s,
+                    "events_per_sec": tput,
+                },
+                run_index=i,
+                notes="warmup_run: exclude from Section VI summaries" if i == 0 else "",
+            )
+
+        # --- end-to-end: responder /api/events -> outbox -> push -> command ---
+        for i in range(RUNS_PER_CELL):
+            reset_dbs()
+            inc_id = uuid.uuid4()
+            t0 = time.perf_counter_ns()
+
+            async def one_e2e(j: int) -> None:
+                body = {
+                    "client_event_id": str(uuid.uuid4()),
+                    "incident_id": str(inc_id),
+                    "event_type": "observation",
+                    "payload": {"j": j},
+                    "device_id": "tab-eval",
+                    "user_id": "u",
+                    "occurred_at": now_iso(),
+                }
+                # ops-api closes idle keepalive connections under sustained
+                # load; reusing one then yields RemoteProtocolError. Retry once
+                # on a server-side disconnect so a dropped keepalive does not
+                # abort the run.
+                async with direct_sem:
+                    for attempt in range(2):
+                        try:
+                            await e2e_client.post(f"{RESP_OPS}/api/events", json=body, timeout=15.0)
+                            return
+                        except httpx.RemoteProtocolError:
+                            if attempt == 1:
+                                raise
+
+            # Fresh per-run client with keepalive disabled to avoid reusing a
+            # connection the server may have already closed.
+            async with httpx.AsyncClient(
+                limits=httpx.Limits(max_connections=64, max_keepalive_connections=0)
+            ) as e2e_client:
+                await asyncio.gather(*[one_e2e(j) for j in range(n)])
+            deadline = time.perf_counter_ns() + int(120e9)
+            while True:
+                got = _journal_count(inc_id)
+                if got >= n or time.perf_counter_ns() > deadline:
+                    break
+                await asyncio.sleep(0.02)
+            t1 = time.perf_counter_ns()
+            elapsed_s = (t1 - t0) / 1e9
+            tput = got / elapsed_s if elapsed_s > 0 else None
+            write_record(
+                handle,
+                run_id=run_id,
+                scenario="command_throughput_endtoend",
+                metric_name="events_per_sec",
+                value_ms=None,
+                timestamp_iso=now_iso(),
+                scenario_params={
+                    "endpoint": "responder /api/events (full pipeline)",
                     "target_n": n,
                     "achieved": got,
                     "elapsed_s": elapsed_s,

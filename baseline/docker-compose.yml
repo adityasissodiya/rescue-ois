@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  crdt-a:
+    build: ./crdt
+    container_name: crdt-replica-a
+    environment:
+      REPLICA_ID: a
+    cap_add: ["NET_ADMIN"]
+    ports:
+      - "19001:8000"
+
+  crdt-b:
+    build: ./crdt
+    container_name: crdt-replica-b
+    environment:
+      REPLICA_ID: b
+    cap_add: ["NET_ADMIN"]
+    ports:
+      - "19002:8000"
+
+  crdt-c:
+    build: ./crdt
+    container_name: crdt-replica-c
+    environment:
+      REPLICA_ID: c
+    cap_add: ["NET_ADMIN"]
+    ports:
+      - "19003:8000"
+
+  crdt-core:
+    build: ./crdt
+    container_name: crdt-core-sink
+    environment:
+      REPLICA_ID: core
+    cap_add: ["NET_ADMIN"]
+    ports:
+      - "19010:8000"

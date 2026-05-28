@@ -23,6 +23,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 NETWORK_NAME = "rescue-ois-net"
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
+CMD_SYNCD = os.environ.get("CMD_SYNCD", "http://127.0.0.1:18081")
+EDGE_DB = "rescue_ois_edge"
 
 
 def _run(
@@ -292,49 +294,125 @@ def test_responder_partition_outbox_accumulates_then_replays() -> None:
             partition_proc.kill()
 
 
-@pytest.mark.xfail(
-    reason="durable command_epoch and stale-epoch rejection are not implemented in services",
-    strict=True,
-)
+def _require_integration() -> None:
+    if os.environ.get("RESCUE_OIS_INTEGRATION_TESTS") != "1":
+        pytest.skip("set RESCUE_OIS_INTEGRATION_TESTS=1 to run Docker integration tests")
+
+
+def _current_epoch() -> int:
+    return int(_psql("edge-cmd-postgres-1", EDGE_DB, "SELECT epoch_id FROM incident.current_epoch") or "0")
+
+
+def _post_accept(incident_id: str, epoch_header: int | None, n: int = 1) -> tuple[int, dict]:
+    events = [
+        {
+            "id": str(uuid.uuid4()),
+            "incident_id": incident_id,
+            "client_event_id": str(uuid.uuid4()),
+            "device_id": "pytest",
+            "user_id": "u",
+            "event_type": "observation",
+            "payload": {"i": i},
+            "created_at": datetime.now(UTC).isoformat(),
+        }
+        for i in range(n)
+    ]
+    data = json.dumps({"events": events}).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if epoch_header is not None:
+        headers["X-Command-Epoch"] = str(epoch_header)
+    request = Request(f"{CMD_SYNCD}/accept/event-batch", data=data, headers=headers, method="POST")
+    try:
+        with urlopen(request, timeout=10.0) as response:
+            raw = response.read().decode("utf-8")
+            return response.status, (json.loads(raw) if raw else {})
+    except HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="replace")
+        return exc.code, (json.loads(raw) if raw.startswith("{") else {})
+
+
+@pytest.mark.integration
 def test_stale_command_epoch_rejected_after_promotion() -> None:
-    raise AssertionError("service accept path does not yet check a durable command_epoch")
+    """Durable command_epoch fencing on the service accept path: a request at
+    the current epoch commits, a stale epoch is rejected 409 before any journal
+    write, and a missing header is rejected 409. Implemented by migration
+    005_command_epoch.sql + edge/syncd/src/accept.py; unit-covered in
+    test_accept_epoch.py."""
+    _require_integration()
+    epoch = _current_epoch()
+    assert epoch >= 1
+    incident = str(uuid.uuid4())
+
+    status, body = _post_accept(incident, epoch, n=1)
+    assert status == 200, body
+    assert body.get("accepted") == 1
+
+    status, body = _post_accept(incident, epoch - 1, n=1)
+    assert status == 409
+    assert body.get("detail", {}).get("reason") == "stale_epoch"
+
+    status, body = _post_accept(incident, None, n=1)
+    assert status == 409
+    assert body.get("detail", {}).get("reason") == "missing_epoch"
 
 
-@pytest.mark.xfail(
-    reason="durable command_epoch and promotion records are not implemented in services",
-    strict=True,
-)
+@pytest.mark.integration
 def test_promotion_record_required_before_new_command_accepts_events() -> None:
-    raise AssertionError("promotion script does not create a durable service-level promotion record")
+    """Acceptance is gated by the durable command_epoch record: a future epoch
+    with no command_epoch row is rejected 409, so a writer cannot claim an epoch
+    that the promotion procedure (scripts/promote-responder.sh inserts the row)
+    never recorded."""
+    _require_integration()
+    epoch = _current_epoch()
+    incident = str(uuid.uuid4())
+    status, body = _post_accept(incident, epoch + 1, n=1)
+    assert status == 409
+    assert body.get("detail", {}).get("reason") == "future_epoch"
 
 
 @pytest.mark.xfail(
-    reason="service-level durable command_epoch fencing is not implemented",
+    reason="cross-edge SingleCommand is established by the strict TLA+ model (Sec V); the "
+    "single-edge service harness cannot run two command-role writers for the same incident, "
+    "so this property has no service-path witness",
     strict=True,
 )
 def test_no_two_command_writers_for_same_incident_epoch() -> None:
-    raise AssertionError("running services cannot yet reject a second writer by incident epoch")
+    raise AssertionError("cross-edge two-writer race is model-only; see strict TLA+ SingleCommand")
 
 
-@pytest.mark.xfail(
-    reason="crash injection after local outbox insert is not implemented in service tests",
-    strict=True,
-)
+@pytest.mark.integration
 def test_crash_after_local_outbox_insert_before_forward_preserves_event() -> None:
-    raise AssertionError("crash-boundary harness missing for local outbox insert")
+    """R2: an event accepted into the responder outbox survives a vehicle
+    (Postgres) power-cycle and forwards to the command journal exactly once.
+    Driven by scripts/evaluate-outbox-crash-restart.py, which exits non-zero on
+    any loss, duplicate, or non-contiguous sequence."""
+    _require_integration()
+    proc = _run(
+        [
+            "python3", "scripts/evaluate-outbox-crash-restart.py",
+            "--events", "20",
+            "--artifact", "/tmp/eval_outbox_crash_restart.pytest.jsonl",
+        ],
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stdout + "\n" + proc.stderr
 
 
 @pytest.mark.xfail(
-    reason="crash injection after command append before ack is not implemented in service tests",
+    reason="mid-flight crash injection (command append committed but ack lost before the "
+    "outbox forwarded_at mark) is not automated; the idempotent-retry guarantee itself is "
+    "covered by client_event_id dedup (test_accept dedup path + duplicate_replay scenario)",
     strict=True,
 )
 def test_crash_after_command_append_before_ack_does_not_duplicate_on_retry() -> None:
-    raise AssertionError("crash-boundary harness missing for command append before ack")
+    raise AssertionError("mid-flight ack-loss crash harness not implemented; dedup path covered elsewhere")
 
 
 @pytest.mark.xfail(
-    reason="crash injection before forwarded mark is not implemented in service tests",
+    reason="mid-flight crash injection before the forwarded_at mark is not automated; "
+    "post-restart re-forward de-duplication is exercised indirectly by the R2 outbox "
+    "durability test above",
     strict=True,
 )
 def test_crash_before_forwarded_mark_retries_without_duplicate_journal_row() -> None:
-    raise AssertionError("crash-boundary harness missing for forwarded_at marking")
+    raise AssertionError("mid-flight forwarded-mark crash harness not implemented; see R2 durability test")

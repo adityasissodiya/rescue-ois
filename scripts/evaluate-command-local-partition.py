@@ -219,9 +219,24 @@ def collect_environment() -> dict[str, Any]:
     }
 
 
-def http_post_json(url: str, body: dict[str, Any], timeout_s: float = 10.0) -> tuple[int, dict[str, Any], str]:
+def current_command_epoch() -> int:
+    """Read the command's current durable epoch so direct accept-path posts
+    carry a matching X-Command-Epoch header (the accept path rejects stale or
+    missing epochs with HTTP 409)."""
+    return int(psql("edge-cmd-postgres-1", "rescue_ois_edge", "SELECT epoch_id FROM incident.current_epoch") or "0")
+
+
+def http_post_json(
+    url: str,
+    body: dict[str, Any],
+    timeout_s: float = 10.0,
+    extra_headers: dict[str, str] | None = None,
+) -> tuple[int, dict[str, Any], str]:
     data = json.dumps(body).encode("utf-8")
-    req = Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+    headers = {"Content-Type": "application/json"}
+    if extra_headers:
+        headers.update(extra_headers)
+    req = Request(url, data=data, headers=headers, method="POST")
     try:
         with urlopen(req, timeout=timeout_s) as resp:
             raw = resp.read().decode("utf-8")
@@ -319,6 +334,7 @@ def run_experiment(args: argparse.Namespace) -> dict[str, Any]:
     run_id = str(uuid.uuid4())
     incident_id = str(uuid.uuid4())
     env_meta = collect_environment()
+    epoch_headers = {"X-Command-Epoch": str(current_command_epoch())}
     partition_container = f"edge-resp-{args.responder_index}-syncd-1"
     aliases = network_aliases(partition_container)
     attempts: list[dict[str, Any]] = []
@@ -396,6 +412,7 @@ def run_experiment(args: argparse.Namespace) -> dict[str, Any]:
                         f"{CMD_SYNCD}/accept/event-batch",
                         body,
                         timeout_s=args.write_timeout_s,
+                        extra_headers=epoch_headers,
                     )
                     if status_code != 200:
                         failure_reason = f"http_status={status_code} body={response_text}"

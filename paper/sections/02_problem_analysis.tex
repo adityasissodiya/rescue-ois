@@ -8,17 +8,26 @@ core supports dispatch, reference data, and backhaul; vehicle edge nodes run
 near the incident site; field tablets attach to a local vehicle and act as leaf
 clients. Connectivity is intermittent: vehicles may move between wide-area
 connectivity, mesh-only contact, and total
-isolation~\cite{zimbelman2022mesh,wang2023overview}. One vehicle is
-designated as command for the incident; command can move to another vehicle,
+isolation~\cite{zimbelman2022mesh,wang2023overview}. One vehicle edge node holds
+the command role for the incident; we call it the command edge. The role can move to another vehicle,
 but only through an explicit human decision, and the protocol must respect that
-operational authority.
+operational authority. Figure~\ref{fig:op-setting} illustrates the actors and the three
+connectivity regimes.
 
-\subsection{Why Existing Designs Are Not Enough}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figures/operationalSetting.drawio.pdf}
+\caption{Operational setting. A regional core supports dispatch and reference data; vehicle edge nodes run near the incident site; tablets attach to a local vehicle. One vehicle holds command authority at any instant. Vehicles simultaneously occupy different connectivity regimes: wide-area backhaul, intermittent backhaul with mesh transit, or total isolation.}
+\label{fig:op-setting}
+\end{figure}
 
-The Rescue OIS contribution recombines well-known mechanisms (single-leader
+\subsection{Position Relative to Consensus, CRDTs, and Emergency Networking}
+
+\systemname{} recombines
+well-known mechanisms (single-leader
 replication, transactional outbox~\cite{richardson2018microservices},
-idempotency keys, manual fencing) under a domain-specific rule: the
-linearization point is the current operational command authority, set by an
+idempotency keys, manual fencing) under a domain-specific rule; the
+incident-journal linearization point is the command edge, set by an
 external operational protocol rather than chosen by liveness-driven leader
 election. The incident-state entity owns its decision history; external
 actors interact through forward-only events rather than mutate state
@@ -27,69 +36,39 @@ operations are placed under that linearization point and which are not, and
 (ii) the fenced-promotion rule that preserves single-authority across command
 changes. The mechanisms themselves are not claimed as novel.
 
-Existing systems solve adjacent parts of the problem: offline-first systems
-preserve local work, CRDTs merge concurrent updates, consensus protocols order
-replicated commands, and emergency networking and edge systems improve
-connectivity and local service placement. None of these mechanisms, by itself,
-states which rescue-service actor may issue non-commutative command decisions
-during a partition.
+Existing systems solve adjacent parts of the problem---offline-first stores,
+conflict-free replicated data types (CRDTs), consensus logs, and emergency/edge
+networking---but none, by itself, states which rescue-service actor may issue
+non-commutative command decisions during a partition.
 
-\subsubsection{Offline-first and local-first systems} Local-first systems prioritize
-local availability, user control, and continued operation under poor
-connectivity~\cite{kleppmann2019localfirst}. Mobile offline-first architectures
-often combine local stores, retry, and queued submission~\cite{pothineni2024offlinefirst}.
-The underlying single-leader-plus-idempotency-key patterns are textbook
-(e.g.,~\cite{kleppmann2017ddia}, Ch.~5). Those mechanisms help responders keep
-working during a partition. They do not define when a locally accepted
-assignment or hazard decision becomes authoritative. Rescue OIS uses outboxes
-for local durability and forwarding, but treats outbox entries as pending
-until command acceptance.
+Offline-first and local-first systems prioritize local availability and
+continued operation under poor connectivity~\cite{kleppmann2019localfirst,paul2019crimp,kleppmann2017ddia,richardson2018microservices},
+and CRDT and strong-eventual-consistency work---including richer local-first
+safety models and Hanssen's CRDT replication for emergency management, our
+closest baseline---provides convergence for mergeable replicated
+state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,jannes2021owebsync,lewchenko2025boltonsc,hanssen2025emergency}.
+Consensus, shared-log, and chain-replication systems provide replicated
+agreement and ordered logs under their stated failure
+models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,katsarakis2020hermes,liang2025holipaxos,gooding2025lark,vanrenesse2004chain}.
+These help responders keep working or order writes, but none decides \emph{which
+actor} may issue an authority-bearing decision. \systemname{} keeps
+authority-bearing events under the incident-journal sequencer, treats outbox
+entries as pending until command acceptance, and assigns weaker contracts to
+non-authority data.
 
-\subsubsection{CRDTs and local-first replication} CRDT and strong-eventual-consistency
-work provides convergence for mergeable replicated state~\cite{almeida2014delta,gomes2017verifyingsec}.
-Recent local-first work adds richer safety and invariant models~\cite{haas2023lore,kohler2025consistent,jannes2021owebsync,lewchenko2025boltonsc}.
-Hanssen applies CRDT replication to distributed emergency-management systems
-and is the closest comparison to the design here~\cite{hanssen2025emergency}.
-These systems fit data whose merge semantics are well defined. For
-authority-bearing decisions, mergeability is not the only question. The protocol
-also needs to identify the actor allowed to issue the decision. Rescue OIS
-uses weaker contracts for non-authority data, but keeps
-authority-bearing incident events under a command-side sequencer.
-
-\subsubsection{Consensus and state-machine replication} Paxos and Raft provide
-replicated agreement and ordered logs~\cite{lamport1998parttime,ongaro2014raft}.
-Shared-log and replication systems explore related points in the linearizable
-replication design space~\cite{balakrishnan2013tango,katsarakis2020hermes,liang2025holipaxos,gooding2025lark}.
-Chain replication is relevant because it orders writes through a designated
-position in a replication chain~\cite{vanrenesse2004chain}. These protocols
-solve ordering under their stated failure models. Rescue OIS does not replace
-them. It treats current operational command authority as an input to the
-protocol. The command vehicle is the serialization point while its service and
-storage are available, and command transfer is a manual fenced event rather than
-leader election.
-
-\subsubsection{Emergency consensus, networking, and edge systems} CoNICE~\cite{jahanian2022conice}
-targets agreement among infrastructure-less peers under intermittent
-connectivity, using a One-Third-Rule consensus with vector clocks and
-hierarchical namespaces, evaluated on shared map-pin updates. CoNICE is the
-right tool when no peer is privileged. Rescue OIS targets a different problem
-class: rescue-service incident command has a designated operational commander
-at every moment, and the network is not allowed to vote on incident decisions.
-Rescue OIS therefore does not pursue peer consensus; it linearizes
-authority-bearing operations at the commander, lets non-authority data
-converge locally, and encodes manual command transfer as a fenced promotion.
-Both designs are valid for distinct deployment models.
-
-Public-safety networking research covers narrowband and 5G systems,
-vehicular ad-hoc networking, and deployable mesh
-infrastructure~\cite{kumbhar2015legacy,wang2023overview}, and edge/fog work
-places resilient storage and coordination near
-responders~\cite{sagor2024distressnetng,aboualola2023edgesurvey}. These
-systems motivate local services at vehicle edges. We are not aware of prior
-work that explicitly uses operational command authority as the
-linearization boundary while assigning weaker contracts to non-authority
-incident data. Rescue OIS aligns the serialization point with the current
-operational command authority.
+Closest in setting is emergency and edge networking. CoNICE~\cite{jahanian2022conice}
+reaches agreement among infrastructure-less peers under intermittent
+connectivity using One-Third-Rule consensus, evaluated on shared map-pin
+updates; it is the right tool when no peer is privileged, whereas
+rescue-service incident command has a designated commander at every moment and
+the network is not allowed to vote on incident decisions. Public-safety
+networking and edge/fog research place resilient transport and storage near
+responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng,aboualola2023edgesurvey}.
+We are not aware of prior work that explicitly uses operational command
+authority as the linearization boundary while assigning weaker contracts to
+non-authority incident data; \systemname{} aligns the incident-journal
+linearization point with the current operational command authority and uses
+fenced promotion rather than leader election for command transfer.
 
 \subsection{Requirements and Assumptions}
 \label{sec:requirements}
@@ -98,14 +77,14 @@ Public rescue-service guidance and studies of Swedish rescue-service information
 systems motivate the requirements used here~\cite{rsg-rad201,rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}.
 The requirements are separate from the architecture. In particular,
 attributable command authority does not logically require a single-writer
-database design. Aligning the storage authority boundary with command authority
+database design. Aligning the incident-journal linearization boundary with command authority
 is the design choice made in this paper.
 
 The externally motivated requirements are:
 \begin{itemize}
   \item \textbf{\textit{R1 (Offline operation)}} Each tier must keep working from
   previously synchronized data without continuous connectivity.
-  \item \textbf{\textit{R2 (Durable forward-only submission)}} Field observations entered
+  \item \textbf{\textit{R2 (Durable forward-only submission)}} Field submissions entered
   on tablets must survive vehicle restart and prolonged partition.
   \item \textbf{\textit{R3 (Attributable command authority)}} Resource assignments,
   status transitions, and hazard annotations must be attributable to one
@@ -114,79 +93,9 @@ The externally motivated requirements are:
 
 The design assumes that an incident has one current command authority. The
 command role is fixed at dispatch and changes only through an explicit operator
-decision. The deployment constraints are separate. The mesh should act as routed
+decision. The deployment constraints are separate: the mesh should act as routed
 transit rather than a stretched user network, and the system must reuse the
-rescue-service identity infrastructure.
-
-\begin{table}[t]
-\centering
-\caption{Traceability from adopted constraints to architectural consequences.}
-\label{tab:req-trace}
-\footnotesize
-\begin{tabularx}{\columnwidth}{@{}l l X@{}}
-\toprule
-\textbf{Item} & \textbf{Type} & \textbf{Result} \\
-\midrule
-Offline operation & Operational requirement & Edge cache and local services. \\
-Durable field submission & System requirement & Tablet/edge outbox and retry. \\
-Attributable command authority & Operational requirement & Single command-side journal writer. \\
-Predictable network behavior & Deployment constraint & Mesh as routed transit; no stretched user VLAN. \\
-Existing identity integration & Integration constraint & mTLS/CA integration and mapped identities. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{State Classes and Consistency Contracts}
-\label{sec:state-taxonomy}
-
-The system does not apply one consistency model to all data. The single-writer
-rule applies only to authority-bearing incident-journal entries.
-This split echoes the RedBlue consistency framework~\cite{li2012redblue},
-which separates fast/eventual (``blue'') from slow/strong (``red'')
-operations in geo-replicated systems. Rescue OIS instantiates a RedBlue-style
-split for rescue-service incident operations, with authority-bearing
-decisions in the strong set and forward-only field submissions, cached
-reference data, and materialized state in the weaker classes.
-Figure~\ref{fig:state-contracts} summarizes the main state classes.
-
-Master and reference data are owned by the regional core and cached at edges.
-Their partition behavior is stale-but-available local read. Local observations
-and field edits are durable at the responder first. They become authoritative
-only after command acceptance. Authority-bearing incident events are sequenced
-by the current command edge with a command-assigned \textit{event\_seq}.
-Materialized state is derived from the append-only command journal.
-
-Artifacts and attachments use immutable or manifest-based distribution. Audit
-records and command-to-core backhaul are forwarded eventually. Promotion and
-fencing metadata are part of the command-authority protocol. The current
-evidence for promotion/fencing is model-level; Section~\ref{sec:sync} gives the
-protocol rule.
-
-\begin{figure}[t]
-\centering
-\input{figures/fig_state_contracts}
-\caption{State classes use different synchronization contracts. The single command writer applies to authority-bearing journal entries, not to every object in the system. Materialized state is derived.}
-\label{fig:state-contracts}
-\end{figure}
-
-\subsection{Architecture Consequence}
-
-The architecture follows from these constraints. The regional core provides
-master/reference data and receives backhaul. Vehicle edges provide local
-services during disconnection. Responder vehicles queue submissions durably. The
-command edge owns the append-only incident journal. Tablets are leaf clients and
-do not participate directly in command sequencing.
-
-The mesh is transit, not the consistency mechanism. User VLANs are not extended
-across vehicles. Application services communicate between edge nodes over routed
-links in the target deployment. Figure~\ref{fig:topology-scope} separates that
-target deployment from the narrower Docker/Python path measured in
-Section~\ref{sec:validation}. The protocol mechanics are specified next in
-Section~\ref{sec:sync}.
-
-\begin{figure}[t]
-\centering
-\input{figures/fig_topology_scope}
-\caption{Target deployment layers and the narrower Docker/Python path exercised in the reported emulation. The measured path evaluates outbox forwarding, command journaling, and core backfill. Physical networking and Android client behavior are target-deployment elements.}
-\label{fig:topology-scope}
-\end{figure}
+rescue-service identity infrastructure. Their architectural consequences---edge
+cache and local services, tablet/edge outbox and retry, a single
+incident-journal writer, mesh-as-transit routing, and mTLS/CA identity
+integration---are developed in \S\ref{sec:architecture}.

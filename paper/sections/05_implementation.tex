@@ -1,11 +1,7 @@
-\section{Implementation}
+\section{Prototype Implementation}
 \label{sec:implementation}
 
-The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, responder edges, and Raft baseline used in Section~\ref{sec:validation}. Table~\ref{tab:impl-mapping} maps the protocol concepts from Section~\ref{sec:sync} to the repository artefacts that realise them and records the evidence boundary per concept.
-
-Table~\ref{tab:impl-mapping} groups the prototype artifacts by the mechanism
-they realize (M1--M4 from Section~\ref{sec:sync}), with cross-cutting
-supporting infrastructure separated at the bottom.
+The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, and responder edges used in Section~\ref{sec:validation}; a separate \path{baseline/crdt} Compose stack provides the CRDT-LWW comparison point. Table~\ref{tab:impl-mapping} maps the protocol concepts from Section~\ref{sec:sync} to the repository artefacts that realise them and records the evidence boundary per concept.
 
 \begin{table}[!htbp]
 \centering
@@ -17,14 +13,14 @@ supporting infrastructure separated at the bottom.
 \toprule
 \textbf{Concept} & \textbf{Prototype artifact} & \textbf{Status} \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{M1--M2: Authority boundary and journal sequencing}} \\
+\multicolumn{3}{@{}l}{\textit{M1--M2: Linearization boundary and incident-journal sequencing}} \\
 \midrule
-Command journal and \textit{event\_seq} &
+Incident journal and \textit{event\_seq} &
 \path{edge/syncd/src/accept.py}; \path{incident.journal}; \path{incident.state} &
-Implemented; evaluated on the command \textit{syncd} accept path. \\
-Direct command accept partition &
+Implemented; evaluated on the command-edge \textit{syncd} accept path. \\
+Command-edge accept during responder partition &
 \path{evaluate-command-local-partition.py} (in \path{scripts/}); \path{/accept/event-batch} &
-Evaluated for the direct command \textit{syncd} accept path during responder isolation; tablet-facing command \textit{ops-api} not exercised. \\
+Evaluated for the direct command-edge \textit{syncd} accept path during responder isolation; tablet-facing command-edge \textit{ops-api} not exercised. \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{M3: Durable outbox and idempotency}} \\
 \midrule
@@ -39,17 +35,17 @@ Implemented; evaluated by duplicate replay (§\ref{sec:eval-m3}). \\
 \midrule
 Promotion and fencing &
 \path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{promote-responder.sh}, \path{evaluate-fenced-promotion.py} (in \path{scripts/}); \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
-Durable command-epoch table and stale-epoch rejection implemented at service level; matching TLA+/Hypothesis model checks; measured in §\ref{sec:eval-m4}. \\
+Durable command-epoch table and stale-epoch rejection implemented at service level; matching TLA+/Hypothesis model checks; measured in §\ref{sec:eval-promotion}. \\
 \midrule
 \multicolumn{3}{@{}l}{\textit{Supporting infrastructure (not authority-aligned)}} \\
 \midrule
 Core bootstrap and backhaul &
 \path{core/sync-api}; \path{core/db/migrations/003_incident_tables.sql} &
-Synthetic bootstrap and journal backfill; evaluated in Docker. \\
+Synthetic bootstrap and incident-journal backfill; evaluated in Docker. \\
 Vehicle edge roles &
 \path{edge/docker-compose.yml}; \path{edge/syncd/src/main.py}; \path{EDGE_ROLE} &
 Command and responder edges in Compose. \\
-Command-to-core forwarding &
+Incident-journal forwarding to core &
 \path{edge/syncd/src/forward.py}; \path{core/sync-api/src/routes/sync.py}; \path{sync.state} &
 Implemented; evaluated for WAN recovery/backfill. \\
 Tablet client &
@@ -65,6 +61,6 @@ Target-deployment documentation and configuration; physical mesh and security ov
 \end{tabularx}
 \end{table}
 
-The evaluated path is narrower than the full target deployment. The \texttt{sync-api} provides a synthetic incident bootstrap endpoint and accepts command-journal backfill. The edge \texttt{ops-api} persists field edits into \texttt{outbox.device\_outbox} with \texttt{client\_event\_id} idempotency. The \texttt{syncd} responder path forwards unacknowledged outbox entries to the command node; the command \texttt{syncd} path assigns \texttt{event\_seq} inside a database transaction and deduplicates duplicate \texttt{client\_event\_id} values. The command-to-core forwarder backfills committed journal entries to the core. These are the paths exercised by the evaluation.
+The evaluated path is narrower than the full target deployment. The \textit{sync-api} provides a synthetic incident bootstrap endpoint and accepts incident-journal backfill. The edge \textit{ops-api} persists field submissions into \textit{outbox.device\_outbox} with \textit{client\_event\_id} idempotency. The \textit{syncd} responder path forwards unacknowledged outbox entries to the command edge; the command-edge \textit{syncd} path assigns \textit{event\_seq} inside a database transaction and deduplicates duplicate \textit{client\_event\_id} values. The command-to-core forwarder backfills committed incident-journal entries to the core. These are the paths exercised by the evaluation.
 
 Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers.

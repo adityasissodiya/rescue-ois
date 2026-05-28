@@ -2,11 +2,16 @@
 
 ## Status
 
-Proposed
+Partially implemented.
 
-This ADR describes the target authority model. The running services do not yet
-store durable per-incident command epochs or reject stale command traffic after
-promotion.
+The durable command-epoch half of this model is implemented: migration
+`005_command_epoch.sql` stores a monotonically increasing `command_epoch`,
+`scripts/promote-responder.sh` inserts a new epoch row on promotion, and the
+syncd accept path rejects `/accept/event-batch` requests carrying a stale or
+missing `X-Command-Epoch` (HTTP 409). The remaining, unimplemented half is the
+core-signed **promotion token** described under Decision below: promotion is
+still authorized only by host-level access, not by a token verified against the
+organizational CA.
 
 ## Context
 

@@ -1,100 +1,85 @@
-# Rescue OIS
+# Rescue OIS Reviewer Guide
 
-Rescue OIS is a research prototype for authority-aligned synchronization in
-rescue-service incident response. It studies how authority-bearing incident
-events can be linearized at the current command authority across
-intermittently connected regional, vehicle, and tablet tiers, while
-non-authority data remains locally useful and forwardable.
+This repository backs the NCA 2026 paper **Authority-Aligned Linearization for
+Rescue-Service Incident Response over Intermittent Edge Networks**. It contains
+the prototype services, Docker Compose emulation, evaluation harnesses, CRDT
+baseline, formal models, generated paper tables/figures, and the LaTeX paper.
 
-The core design rule is:
+The core protocol rule is:
 
-> Core owns master data. The command vehicle owns live incident state.
-> Responders and tablets only queue and forward field edits.
+> Core owns master data. The current command edge owns authority-bearing
+> incident-journal writes. Responders accept field submissions into a durable
+> outbox and forward them to the command edge.
 
-This repository contains the prototype services, local Docker emulation,
-formal safety models, evaluation harnesses, a Raft comparison baseline, Android
-tablet scaffold, and the LaTeX paper sources.
+The repository is a research artifact, not a production deployment. The measured
+path covers the service paths used in Section V of the paper: command-edge
+journal serialization, responder outbox forwarding, idempotent replay, fenced
+promotion, command-to-core recovery, CRDT-LWW comparison, and bounded formal
+safety checks. It does not claim physical Rajant radio behavior, Android
+end-to-end validation, measured WireGuard/mTLS overhead, or automatic failover.
 
-This prototype evaluates authority-aligned synchronization for rescue-service
-incident data. It is not a general-purpose offline database and not a
-production mesh deployment. The implemented path covers responder outbox
-forwarding, command-side idempotent sequencing, command-to-core backfill,
-duplicate replay, selected partition behavior, and model-level promotion
-safety. Physical mesh behavior, Android tablet persistence, mTLS/WireGuard
-overhead, service-level durable command epochs, and full crash-boundary
-validation remain outside the measured path.
+## Fast Reviewer Path
 
-## Status
+To inspect the artifact without rerunning long measurements:
 
-This is a research and submission repository, not a production deployment. The
-local emulation exercises the protocol and measurements used by the paper, but
-the full operational stack still requires production hardening around mTLS,
-device management, deployment automation, physical mesh testing, and
-field-validation procedures.
+1. Read the paper source in `paper/sections/`, especially
+   `paper/sections/04_synchronization_protocol.tex`,
+   `paper/sections/05_implementation.tex`, and
+   `paper/sections/06_evaluation.tex`.
+2. Inspect the generated evaluation artifacts in `paper/data/`, `paper/tables/`,
+   and `paper/figures/`.
+3. Build the paper from checked-in artifacts:
 
-For NCA-style double-blind submission work, do not assume the whole repository
-is an anonymous artefact. Some planning and submission-side documents under the
-root and `docs/` may contain author-side information. Re-run the anonymisation
-grep for any bundle before sharing it with reviewers.
+```bash
+cd paper
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+pdfinfo main.pdf
+cd ..
+```
 
-## Architecture
+The generated tables read anonymized JSONL files (`*.anon.jsonl`). If you rerun
+harnesses, regenerate anonymized copies before regenerating tables.
 
-Rescue OIS uses three tiers:
+## Repository Map
 
-- `Regional Core`: authoritative master-data platform, publication pipeline,
-  tile/package serving, sync API, and audit receiver.
-- `Vehicle Edge`: per-vehicle local services. One edge acts as command and
-  sequences the incident journal; responders cache data and forward queued
-  field edits.
-- `Field Tablet`: Android leaf client that talks only to the local vehicle
-  edge over HTTPS and keeps a local offline store.
-
-The mesh is treated as transit only. User VLANs are not stretched across
-vehicles, and live incident-state writes are sequenced by exactly one command
-node at a time.
-
-See [docs/architecture/README.md](docs/architecture/README.md) for the detailed
-architecture overview, network model, security model, and protocol write-up.
-
-## Repository Layout
-
-| Path | Purpose |
+| Path | Reviewer use |
 | --- | --- |
-| `core/` | Regional services: PostGIS, Martin, GeoServer, Nginx, `sync-api`, `audit-api`, `feed-importer`, and `publisher`. |
-| `edge/` | Vehicle services: local PostGIS, `ops-api`, `syncd`, package cache, audit forwarder, Nginx, WireGuard and firewall templates. |
-| `tablet/` | Kotlin / Jetpack Compose / MapLibre Android tablet scaffold. |
-| `formal/` | TLA+ model and Python Hypothesis state-machine tests for the protocol safety properties. |
-| `baseline-raft/` | Three-voter `hashicorp/raft` baseline used for the paper comparison. |
-| `scripts/` | Local emulation, migration, partition injection, promotion, and evaluation scripts. |
-| `paper/` | IEEE/NCA paper source, bibliography, generated tables, figures, and measurement data. |
-| `docs/` | Architecture, deployment notes, runbooks, ADRs, and submission-side checklist. |
-| `infra/` | Ansible, router, and mesh-device configuration templates. |
-| `ui_kits/`, `preview/` | Conceptual design-system and tablet UI preview artefacts. |
+| `paper/` | LaTeX paper, generated figures/tables, and JSONL evaluation data. |
+| `core/` | Regional core services and database migrations. |
+| `edge/` | Vehicle-edge services: `ops-api`, `syncd`, local Postgres, outbox, journal, WireGuard/Nginx scaffolding. |
+| `scripts/` | Docker stack helpers and AAL evaluation harnesses. |
+| `baseline/crdt/` | Hanssen-style operation-based CRDT-LWW baseline service. |
+| `baseline/scripts/` | CRDT baseline evaluation harness. |
+| `formal/tla/` | TLA+ safety model, strict and weak configs, recorded run notes. |
+| `formal/python/` | Hypothesis state-machine tests mirroring the TLA+ safety properties. |
+| `docs/` | Architecture notes, ADRs, deployment notes, and runbooks. |
+| `tablet/` | Android tablet scaffold; not part of the reported end-to-end evaluation. |
+| `baseline-raft/` | Historical/contextual baseline code, not used by the current Section V CRDT comparison. |
 
 ## Prerequisites
 
-The full repository spans several toolchains. Install only the pieces needed for
-the task you are running.
+Install only the tools needed for the path you will run.
 
-- Docker Engine with Docker Compose v2
-- Python 3.11+ for evaluation scripts; `httpx` is required for the harnesses
-  and `matplotlib` for plot generation
-- LaTeX with `latexmk`, `pdflatex`, and BibTeX for the paper
-- Go 1.21+ for the Raft baseline
-- Java plus `tla2tools.jar` for TLA+ model checking
-- Android Studio or Gradle/JDK for the tablet app
+- Docker Engine with Docker Compose v2.
+- Python 3.11+ on the host for harness scripts; Python 3.12 is used inside the
+  service containers. Host scripts need `httpx` and plot generation needs
+  `matplotlib`.
+- LaTeX (`latexmk`, `pdflatex`, BibTeX) for the paper build.
+- Java plus `tla2tools.jar` for TLA+ checks.
+- `pytest` and `hypothesis` for `formal/python`.
 
-## Local Emulation
-
-Start one regional core, one command edge, and one responder edge:
+A minimal host Python setup is:
 
 ```bash
-./scripts/dev-up.sh
-./scripts/run-migrations.sh
-./scripts/run-migrations.sh edge
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install httpx matplotlib pytest hypothesis
 ```
 
-Start with more responder vehicles:
+## Start the AAL Emulation Stack
+
+The paper setup uses one core, one command edge, and three responder edges on the
+shared Docker network `rescue-ois-net`.
 
 ```bash
 RESPONDERS=3 ./scripts/dev-up.sh
@@ -102,151 +87,232 @@ RESPONDERS=3 ./scripts/dev-up.sh
 ./scripts/run-migrations.sh edge
 ```
 
-Default host ports used by the emulation include:
+Default host endpoints:
 
-- Core `sync-api`: `http://127.0.0.1:18000`
-- Command edge `ops-api`: `http://127.0.0.1:18080`
-- Command edge `syncd`: `http://127.0.0.1:18081`
-- First responder `ops-api`: `http://127.0.0.1:18101`
-- First responder `syncd`: `http://127.0.0.1:18201`
+| Service | URL |
+| --- | --- |
+| Core `sync-api` | `http://127.0.0.1:18000` |
+| Command edge `ops-api` | `http://127.0.0.1:18080` |
+| Command edge `syncd` | `http://127.0.0.1:18081` |
+| Responder 1 `ops-api` | `http://127.0.0.1:18101` |
+| Responder 1 `syncd` | `http://127.0.0.1:18201` |
 
-Stop and remove the local emulation:
+Stop and remove the emulation stack:
 
 ```bash
 ./scripts/dev-down.sh
 ```
 
-## Evaluation Harness
+The evaluation scripts reset tables and may stop/restart containers. Do not run
+them against a stack that contains data you want to keep.
 
-The main prototype evaluation drives bootstrap latency, field-edit
-propagation, WAN recovery, throughput, and idempotency scenarios against the
-running Docker emulation.
+## Re-run the AAL Evaluation Harnesses
 
-The separate command-partition harness measures only command-originated writes
-submitted directly to the implemented command `syncd` `/accept/event-batch`
-path while responder `syncd` is isolated. It is not an end-to-end tablet or
-physical mesh measurement.
+Run from the repository root after starting the stack and applying migrations.
+These commands overwrite their corresponding `paper/data/*.jsonl` files.
 
 ```bash
-./scripts/dev-up.sh
-./scripts/run-migrations.sh
-./scripts/run-migrations.sh edge
 python3 scripts/evaluate-pilot.py
 python3 scripts/evaluate-command-local-partition.py
+python3 scripts/evaluate-fenced-promotion.py --n 5 --writes-per-phase 20
+python3 scripts/evaluate-outbox-crash-restart.py
+python3 scripts/evaluate-netem-propagation.py
+```
+
+What each harness drives:
+
+| Paper cell | Script | Default output |
+| --- | --- | --- |
+| V-A/V-D/V-F plus throughput/idempotency | `scripts/evaluate-pilot.py` | `paper/data/eval_metrics.jsonl` |
+| V-C responder-isolation command commits | `scripts/evaluate-command-local-partition.py` | `paper/data/eval_command_local_partition.jsonl` |
+| V-B fenced promotion phases A/B/C | `scripts/evaluate-fenced-promotion.py --n 5 --writes-per-phase 20` | `paper/data/eval_fenced_promotion.jsonl` |
+| V-D outbox survives responder DB restart | `scripts/evaluate-outbox-crash-restart.py` | `paper/data/eval_outbox_crash_restart.jsonl` |
+| V-D stressed/degraded `tc-netem` propagation | `scripts/evaluate-netem-propagation.py` | `paper/data/eval_netem_propagation.jsonl` |
+
+Important details:
+
+- `evaluate-pilot.py` uses `RUNS_PER_CELL=30` by default. Set
+  `RUNS_PER_CELL=1` for a fast sanity run.
+- Throughput inside `evaluate-pilot.py` uses 1000 concurrent submissions and
+  emits both direct command `/accept/event-batch` and end-to-end responder
+  `/api/events` measurements. The first run is a warm-up and is excluded by the
+  table generator.
+- `evaluate-fenced-promotion.py --n 5 --writes-per-phase 20` produces 300
+  attempts total: 100 per phase.
+- `evaluate-netem-propagation.py` installs `tc-netem` on the responder and
+  command `syncd` containers. If it fails, run `./scripts/dev-down.sh` and start
+  a clean stack before retrying.
+
+## Anonymize Fresh AAL Data
+
+Table and plot generators consume anonymized JSONL files. After rerunning AAL
+harnesses, run:
+
+```bash
+python3 paper/scripts/anonymize_data.py \
+  paper/data/eval_metrics.jsonl \
+  paper/data/eval_command_local_partition.jsonl \
+  paper/data/eval_fenced_promotion.jsonl \
+  paper/data/eval_outbox_crash_restart.jsonl \
+  paper/data/eval_netem_propagation.jsonl
+```
+
+The anonymizer writes sibling `*.anon.jsonl` files and redacts host-specific
+paths and environment fields.
+
+## Re-run the CRDT-LWW Baseline
+
+The current paper comparison uses the CRDT-LWW baseline under `baseline/crdt`,
+not the historical `baseline-raft` stack.
+
+Start the CRDT baseline:
+
+```bash
+docker compose -f baseline/docker-compose.yml up -d --build
+```
+
+Run the main CRDT baseline cells (`n=30`, throughput target 300). This writes to
+`baseline/data/` and copies anonymized siblings into `paper/data/`:
+
+```bash
+python3 baseline/scripts/evaluate-crdt-baseline.py \
+  --runs 30 \
+  --throughput-events 300 \
+  --partition-s 60 \
+  --partition-runs 1 \
+  --output data/eval_crdt_baseline.jsonl
+```
+
+Run the 60-second post-quiescence convergence file used by the comparison table
+(`n=10` for the long wait row, with only smoke-size values for the other cells in
+that file):
+
+```bash
+python3 baseline/scripts/evaluate-crdt-baseline.py \
+  --runs 1 \
+  --throughput-events 30 \
+  --partition-s 60 \
+  --partition-runs 10 \
+  --output data/eval_crdt_partition_n10.jsonl
+```
+
+Stop the CRDT baseline:
+
+```bash
+docker compose -f baseline/docker-compose.yml down -v
+```
+
+The CRDT harness models four FastAPI replicas (`a`, `b`, `c`, `core`) using an
+operation-based LWW element set with physical-clock timestamps. It has no
+background gossip; convergence is driven by harness-triggered `full_sync()`.
+
+## Regenerate Paper Tables and Figures
+
+After rerunning and anonymizing data:
+
+```bash
 python3 paper/scripts/generate_plots.py
+python3 paper/scripts/plot_promotion_cdf.py
 python3 paper/scripts/generate_tables.py
 ```
 
-The canonical output is `paper/data/eval_metrics.jsonl`. Generated paper
-outputs include `paper/figures/fig_recovery.pdf` and
-`paper/tables/tab_evaluation.tex`.
+Generated outputs:
 
-Do not hand-edit measured data files or generated tables. Rerun the harnesses
-and generator scripts instead.
+| Generator | Inputs | Outputs |
+| --- | --- | --- |
+| `paper/scripts/generate_plots.py` | `paper/data/eval_metrics.anon.jsonl` | `paper/figures/fig_recovery.pdf` |
+| `paper/scripts/plot_promotion_cdf.py` | `paper/data/eval_fenced_promotion.anon.jsonl` | `paper/figures/fig_promotion_cost.pdf`, `paper/data/promotion_summary.tex` |
+| `paper/scripts/generate_tables.py` | `eval_metrics.anon.jsonl`, `eval_command_local_partition.anon.jsonl`, CRDT anon files | `paper/tables/tab_evaluation.tex`, `paper/tables/tab_crdt_comparison.tex` |
 
-## Raft Baseline
-
-The Raft baseline is a deliberately small comparison target for the paper. It
-mirrors only the journal-commit path and omits the Rescue OIS outbox, audit,
-promotion, mTLS, tile, package, and durable-storage machinery.
-
-```bash
-docker network inspect rescue-ois-net >/dev/null 2>&1 || docker network create rescue-ois-net
-docker compose -p baseline-raft -f baseline-raft/docker-compose.yml up -d --build
-(cd baseline-raft && go build ./...)
-python3 scripts/evaluate-raft-baseline.py
-python3 paper/scripts/generate_baseline_table.py
-docker compose -p baseline-raft -f baseline-raft/docker-compose.yml down
-```
-
-Run the evaluator and table generator from the repository root. The baseline
-HTTP APIs are exposed on `18001`, `18002`, and `18003`.
-
-The canonical output is `paper/data/eval_metrics_raft.jsonl`, with the
-comparison table generated at `paper/tables/tab_baseline.tex`.
-
-## Formal Verification
-
-The adopted promotion protocol is checked in TLA+ and mirrored by Python
-property tests.
-
-Python state-machine tests:
-
-```bash
-cd formal/python
-pip install -e .
-pytest
-```
-
-Optional real-stack property tests:
-
-```bash
-./scripts/dev-up.sh
-cd formal/python
-RESCUE_OIS_REAL_STACK=1 pytest tests/test_against_real.py
-```
-
-TLA+ model checking:
-
-```bash
-cd formal/tla
-java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_strict.cfg RescueOIS.tla
-java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak.cfg RescueOIS.tla
-java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak_journal.cfg RescueOIS.tla
-```
-
-The strict configuration is expected to verify the adopted safety invariants.
-The weak configurations are expected to produce counterexamples that show why
-manual, authority-preserving promotion is required.
-
-## Paper Build
-
-Build the paper:
+Then rebuild the paper:
 
 ```bash
 cd paper
-latexmk -pdf -interaction=nonstopmode main.tex
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+pdfinfo main.pdf
+cd ..
 ```
 
-Useful pre-submission checks from the repository root:
+## Smoke Run Instead of Full Reproduction
+
+A reviewer who only wants to validate wiring can run a small destructive smoke
+pass. These commands do not reproduce paper statistics.
 
 ```bash
-grep -c "Citation .* undefined" paper/main.log
-grep -c "Reference .* undefined" paper/main.log
-grep -c "% verify" paper/refs.bib
-pdfinfo paper/main.pdf
+RESPONDERS=3 ./scripts/dev-up.sh
+./scripts/run-migrations.sh
+./scripts/run-migrations.sh edge
+
+RUNS_PER_CELL=1 python3 scripts/evaluate-pilot.py
+python3 scripts/evaluate-command-local-partition.py --attempts 3 --partition-s 2
+python3 scripts/evaluate-fenced-promotion.py --n 1 --writes-per-phase 3
+python3 scripts/evaluate-outbox-crash-restart.py --events 5
+python3 scripts/evaluate-netem-propagation.py --smoke
+
+./scripts/dev-down.sh
 ```
 
-Before any double-blind submission, also run an anonymisation scan over the
-submitted paper and artefact tree, then inspect the PDF manually.
+## Formal-Methods Checks
 
-## Tablet App
-
-Build and test the Android tablet scaffold:
+TLA+ model checking requires Java and `tla2tools.jar`:
 
 ```bash
-cd tablet
-./gradlew assembleDebug
-./gradlew test
+cd formal/tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_small.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_medium.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_large.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak_epoch.cfg RescueOIS.tla
+java -jar "$TLA_TOOLS_JAR" -workers auto -config RescueOIS_weak_journal.cfg RescueOIS.tla
+cd ../..
 ```
 
-The tablet app is intended to talk only to its local vehicle edge endpoint and
-to render operational maps from local/offline tile data.
+Expected behavior: strict configs verify; weak configs fail by design and expose
+counterexamples. Recorded run notes live in `formal/tla/RUNS.md` and
+`formal/tla/weak_counterexample.md`.
 
-## Operational Documentation
+Run the Python Hypothesis mirrors:
 
-- [docs/architecture/README.md](docs/architecture/README.md) - three-tier
-  architecture overview
-- [docs/architecture/sync-protocol.md](docs/architecture/sync-protocol.md) -
-  protocol flows
-- [docs/architecture/network-topology.md](docs/architecture/network-topology.md)
-  - IP plan, VLANs, and firewall model
-- [docs/architecture/security-model.md](docs/architecture/security-model.md) -
-  security boundaries and identity model
-- [docs/runbooks/](docs/runbooks/) - incident bootstrap, command failover, and
-  device revocation procedures
-- [docs/adr/](docs/adr/) - architecture decision records
+```bash
+cd formal/python
+python3 -m pip install -e .
+pytest
+cd ../..
+```
+
+Opt-in real-stack tests require a running AAL Docker stack:
+
+```bash
+cd formal/python
+RESCUE_OIS_REAL_STACK=1 pytest tests/test_against_real.py
+cd ../..
+```
+
+## Current Evidence Boundaries
+
+The paper and repository intentionally separate implemented evidence from
+non-claims:
+
+- The service path sequences and fences incident-journal writes, but semantic
+  rejection for application-level status/delete conflicts is not implemented in
+  the measured service path.
+- Promotion is operator-initiated and single-edge in the service-path harness;
+  multi-edge operator races are model-level or future work.
+- The Android tablet directory is a scaffold; Section V uses Python/tablet stubs
+  and service APIs.
+- The Docker evaluation is single-host emulation with `tc-netem`, not a physical
+  mesh or measured WireGuard/mTLS deployment.
+
+## Troubleshooting
+
+- If Docker names or networks collide, run `./scripts/dev-down.sh` and retry.
+- If `paper/scripts/generate_tables.py` reports a missing file, confirm the
+  matching `*.anon.jsonl` exists in `paper/data/`.
+- If netem results look stuck, remove the stack with `./scripts/dev-down.sh`;
+  the netem harness cleans up on normal exit, but a killed run can leave qdiscs
+  in a bad state.
+- If the paper build reports changed references, rerun `latexmk` once more.
 
 ## License
 
-This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
+This project is licensed under the Apache License 2.0. See `LICENSE`.

@@ -21,6 +21,7 @@ CONSTANTS
     Vehicles,           \* set of vehicle identifiers (model values)
     MaxJournal,         \* upper bound on incident journal length
     ClientIds,          \* set of client_event_id values (model values)
+    MaxPromotions,      \* upper bound on strict fenced promotions
     StrictPromotion     \* TRUE for the safe protocol; FALSE for the broken
                         \* variant that we explicitly do not adopt
 
@@ -28,11 +29,12 @@ ASSUME
     /\ Vehicles # {}
     /\ MaxJournal \in Nat \ {0}
     /\ ClientIds # {}
+    /\ MaxPromotions \in Nat
     /\ StrictPromotion \in BOOLEAN
 
 VARIABLES
     role,        \* [Vehicles -> {"command", "responder"}]
-    journal,     \* Seq([seq: Nat, cid: ClientIds, by: Vehicles])
+    journal,     \* Seq([seq: Nat, cid: ClientIds, by: Vehicles, epoch: Nat])
                  \*   single shared incident journal.
     cursor,      \* [Vehicles -> Nat]
                  \*   each vehicle's local belief of the next seq to allocate.
@@ -40,11 +42,15 @@ VARIABLES
     authority,   \* SUBSET Vehicles
                  \*   set of vehicles currently holding write authority.
                  \*   Strict run keeps |authority| <= 1 globally.
-    partition    \* SUBSET (Vehicles \X Vehicles); symmetric, irreflexive
+    partition,   \* SUBSET (Vehicles \X Vehicles); symmetric, irreflexive
+    currentEpoch,\* Nat; strict fenced promotion allocates a fresh epoch.
+    epochOf,     \* [Vehicles -> Nat]; epoch under which a vehicle would write.
+    epochJournal \* [0..MaxPromotions -> Seq(Event)]; journal snapshots at
+                 \*   epoch allocation, used to check promotion durability.
 
-vars == <<role, journal, cursor, authority, partition>>
+vars == <<role, journal, cursor, authority, partition, currentEpoch, epochOf, epochJournal>>
 
-Event == [seq: 1..(MaxJournal + 1), cid: ClientIds, by: Vehicles]
+Event == [seq: 1..(MaxJournal + 1), cid: ClientIds, by: Vehicles, epoch: 0..MaxPromotions]
 
 (***************************************************************************)
 (*  Helpers                                                                *)
@@ -53,6 +59,10 @@ Event == [seq: 1..(MaxJournal + 1), cid: ClientIds, by: Vehicles]
 Connected(v, w) == <<v, w>> \notin partition
 
 JournalCids == { journal[k].cid : k \in 1..Len(journal) }
+
+IsPrefix(a, b) ==
+    /\ Len(a) <= Len(b)
+    /\ \A i \in 1..Len(a): a[i] = b[i]
 
 (***************************************************************************)
 (*  Type invariant                                                         *)
@@ -65,6 +75,10 @@ TypeOK ==
     /\ cursor \in [Vehicles -> 1..(MaxJournal + 1)]
     /\ authority \subseteq Vehicles
     /\ partition \subseteq (Vehicles \X Vehicles)
+    /\ currentEpoch \in 0..MaxPromotions
+    /\ epochOf \in [Vehicles -> 0..MaxPromotions]
+    /\ epochJournal \in [0..MaxPromotions -> Seq(Event)]
+    /\ \A e \in 0..MaxPromotions: Len(epochJournal[e]) <= MaxJournal
     /\ \A v \in Vehicles: <<v, v>> \notin partition
     /\ \A v, w \in Vehicles: <<v, w>> \in partition <=> <<w, v>> \in partition
 
@@ -80,6 +94,9 @@ Init ==
     /\ journal = << >>
     /\ cursor = [v \in Vehicles |-> 1]
     /\ partition = {}
+    /\ currentEpoch = 0
+    /\ epochOf = [v \in Vehicles |-> 0]
+    /\ epochJournal = [e \in 0..MaxPromotions |-> << >>]
 
 (***************************************************************************)
 (*  Action: an authority-holding vehicle commits a fresh event using its   *)
@@ -93,9 +110,9 @@ CommitEvent(v, cid) ==
     /\ v \in authority
     /\ Len(journal) < MaxJournal
     /\ cid \notin JournalCids
-    /\ journal' = Append(journal, [seq |-> cursor[v], cid |-> cid, by |-> v])
+    /\ journal' = Append(journal, [seq |-> cursor[v], cid |-> cid, by |-> v, epoch |-> epochOf[v]])
     /\ cursor' = [cursor EXCEPT ![v] = @ + 1]
-    /\ UNCHANGED <<role, authority, partition>>
+    /\ UNCHANGED <<role, authority, partition, currentEpoch, epochOf, epochJournal>>
 
 (***************************************************************************)
 (*  Action: operator promotes a responder to command.                      *)
@@ -121,19 +138,27 @@ PromoteWeak(v) ==
                 ELSE role[w]]
     /\ authority' = { w \in authority : ~Connected(v, w) } \cup {v}
     /\ cursor' = [cursor EXCEPT ![v] = Len(journal) + 1]
-    /\ UNCHANGED <<journal, partition>>
+    \* Weak promotion does not allocate a fence epoch. The candidate writes
+    \* under the current epoch, so two authorities can exist at the same epoch.
+    /\ epochOf' = [epochOf EXCEPT ![v] = currentEpoch]
+    /\ UNCHANGED <<journal, partition, currentEpoch, epochJournal>>
 
 PromoteStrict(v) ==
     /\ role[v] = "responder"
+    /\ currentEpoch < MaxPromotions
     /\ \A w \in Vehicles: role[w] = "command" => Connected(v, w)
-    /\ role' = [w \in Vehicles |->
-        IF w = v
-            THEN "command"
-            ELSE IF role[w] = "command"
-                THEN "responder"
-                ELSE role[w]]
-    /\ authority' = {v}
-    /\ cursor' = [cursor EXCEPT ![v] = Len(journal) + 1]
+    /\ LET newEpoch == currentEpoch + 1 IN
+        /\ role' = [w \in Vehicles |->
+            IF w = v
+                THEN "command"
+                ELSE IF role[w] = "command"
+                    THEN "responder"
+                    ELSE role[w]]
+        /\ authority' = {v}
+        /\ cursor' = [cursor EXCEPT ![v] = Len(journal) + 1]
+        /\ currentEpoch' = newEpoch
+        /\ epochOf' = [epochOf EXCEPT ![v] = newEpoch]
+        /\ epochJournal' = [epochJournal EXCEPT ![newEpoch] = journal]
     /\ UNCHANGED <<journal, partition>>
 
 Promote(v) ==
@@ -147,12 +172,12 @@ PartitionPair(v, w) ==
     /\ v # w
     /\ <<v, w>> \notin partition
     /\ partition' = partition \cup {<<v, w>>, <<w, v>>}
-    /\ UNCHANGED <<role, journal, cursor, authority>>
+    /\ UNCHANGED <<role, journal, cursor, authority, currentEpoch, epochOf, epochJournal>>
 
 HealPair(v, w) ==
     /\ <<v, w>> \in partition
     /\ partition' = partition \ {<<v, w>>, <<w, v>>}
-    /\ UNCHANGED <<role, journal, cursor, authority>>
+    /\ UNCHANGED <<role, journal, cursor, authority, currentEpoch, epochOf, epochJournal>>
 
 (***************************************************************************)
 (*  Next-state                                                             *)
@@ -172,15 +197,29 @@ Spec == Init /\ [][Next]_vars
 
 \* Central authority property: at most one vehicle holds write authority at
 \* any time. Under StrictPromotion = TRUE this holds; under
-\* StrictPromotion = FALSE TLC will produce a counterexample at depth 3.
+\* StrictPromotion = FALSE TLC prints a 3-state counterexample trace.
 SingleAuthority == Cardinality(authority) <= 1
+
+\* Epoch authority coupling: no epoch can have more than one vehicle holding
+\* write authority at that epoch. Strict fenced promotion allocates a fresh
+\* epoch and revokes old authority. Weak promotion does not allocate a fence
+\* epoch, so TLC can exhibit two authorities at the same epoch.
+EpochAuthorityCoupling ==
+    \A e \in 0..currentEpoch:
+        Cardinality({ v \in Vehicles : v \in authority /\ epochOf[v] = e }) <= 1
+
+\* Durability across promotion: each journal snapshot recorded at epoch
+\* allocation remains a prefix of the current journal. The model verifies that
+\* promotion does not truncate or reorder already committed journal entries.
+DurabilityAcrossPromotion ==
+    \A e \in 0..currentEpoch: IsPrefix(epochJournal[e], journal)
 
 \* Journal-shape property: the incident journal is not forked. Distinct
 \* positions in the journal carry distinct event_seq values. Under
 \* StrictPromotion = TRUE this is automatic-by-construction (single cursor
 \* in use at any time). Under StrictPromotion = FALSE TLC will produce a
-\* counterexample where two authorities each commit at the same seq -- the
-\* split-brain-on-cursor pattern.
+\* 5-state counterexample trace where two authorities each commit at the
+\* same seq -- the split-brain-on-cursor pattern.
 NoForkedJournal ==
     \A i, j \in 1..Len(journal):
         i # j => journal[i].seq # journal[j].seq

@@ -1,0 +1,57 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 51 and seed -8675318808056149962 with 12 workers on 12 cores with 7940MB heap and 64MB offheap memory [pid: 37745] (Linux 6.17.0-1023-oem amd64, Ubuntu 21.0.10 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /media/aditya/File System 21/rescue-ois/formal/tla/RescueOIS.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/FiniteSets.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/TLC.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module RescueOIS
+Starting... (2026-05-25 13:35:25)
+Computing initial states...
+Computed 2 initial states...
+Finished computing initial states: 3 distinct states generated at 2026-05-25 13:35:25.
+Error: Invariant EpochAuthorityCoupling is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ authority = {v3}
+/\ partition = {}
+/\ journal = <<>>
+/\ epochOf = (v1 :> 0 @@ v2 :> 0 @@ v3 :> 0)
+/\ role = (v1 :> "responder" @@ v2 :> "responder" @@ v3 :> "command")
+/\ epochJournal = (0 :> <<>> @@ 1 :> <<>>)
+/\ cursor = (v1 :> 1 @@ v2 :> 1 @@ v3 :> 1)
+/\ currentEpoch = 0
+
+State 2: <PartitionPair line 172, col 5 to line 175, col 90 of module RescueOIS>
+/\ authority = {v3}
+/\ partition = {<<v1, v3>>, <<v3, v1>>}
+/\ journal = <<>>
+/\ epochOf = (v1 :> 0 @@ v2 :> 0 @@ v3 :> 0)
+/\ role = (v1 :> "responder" @@ v2 :> "responder" @@ v3 :> "command")
+/\ epochJournal = (0 :> <<>> @@ 1 :> <<>>)
+/\ cursor = (v1 :> 1 @@ v2 :> 1 @@ v3 :> 1)
+/\ currentEpoch = 0
+
+State 3: <Promote line 165, col 5 to line 165, col 64 of module RescueOIS>
+/\ authority = {v1, v3}
+/\ partition = {<<v1, v3>>, <<v3, v1>>}
+/\ journal = <<>>
+/\ epochOf = (v1 :> 0 @@ v2 :> 0 @@ v3 :> 0)
+/\ role = (v1 :> "command" @@ v2 :> "responder" @@ v3 :> "command")
+/\ epochJournal = (0 :> <<>> @@ 1 :> <<>>)
+/\ cursor = (v1 :> 1 @@ v2 :> 1 @@ v3 :> 1)
+/\ currentEpoch = 0
+
+294 states generated, 144 distinct states found, 101 states left on queue.
+The depth of the complete state graph search is 6.
+The average outdegree of the complete state graph is 4 (minimum is 0, the maximum 6 and the 95th percentile is 6).
+Finished in 00s at (2026-05-25 13:35:25)
+real 0.77
+user 1.37
+sys 0.10

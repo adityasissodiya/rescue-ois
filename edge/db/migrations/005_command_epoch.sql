@@ -19,9 +19,11 @@ CREATE TABLE incident.command_epoch (
 COMMENT ON TABLE incident.command_epoch IS
   'One row per operationally designated command vehicle. epoch_id increases monotonically; current epoch = max(epoch_id).';
 
--- Seed epoch 0 so a fresh deployment has a defined current epoch. Operator
--- and node identifiers for the initial row are placeholders that the bootstrap
--- procedure can override.
+-- Seed the bootstrap epoch so a fresh deployment has a defined current epoch.
+-- epoch_id is BIGSERIAL, so this first row is epoch 1 (not 0); the
+-- incident.current_epoch view therefore returns 1 on a fresh deployment.
+-- Operator and node identifiers for the initial row are placeholders that the
+-- bootstrap procedure can override.
 INSERT INTO incident.command_epoch (started_by, node_id)
 VALUES ('bootstrap', 'edge-cmd');
 
