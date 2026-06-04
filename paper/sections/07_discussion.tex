@@ -16,7 +16,7 @@ during total disconnection is not provided. A stolen vehicle node is more seriou
 because it may hold cached data. If that node is the command edge, it also holds
 operational authority. The architecture relies on device encryption, operational fencing,
 and audit rather than Byzantine tolerance. Because authority is explicit, a captured or
-buggy command edge can poison the incident journal while it holds authority---a
+buggy command edge can poison the incident journal while it holds authority: a
 central trade-off of making command authority explicit.
 
 The design also does not address a compromised organizational CA, Byzantine

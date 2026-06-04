@@ -84,8 +84,8 @@ command transfer.
 
 \textit{CRDTs and strong eventual consistency.} CRDT and
 strong-eventual-consistency work, including richer local-first safety models and
-Hanssen's CRDT replication for emergency management---our closest
-baseline---provides convergence for mergeable replicated
+Hanssen's CRDT replication for emergency management, our closest
+baseline, provides convergence for mergeable replicated
 state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,lewchenko2025boltonsc,hanssen2025emergency,almeida2024crdtsurvey}.
 This serves R1 (offline operation) and R2 (durable local submission) well, but
 cannot satisfy R3~\cite{mao2024reliablecrdt}. Authority-bearing incident decisions---resource assignments,
@@ -113,7 +113,7 @@ replication, causality metadata, and decision-invalidation support for
 long-term fragmentation. That is substantial machinery when the operational
 problem already designates a commander. Rescue-service incident command, by
 contrast, has a designated commander at every moment, and the network is not
-permitted to vote on incident decisions---so CoNICE's no-privileged-peer
+permitted to vote on incident decisions, so CoNICE's no-privileged-peer
 assumption is exactly the one R3 removes. Public-safety networking and edge/fog
 research place resilient
 transport and storage near
