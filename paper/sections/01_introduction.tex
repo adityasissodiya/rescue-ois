@@ -29,5 +29,5 @@ We make three contributions:
 
   \item (C2) an authority-aligned synchronization model based on a single authoritative incident journal and fenced promotion, with a TLA+ specification, corresponding Hypothesis state-machine tests, and a service-path mechanism that rejects stale-epoch traffic at the command edge;
 
-  \item (C3) a prototype implementation and evaluation using Docker Compose and \textit{tc-netem}, measuring propagation, recovery, sequencing, duplicate replay, stale-epoch rejection, strict-versus-weak promotion checks that falsify unfenced variants, and comparisons against Hanssen-style CRDT-LWW and Raft consensus baselines.
+  \item (C3) a prototype implementation (Docker Compose, \textit{tc-netem}) and a partition-based evaluation that compares AAL against Hanssen-style CRDT-LWW and Raft consensus baselines---showing authority remains with the operator-designated edge independent of reachability, where CRDT cannot encode it and Raft follows the reachable quorum---alongside measured propagation, wide-area recovery, sequencing, duplicate replay, stale-epoch rejection, and strict-versus-weak promotion checks that falsify unfenced variants.
 \end{enumerate}
