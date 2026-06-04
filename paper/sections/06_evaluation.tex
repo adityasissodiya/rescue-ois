@@ -38,7 +38,7 @@ Table~\ref{tab:falsification-cost}, and Fig.~\ref{fig:promotion-cost}.}
 \midrule
 R3, R1 & M1--M2 & Authority-bearing writes commit without responder reachability and stay totally ordered &
 Command accept under responder isolation; saturation throughput &
-20/20 commits, \textit{event\_seq} 1--20, 0 duplicate seqs; 356.3 events/s direct & measured \\
+20/20 commits, \textit{event\_seq} 1--20 gap-free, 0 duplicate seqs & measured \\
 \addlinespace
 R1, R2 & M3 & Durable idempotent submissions reach the journal exactly once under retry, restart, and impairment &
 Propagation latency, duplicate replay, crash-restart, netem &
