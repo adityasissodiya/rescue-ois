@@ -35,11 +35,12 @@ live link impairment favor the CRDT baseline.
 
 For the two invariant-violation scenarios, the CRDT result is measured on its
 service path while the AAL guarantee rests on the TLA+ model
-(\S~\ref{sec:eval-promotion}): four of the six invariants---\textit{EpochAuthorityCoupling},
+(\S~\ref{sec:eval-promotion}). Four of the six invariants have service-path
+witnesses in the live runs: \textit{EpochAuthorityCoupling},
 \textit{NoForkedJournal}, \textit{DurabilityAcrossPromotion}, and
-\textit{LocalIdempotency}---have service-path witnesses in the live runs, while
-\textit{SingleAuthority} and \textit{SingleCommand} remain model-only because the
-promotion harness is single-edge. The service path enforces epoch fencing but does
+\textit{LocalIdempotency}. The other two, \textit{SingleAuthority} and
+\textit{SingleCommand}, remain model-only because the promotion harness is
+single-edge. The service path enforces epoch fencing but does
 not yet implement semantic rejection for those conflicts.
 
 The prototype evaluation runs on a single-host Docker Compose emulation with
