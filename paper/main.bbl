@@ -180,6 +180,15 @@ N.~V. Lewchenko, G.~Kaki, and B.-Y.~E. Chang, ``Bolt-on strong consistency:
   systems,'' in \emph{Norsk IKT-konferanse for forskning og utdanning (NIK)},
   2025.
 
+\bibitem{almeida2024crdtsurvey}
+P.~S. Almeida, ``Approaches to conflict-free replicated data types,'' \emph{ACM
+  Computing Surveys}, vol.~57, no.~2, pp. 1--36, 2024.
+
+\bibitem{mao2024reliablecrdt}
+Y.~Mao, G.~Zhang, Z.~Liu, P.~Nasirifard, S.~Tijanic, and H.-A. Jacobsen,
+  ``Making {CRDTs} not so eventual,'' \emph{Proceedings of the {VLDB}
+  Endowment}, vol.~18, no.~2, pp. 349--362, 2024.
+
 \bibitem{kleppmann2019localfirst}
 M.~Kleppmann, A.~Wiggins, P.~van Hardenberg, and M.~McGranaghan, ``Local-first
   software: You own your data, in spite of the cloud,'' in \emph{Proceedings of
@@ -217,5 +226,10 @@ C.~Li, D.~Porto, A.~Clement, J.~Gehrke, N.~Pregui\c{c}a, and R.~Rodrigues,
   CA: USENIX Association, 2012, pp. 265--278. [Online]. Available:
   \url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/li}
 \BIBentrySTDinterwordspacing
+
+\bibitem{li2023raftreliability}
+Y.~Li, Y.~Fan, L.~Zhang, and J.~Crowcroft, ``{RAFT} consensus reliability in
+  wireless networks: Probabilistic analysis,'' \emph{{IEEE} Internet of Things
+  Journal}, vol.~10, no.~14, pp. 12\,839--12\,853, 2023.
 
 \end{thebibliography}

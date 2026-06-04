@@ -86,9 +86,9 @@ command transfer.
 strong-eventual-consistency work, including richer local-first safety models and
 Hanssen's CRDT replication for emergency management---our closest
 baseline---provides convergence for mergeable replicated
-state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,lewchenko2025boltonsc,hanssen2025emergency}.
+state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,lewchenko2025boltonsc,hanssen2025emergency,almeida2024crdtsurvey}.
 This serves R1 (offline operation) and R2 (durable local submission) well, but
-cannot satisfy R3. Authority-bearing incident decisions---resource assignments,
+cannot satisfy R3~\cite{mao2024reliablecrdt}. Authority-bearing incident decisions---resource assignments,
 status transitions, hazard annotations---are non-commutative. There is no
 application-defensible merge for two responders setting the same status to
 conflicting values. Any deterministic resolution rule implicitly invents

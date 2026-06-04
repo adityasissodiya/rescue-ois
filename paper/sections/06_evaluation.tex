@@ -213,8 +213,9 @@ For each behavioral run, the harness first records the current Raft leader
 $L_0$, treats it as the node currently holding write authority, and hard-cuts it
 from the other two voters by disconnecting its container from the shared Docker
 network. The reachable majority then elects $L_1$ and accepts writes there
-(Table~\ref{tab:raft-comparison}). This is correct Raft behavior: authority
-moves to a node that can form a quorum. It is also the mechanism mismatch for
+(Table~\ref{tab:raft-comparison}); election timing is randomized, so reported
+latencies are sample statistics over unseeded runs. This is correct Raft behavior: authority
+moves to a node that can form a quorum~\cite{li2023raftreliability}. It is also the mechanism mismatch for
 R3, because Raft has no input by which an operator can pin the writer to an
 externally designated command edge.
 
