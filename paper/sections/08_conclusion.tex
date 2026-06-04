@@ -5,11 +5,18 @@ The incident-journal linearization point is the command edge, the vehicle edge n
 Reference data, field submissions, materialized state, and audit forwarding sit outside that boundary on weaker contracts.
 Command transfer uses fenced promotion rather than leader election.
 
-The model checks and the \systemname{} service-path prototype agree on the safety boundary.
-Under strict fencing, no two writers and no forked journal; the weak variant produces the expected split-brain witness.
-Under a responder partition, the command edge committed 20/20 writes.
-The CRDT-LWW comparison shows the trade-off: CRDT replicas accept local writes at multiple nodes and converge quickly after anti-entropy exchange, while AAL preserves one incident journal and treats semantic conflict rejection as part of the linearization boundary.
-The cost is no automatic failover and lower write availability for authority-bearing operations.
+The model checks and the prototype agree on the safety boundary. Under strict
+fencing, the model permits no two writers and no forked journal; the weak variant
+produces the expected split-brain witness, and command-edge writes proceed
+independently of responder reachability. The CRDT-LWW comparison shows the trade-off:
+CRDT replicas accept local writes at multiple nodes and converge quickly after
+anti-entropy exchange. AAL, by contrast, preserves one incident journal and treats
+semantic conflict rejection as part of the linearization boundary. The cost is no
+automatic failover and lower write availability for authority-bearing operations.
 
-Deploy \systemname{} on a vehicle-mounted mesh, exercise fenced promotion across multiple command edges, implement service-path semantic rejection for authoritative conflicts, and add crash-boundary and Android end-to-end tests.
-The harder comparison is empirical, not architectural: measure the design against CoNICE-class consensus and CRDT-based emergency systems on workloads where command authority is contested rather than designated.
+Future work is to deploy the prototype on a vehicle-mounted mesh, exercise fenced
+promotion across multiple command edges, implement service-path semantic
+rejection for authoritative conflicts, and add crash-boundary and Android
+end-to-end tests. The harder comparison is empirical, not architectural: measure
+the design against CoNICE-class consensus and CRDT-based emergency systems on
+workloads where command authority is contested rather than designated.

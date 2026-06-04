@@ -97,6 +97,27 @@ A.~Westman \emph{et~al.}, ``Mobilisation of emergency services for chemical
   \emph{Scandinavian Journal of Trauma, Resuscitation and Emergency Medicine},
   vol.~29, p.~99, 2021.
 
+\bibitem{moynihan2008combining}
+D.~P. Moynihan, ``Combining structural forms in the search for policy tools:
+  Incident command systems in {U.S.} crisis management,'' \emph{Governance},
+  vol.~21, no.~2, pp. 205--229, 2008.
+
+\bibitem{moynihan2009network}
+------, ``The network governance of crisis response: Case studies of incident
+  command systems,'' \emph{Journal of Public Administration Research and
+  Theory}, vol.~19, no.~4, pp. 895--915, 2009.
+
+\bibitem{nowell2018structure}
+B.~Nowell, T.~Steelman, A.-L.~K. Velez, and Z.~Yang, ``The structure of
+  effective governance of disaster response networks: Insights from the
+  field,'' \emph{The American Review of Public Administration}, vol.~48, no.~7,
+  pp. 699--715, 2018.
+
+\bibitem{nowell2019beyond}
+B.~Nowell and T.~Steelman, ``Beyond {ICS}: How should we govern complex
+  disasters in the {United States}?'' \emph{Journal of Homeland Security and
+  Emergency Management}, vol.~16, no.~2, p. 20180067, 2019.
+
 \bibitem{richardson2018microservices}
 C.~Richardson, \emph{Microservices Patterns: With Examples in Java}.\hskip 1em
   plus 0.5em minus 0.4em\relax Manning Publications, 2018.
@@ -105,19 +126,29 @@ C.~Richardson, \emph{Microservices Patterns: With Examples in Java}.\hskip 1em
 P.~Helland, ``Life beyond distributed transactions: An apostate's opinion,''
   \emph{Communications of the ACM}, vol.~60, no.~2, pp. 46--54, 2017.
 
-\bibitem{kleppmann2019localfirst}
-M.~Kleppmann, A.~Wiggins, P.~van Hardenberg, and M.~McGranaghan, ``Local-first
-  software: You own your data, in spite of the cloud,'' in \emph{Proceedings of
-  the 2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and
-  Reflections on Programming and Software}, 2019.
+\bibitem{lamport1998parttime}
+L.~Lamport, ``The part-time parliament,'' \emph{ACM Transactions on Computer
+  Systems}, vol.~16, no.~2, pp. 133--169, 1998.
 
-\bibitem{paul2019crimp}
-P.~K. Paul \emph{et~al.}, ``{CRIMP}: Here crisis mapping goes offline,''
-  \emph{Journal of Network and Computer Applications}, 2019.
+\bibitem{ongaro2014raft}
+D.~Ongaro and J.~Ousterhout, ``In search of an understandable consensus
+  algorithm,'' in \emph{Proceedings of the 2014 USENIX Annual Technical
+  Conference}, 2014, pp. 305--320.
 
-\bibitem{kleppmann2017ddia}
-M.~Kleppmann, \emph{Designing Data-Intensive Applications}.\hskip 1em plus
-  0.5em minus 0.4em\relax O'Reilly Media, 2017.
+\bibitem{balakrishnan2013tango}
+M.~Balakrishnan, D.~Malkhi, T.~Wobber \emph{et~al.}, ``Tango: Distributed data
+  structures over a shared log,'' in \emph{Proceedings of the 24th ACM
+  Symposium on Operating Systems Principles (SOSP)}, 2013, pp. 325--340.
+
+\bibitem{vanrenesse2004chain}
+\BIBentryALTinterwordspacing
+R.~van Renesse and F.~B. Schneider, ``Chain replication for supporting high
+  throughput and availability,'' in \emph{6th Symposium on Operating Systems
+  Design and Implementation (OSDI 04)}.\hskip 1em plus 0.5em minus 0.4em\relax
+  San Francisco, CA: USENIX Association, Dec. 2004, pp. 91--104. [Online].
+  Available:
+  \url{https://www.usenix.org/conference/osdi-04/chain-replication-supporting-high-throughput-and-availability}
+\BIBentrySTDinterwordspacing
 
 \bibitem{almeida2014delta}
 P.~S. Almeida, A.~Shoker, and C.~Baquero, ``Efficient state-based {CRDT}s by
@@ -139,11 +170,6 @@ M.~K{\"o}hler, G.~Salvaneschi \emph{et~al.}, ``Consistent local-first software:
   Enforcing safety and invariants for local-first applications,'' \emph{IEEE
   Transactions on Software Engineering}, 2025.
 
-\bibitem{jannes2021owebsync}
-K.~Jannes, W.~De~Meuter \emph{et~al.}, ``Owebsync: Seamless synchronization of
-  distributed web clients,'' \emph{IEEE Transactions on Parallel and
-  Distributed Systems}, 2021.
-
 \bibitem{lewchenko2025boltonsc}
 N.~V. Lewchenko, G.~Kaki, and B.-Y.~E. Chang, ``Bolt-on strong consistency:
   Specification, implementation, and verification,'' \emph{Proceedings of the
@@ -154,43 +180,15 @@ N.~V. Lewchenko, G.~Kaki, and B.-Y.~E. Chang, ``Bolt-on strong consistency:
   systems,'' in \emph{Norsk IKT-konferanse for forskning og utdanning (NIK)},
   2025.
 
-\bibitem{lamport1998parttime}
-L.~Lamport, ``The part-time parliament,'' \emph{ACM Transactions on Computer
-  Systems}, vol.~16, no.~2, pp. 133--169, 1998.
+\bibitem{kleppmann2019localfirst}
+M.~Kleppmann, A.~Wiggins, P.~van Hardenberg, and M.~McGranaghan, ``Local-first
+  software: You own your data, in spite of the cloud,'' in \emph{Proceedings of
+  the 2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and
+  Reflections on Programming and Software}, 2019.
 
-\bibitem{ongaro2014raft}
-D.~Ongaro and J.~Ousterhout, ``In search of an understandable consensus
-  algorithm,'' in \emph{Proceedings of the 2014 USENIX Annual Technical
-  Conference}, 2014, pp. 305--320.
-
-\bibitem{balakrishnan2013tango}
-M.~Balakrishnan, D.~Malkhi, T.~Wobber \emph{et~al.}, ``Tango: Distributed data
-  structures over a shared log,'' in \emph{Proceedings of the 24th ACM
-  Symposium on Operating Systems Principles (SOSP)}, 2013, pp. 325--340.
-
-\bibitem{katsarakis2020hermes}
-A.~Katsarakis, V.~Gavrielatos, M.~R.~S. Katebzadeh \emph{et~al.}, ``Hermes: A
-  fast, fault-tolerant and linearizable replication protocol,'' in
-  \emph{Proceedings of the 25th International Conference on Architectural
-  Support for Programming Languages and Operating Systems (ASPLOS)}, 2020.
-
-\bibitem{liang2025holipaxos}
-Z.~Liang \emph{et~al.}, ``{HoliPaxos}: Towards more predictable performance in
-  state machine replication,'' \emph{Proceedings of the VLDB Endowment}, 2025.
-
-\bibitem{gooding2025lark}
-A.~Gooding \emph{et~al.}, ``{LARK}: Linearizability algorithms for replicated
-  keys in aerospike,'' \emph{arXiv preprint}, 2025.
-
-\bibitem{vanrenesse2004chain}
-\BIBentryALTinterwordspacing
-R.~van Renesse and F.~B. Schneider, ``Chain replication for supporting high
-  throughput and availability,'' in \emph{6th Symposium on Operating Systems
-  Design and Implementation (OSDI 04)}.\hskip 1em plus 0.5em minus 0.4em\relax
-  San Francisco, CA: USENIX Association, Dec. 2004, pp. 91--104. [Online].
-  Available:
-  \url{https://www.usenix.org/conference/osdi-04/chain-replication-supporting-high-throughput-and-availability}
-\BIBentrySTDinterwordspacing
+\bibitem{paul2019crimp}
+P.~K. Paul \emph{et~al.}, ``{CRIMP}: Here crisis mapping goes offline,''
+  \emph{Journal of Network and Computer Applications}, 2019.
 
 \bibitem{jahanian2022conice}
 M.~Jahanian and K.~K. Ramakrishnan, ``{CoNICE}: Consensus in
@@ -209,12 +207,6 @@ M.~F.~H. Sagor, A.~Haroon, R.~Stoleru, S.~Bhunia, A.~Altaweel, M.~Chao, L.~Jin,
   sharing framework for mobile edge computing in cyber-physical systems,''
   \emph{ACM Transactions on Cyber-Physical Systems}, vol.~8, no.~3, pp.
   37:1--37:31, 2024.
-
-\bibitem{aboualola2023edgesurvey}
-M.~Aboualola, K.~Abualsaud, T.~Khattab, N.~Zorba, and H.~Hassanein, ``Edge
-  technologies for disaster management: A survey of social media and artificial
-  intelligence integration,'' \emph{IEEE Access}, vol.~11, pp.
-  73\,782--73\,802, 2023.
 
 \bibitem{li2012redblue}
 \BIBentryALTinterwordspacing

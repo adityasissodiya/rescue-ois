@@ -1,57 +1,52 @@
-\section{Scope and Discussion}
+\section{Scope and Limitations}
 \label{sec:discussion}
-
-\subsection{Why Single Writer Instead of CRDTs}
-
-Local-first research makes a strong case for replica autonomy and conflict-free merging in collaborative systems~\cite{kleppmann2019localfirst,haas2023lore,kohler2025consistent,jannes2021owebsync}. That logic does not by itself satisfy R3. Incident state contains command decisions, ordered status transitions, and resource assignments for which CRDT-based merge has no defensible application semantics: there is no commutative merge function for a status transition that two responders attempt to drive in different directions, and any resolution rule that picks one of them implicitly invents the authority that R3 requires be explicit. The single-writer design adopted here makes that authority operational rather than emergent, at the cost of write availability at responder nodes during partition.
 
 \subsection{Threat Model and Security Scope}
 
-The target deployment assumes an organizational CA or identity provider, enrolled devices and users, and backend trust in certificate-derived identity only when the reverse proxy and service boundary are correctly configured. It handles replayed field submissions through \textit{client\_event\_id} idempotency and limits tablet reachability through local edge APIs and network segmentation.
+The target deployment assumes an organizational CA or identity provider,
+enrolled devices and users, and backend trust in certificate-derived identity
+only when the reverse proxy and service boundary are correctly configured. It
+handles replayed field submissions through \textit{client\_event\_id} idempotency
+and limits tablet reachability through local edge APIs and network segmentation.
 
-Several threats remain outside the prototype evaluation. A stolen or compromised tablet can be revoked only when nodes regain contact with the authority infrastructure or receive an updated trust bundle; instantaneous revocation during total disconnection is not provided. A stolen vehicle node is more serious because it may hold cached data and, if it is the command edge, operational authority; the architecture relies on device encryption, operational fencing, and audit rather than Byzantine tolerance. The design also does not address a compromised organizational CA, Byzantine command behavior, physical tamper resistance beyond deployment controls, or audit-log integrity against a fully compromised node. These are deployment and hardening questions, not properties established by the emulation.
+Several threats remain outside the prototype evaluation. A stolen or compromised
+tablet can be revoked only when nodes regain contact with the authority
+infrastructure or receive an updated trust bundle; instantaneous revocation
+during total disconnection is not provided. A stolen vehicle node is more serious
+because it may hold cached data. If that node is the command edge, it also holds
+operational authority. The architecture relies on device encryption, operational fencing,
+and audit rather than Byzantine tolerance. Because authority is explicit, a captured or
+buggy command edge can poison the incident journal while it holds authority---a
+central trade-off of making command authority explicit.
+
+The design also does not address a compromised organizational CA, Byzantine
+command behavior, physical tamper resistance beyond deployment controls, or
+audit-log integrity against a fully compromised node. These are deployment and
+hardening questions, not properties established by the emulation.
 
 
-\subsection{Limitations and Scope}
+\subsection{Evaluation Boundaries and Non-claims}
 \label{sec:non-claims}
 
-The CRDT-LWW comparison measures both systems on the executable service path
-where the comparison is well-defined: propagation latency, no-partition write
-acceptance, and post-quiescence convergence after a fixed outage duration. The
-two outage scenarios are not mechanically identical: the \systemname{} WAN outage is a real \textit{tc}
-cut of the command-to-core path, whereas the CRDT baseline exchanges operations
-only through harness-mediated anti-entropy, so its outage is modelled by
-withholding that exchange for the same duration rather than by impairing a live
-link. The convergence figures are therefore comparable in outage duration, not
-in transport mechanism. The absence of background gossip and live link
-impairment favors the CRDT baseline on this row; we retain that asymmetry
-because the comparison asks whether mergeable-by-default semantics can encode
-authority even when the baseline is given the easier infrastructure. For the two invariant-violation scenarios (concurrent authoritative edit and
-delete-resurrection), the CRDT result is measured on its service path while the
-AAL guarantee rests on the strict TLA+ model (\S\ref{sec:eval-promotion}), whose
-medium configuration checks all six safety invariants over 681{,}092 states.
-Four of the six---\textit{EpochAuthorityCoupling}, \textit{NoForkedJournal},
-\textit{DurabilityAcrossPromotion}, and \textit{LocalIdempotency}---also have
-service-path witnesses in the V-B live runs; the remaining two,
-\textit{SingleAuthority} and \textit{SingleCommand}, are model-only because the
-promotion harness is single-edge. The AAL service path sequences
-incident-journal entries and enforces epoch fencing but does not yet implement
-semantic rejection for those two application-level conflicts, which is future
-work.
+The CRDT-LWW comparison is well-defined on the executable service path and is
+comparable in outage duration but not in transport mechanism. \S~\ref{sec:eval-crdt}
+and Table~\ref{tab:crdt-comparison} explain why the absent background gossip and
+live link impairment favor the CRDT baseline.
 
-The throughput comparison has a unit boundary. CRDT-LWW reports aggregate local
-acceptance across replicas, which is the availability benefit of the design.
-AAL reports 356.3 events/s through the direct single incident-journal
-linearization point and 159.4 events/s end-to-end through the responder outbox
-and forwarding path. We therefore use the throughput result as a trade-off
-indicator, not as a direct apples-to-apples speed comparison.
+For the two invariant-violation scenarios, the CRDT result is measured on its
+service path while the AAL guarantee rests on the TLA+ model
+(\S~\ref{sec:eval-promotion}): four of the six invariants---\textit{EpochAuthorityCoupling},
+\textit{NoForkedJournal}, \textit{DurabilityAcrossPromotion}, and
+\textit{LocalIdempotency}---have service-path witnesses in the live runs, while
+\textit{SingleAuthority} and \textit{SingleCommand} remain model-only because the
+promotion harness is single-edge. The service path enforces epoch fencing but does
+not yet implement semantic rejection for those conflicts.
 
 The prototype evaluation runs on a single-host Docker Compose emulation with
 \textit{tc-netem} impairment. This isolates protocol behavior and keeps the
 artifact reproducible, but it does not claim physical Rajant mesh behavior,
 measured WireGuard or mTLS overhead, or end-to-end Android validation. The
-workload is single-incident and limited-scale. Multi-host emulation and a
-vehicle-mounted mesh deployment are future work.
+workload is single-incident and limited-scale.
 
 Promotion is operator-initiated. The paper does not claim automatic failover or
 storage-layer leader election after silent command death; an operator runbook is
@@ -60,11 +55,12 @@ single-edge: it shows that stale-epoch traffic cannot poison the current command
 journal after an epoch change, not that a full multi-edge promotion has been
 measured under all operator races. End-to-end promotion wall-clock with a live
 operator-confirm step is out of scope for the reported emulation; only the
-protocol-side cost is measured (\S\ref{sec:eval-promotion}), and the
+protocol-side cost is measured (\S~\ref{sec:eval-promotion}), and the
 operator-confirm floor is asserted by design rather than measured.
 
-The threat model is crash-fault, not Byzantine. A captured command vehicle or
-buggy command-edge service can poison the incident journal while it holds authority; this
-is a central trade-off of making command authority explicit. Deployment controls
-such as device encryption, key revocation, vehicle authentication, and audit
-replay are mitigation hooks, not properties established by this prototype.
+The strict-versus-weak model check compares fenced and unfenced promotion
+abstractions---relaxing epoch coupling or journal uniqueness yields short
+counterexamples while the strict model checks the stated invariants---a bounded
+step toward comparing operator-initiated promotion with automated failover, not
+field evidence for operator handoff.
+

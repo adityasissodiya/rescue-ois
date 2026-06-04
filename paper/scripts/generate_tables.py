@@ -14,8 +14,10 @@ DATA = ROOT / "data" / "eval_metrics.anon.jsonl"
 COMMAND_PARTITION_DATA = ROOT / "data" / "eval_command_local_partition.anon.jsonl"
 CRDT_DATA = ROOT / "data" / "eval_crdt_baseline.anon.jsonl"
 CRDT_PARTITION_DATA = ROOT / "data" / "eval_crdt_partition_n10.anon.jsonl"
+NETEM_DATA = ROOT / "data" / "eval_netem_propagation.anon.jsonl"
 OUT = ROOT / "tables" / "tab_evaluation.tex"
 CRDT_OUT = ROOT / "tables" / "tab_crdt_comparison.tex"
+NETEM_OUT = ROOT / "tables" / "tab_netem.tex"
 OUT.parent.mkdir(exist_ok=True)
 
 
@@ -194,19 +196,19 @@ def write_crdt_table(aal_records: list[dict]) -> None:
     aal_q100 = statistics.median(aal_prop[100]) if aal_prop.get(100) else None
     rows.append(
         "Field-edit propagation & "
-        f"AAL bridge median {fmt_ms(aal_q10)} at qd=10; {fmt_ms(aal_q100)} at qd=100 & "
+        f"Prototype bridge median {fmt_ms(aal_q10)} at qd=10; {fmt_ms(aal_q100)} at qd=100 & "
         f"CRDT qd=10 stressed/degraded {fmt_ms(field_stressed and field_stressed.get('median_ms'))}/{fmt_ms(field_degraded and field_degraded.get('median_ms'))}; qd=100 degraded {fmt_ms(field_q100 and field_q100.get('median_ms'))} & "
         r"Both preserve durable propagation; CRDT anti-entropy is not an authority boundary. \\"
     )
     rows.append(
         "Concurrent status edit & "
-        "Current AAL service path sequences unique events; semantic rejection is model-level/not implemented in the measured prototype & "
+        "Measured prototype path sequences unique events; semantic rejection is model-level/not implemented in that path & "
         f"{len(conflict)}/{len(conflict)} LWW runs converge; winner counts {winners_fmt}; median {fmt_ms(statistics.median(conflict_values) if conflict_values else None)} & "
         r"LWW accepts both writes and materializes only the latest value; losing op is only recoverable from the op log. \\"
     )
     rows.append(
         "Delete/update race & "
-        "Current AAL service path has no delete/update semantic guard; limitation disclosed & "
+        "Measured prototype path has no delete/update semantic guard; limitation disclosed & "
         f"{resurrected}/{len(delete)} runs resurrect the element; median convergence {fmt_ms(statistics.median(delete_values) if delete_values else None)} & "
         r"Matches Hanssen's stated LWW delete-semantics caveat. \\"
     )
@@ -214,7 +216,7 @@ def write_crdt_table(aal_records: list[dict]) -> None:
     crdt_tput_med = tput_summary.get("median_events_per_sec") if tput_summary else None
     rows.append(
         "No-partition throughput & "
-        f"AAL command-journal commit rate median {aal_tput_med:.1f} events/s (single writer) & " if aal_tput_med is not None else "No-partition throughput & AAL command-journal commit rate unavailable & "
+        f"Prototype command-journal commit rate median {aal_tput_med:.1f} events/s (single writer) & " if aal_tput_med is not None else "No-partition throughput & prototype command-journal commit rate unavailable & "
     )
     rows[-1] += (
         f"CRDT aggregate local accept rate across three writers median {crdt_tput_med:.1f} events/s & " if crdt_tput_med is not None else "CRDT aggregate local accept rate unavailable & "
@@ -224,7 +226,7 @@ def write_crdt_table(aal_records: list[dict]) -> None:
     if len(conv_values) >= 10:
         rows.append(
             f"Post-quiescence convergence (60\\,s outage, $n={len(conv_values)}$) & "
-            f"AAL command-to-core support-path recovery median {fmt_ms(aal_wan60)} after a real \\textit{{tc}} WAN cut ($n={len(aal_wan.get(60, []))}$) & "
+            f"Prototype command-to-core support-path recovery median {fmt_ms(aal_wan60)} after a real \\textit{{tc}} WAN cut ($n={len(aal_wan.get(60, []))}$) & "
             f"CRDT all-replica convergence median {fmt_ms(statistics.median(conv_values))} after anti-entropy resumes (no link impairment during the wait) & "
             r"Comparable in outage duration, not transport mechanism; AAL keeps command-local ordering, CRDT converges once anti-entropy is exchanged. \\"
         )
@@ -237,6 +239,38 @@ def write_crdt_table(aal_records: list[dict]) -> None:
     print(f"wrote {CRDT_OUT} ({len(rows)} rows)")
 
 
+def write_netem_table() -> None:
+    records = load_jsonl(NETEM_DATA)
+    cells = defaultdict(list)
+    for record in records:
+        if record.get("metric_name") != "end_to_end_propagation_ms":
+            continue
+        if record.get("value_ms") is None:
+            continue
+        params = record["scenario_params"]
+        cells[(params["profile"], params["queue_depth"])].append(record["value_ms"])
+
+    order = [("stressed", 1), ("stressed", 10), ("degraded", 1), ("degraded", 10)]
+    rows = []
+    for profile, qd in order:
+        values = cells.get((profile, qd))
+        if not values:
+            sys.exit(f"ERROR: no netem data for {profile} qd={qd}")
+        rows.append(
+            f"{profile.capitalize()} & {qd} & "
+            f"{round(statistics.median(values))}\\,ms & "
+            f"{round(percentile(values, 95))}\\,ms \\\\"
+        )
+
+    with NETEM_OUT.open("w", encoding="utf-8") as handle:
+        handle.write("% Auto-generated by scripts/generate_tables.py from eval_netem_propagation.anon.jsonl.\n")
+        handle.write("% Do not edit; re-run the script after evaluation JSONL changes.\n")
+        for line in rows:
+            handle.write(line + "\n")
+        handle.write(r"\bottomrule" + "\n")
+    print(f"wrote {NETEM_OUT} ({len(rows)} rows)")
+
+
 def main():
     records = load_records()
     write_primary_table(records)
@@ -244,6 +278,10 @@ def main():
         write_crdt_table(records)
     else:
         print(f"skip CRDT table: {CRDT_DATA} missing")
+    if NETEM_DATA.exists():
+        write_netem_table()
+    else:
+        print(f"skip netem table: {NETEM_DATA} missing")
 
 
 if __name__ == "__main__":

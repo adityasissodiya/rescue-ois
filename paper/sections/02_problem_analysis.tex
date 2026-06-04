@@ -1,84 +1,35 @@
-\section{Problem Analysis}
+\section{Authority-Bearing Incident Coordination under Intermittent Connectivity}
 \label{sec:problem-analysis}
 
-\subsection{Operational Setting}
+Rescue-service incident response exposes a design tension between availability and authority. Responders must continue operating under intermittent connectivity, yet authority-bearing incident decisions must remain attributable to a single operational commander.
 
-The target setting is municipal rescue-service incident response. A regional
-core supports dispatch, reference data, and backhaul; vehicle edge nodes run
-near the incident site; field tablets attach to a local vehicle and act as leaf
+The target setting is municipal rescue-service incident response, where a regional core supports dispatch and reference data, vehicle edge nodes operate near the incident site, and field tablets attach to local vehicles acting as leaf
 clients. Connectivity is intermittent: vehicles may move between wide-area
 connectivity, mesh-only contact, and total
 isolation~\cite{zimbelman2022mesh,wang2023overview}. One vehicle edge node holds
-the command role for the incident; we call it the command edge. The role can move to another vehicle,
-but only through an explicit human decision, and the protocol must respect that
-operational authority. Figure~\ref{fig:op-setting} illustrates the actors and the three
-connectivity regimes.
+the command role for the incident; we refer to it as the \emph{command edge}. The role can move to another vehicle, but only through an explicit human decision, and the protocol must respect that
+operational authority. 
+
+Figure~\ref{fig:op-setting} illustrates the actors and the three connectivity regimes.
+
+
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\columnwidth]{figures/operationalSetting.drawio.pdf}
+\includegraphics[width=0.72\columnwidth]{figures/operationalSetting.drawio.pdf}
 \caption{Operational setting. A regional core supports dispatch and reference data; vehicle edge nodes run near the incident site; tablets attach to a local vehicle. One vehicle holds command authority at any instant. Vehicles simultaneously occupy different connectivity regimes: wide-area backhaul, intermittent backhaul with mesh transit, or total isolation.}
 \label{fig:op-setting}
 \end{figure}
 
-\subsection{Position Relative to Consensus, CRDTs, and Emergency Networking}
-
-\systemname{} recombines
-well-known mechanisms (single-leader
-replication, transactional outbox~\cite{richardson2018microservices},
-idempotency keys, manual fencing) under a domain-specific rule; the
-incident-journal linearization point is the command edge, set by an
-external operational protocol rather than chosen by liveness-driven leader
-election. The incident-state entity owns its decision history; external
-actors interact through forward-only events rather than mutate state
-directly~\cite{helland2017life}. The novelty is therefore in (i) which
-operations are placed under that linearization point and which are not, and
-(ii) the fenced-promotion rule that preserves single-authority across command
-changes. The mechanisms themselves are not claimed as novel.
-
-Existing systems solve adjacent parts of the problem---offline-first stores,
-conflict-free replicated data types (CRDTs), consensus logs, and emergency/edge
-networking---but none, by itself, states which rescue-service actor may issue
-non-commutative command decisions during a partition.
-
-Offline-first and local-first systems prioritize local availability and
-continued operation under poor connectivity~\cite{kleppmann2019localfirst,paul2019crimp,kleppmann2017ddia,richardson2018microservices},
-and CRDT and strong-eventual-consistency work---including richer local-first
-safety models and Hanssen's CRDT replication for emergency management, our
-closest baseline---provides convergence for mergeable replicated
-state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,jannes2021owebsync,lewchenko2025boltonsc,hanssen2025emergency}.
-Consensus, shared-log, and chain-replication systems provide replicated
-agreement and ordered logs under their stated failure
-models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,katsarakis2020hermes,liang2025holipaxos,gooding2025lark,vanrenesse2004chain}.
-These help responders keep working or order writes, but none decides \emph{which
-actor} may issue an authority-bearing decision. \systemname{} keeps
-authority-bearing events under the incident-journal sequencer, treats outbox
-entries as pending until command acceptance, and assigns weaker contracts to
-non-authority data.
-
-Closest in setting is emergency and edge networking. CoNICE~\cite{jahanian2022conice}
-reaches agreement among infrastructure-less peers under intermittent
-connectivity using One-Third-Rule consensus, evaluated on shared map-pin
-updates; it is the right tool when no peer is privileged, whereas
-rescue-service incident command has a designated commander at every moment and
-the network is not allowed to vote on incident decisions. Public-safety
-networking and edge/fog research place resilient transport and storage near
-responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng,aboualola2023edgesurvey}.
-We are not aware of prior work that explicitly uses operational command
-authority as the linearization boundary while assigning weaker contracts to
-non-authority incident data; \systemname{} aligns the incident-journal
-linearization point with the current operational command authority and uses
-fenced promotion rather than leader election for command transfer.
-
-\subsection{Requirements and Assumptions}
+\subsection{Operational Requirements}
 \label{sec:requirements}
 
 Public rescue-service guidance and studies of Swedish rescue-service information
 systems motivate the requirements used here~\cite{rsg-rad201,rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}.
-The requirements are separate from the architecture. In particular,
-attributable command authority does not logically require a single-writer
-database design. Aligning the incident-journal linearization boundary with command authority
-is the design choice made in this paper.
+These requirements are externally motivated and are stated independently of any
+particular architecture; \S~\ref{sec:assumptions} separates them from the design
+choices made in response. The positioning in
+\S~\ref{sec:positioning} is argued relative to them.
 
 The externally motivated requirements are:
 \begin{itemize}
@@ -91,11 +42,107 @@ The externally motivated requirements are:
   operational command authority at any instant.
 \end{itemize}
 
-The design assumes that an incident has one current command authority. The
-command role is fixed at dispatch and changes only through an explicit operator
-decision. The deployment constraints are separate: the mesh should act as routed
-transit rather than a stretched user network, and the system must reuse the
-rescue-service identity infrastructure. Their architectural consequences---edge
-cache and local services, tablet/edge outbox and retry, a single
-incident-journal writer, mesh-as-transit routing, and mTLS/CA identity
-integration---are developed in \S\ref{sec:architecture}.
+R3 should not be read as a claim that crisis governance is simple.
+Incident-command research describes a command hierarchy operating inside
+multi-actor response networks, where authority can be shared, contested,
+delegated, or bounded by legal and organizational
+relationships~\cite{moynihan2008combining,moynihan2009network,nowell2018structure,nowell2019beyond}.
+For \systemname{}, this motivates conservative transfer semantics: the
+protocol accepts a new command edge only after an operator-initiated promotion
+record, rather than inferring authority from reachability.
+
+\subsection{Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}
+\label{sec:positioning}
+
+\systemname{} recombines
+well-known mechanisms (single-leader
+replication, transactional outbox~\cite{richardson2018microservices},
+idempotency keys, manual fencing) under a domain-specific rule: the
+incident-journal linearization point is the command edge, set by an
+external operational protocol rather than chosen by liveness-driven leader
+election. The incident-state entity owns its decision history; external
+actors interact through forward-only events rather than mutate state
+directly~\cite{helland2017life}. The novelty is therefore in (i) which
+operations are placed under that linearization point and which are not, and
+(ii) the fenced-promotion rule that preserves single-authority across command
+changes; the mechanisms themselves are not claimed as novel. This subsection
+argues that each standard distributed-systems family either fails or over-serves
+R1--R3, motivating a linearization boundary aligned with command authority.
+
+\textit{Consensus and replicated state machines.} Consensus, shared-log, and
+chain-replication systems provide replicated agreement and totally ordered logs
+under their stated failure
+models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,vanrenesse2004chain}.
+These systems supply a stronger ordering property than R3 requires, at a cost the
+workload does not justify: rescue-service traffic is dominated by reference-data
+lookups and append-only incident reporting, for which quorum agreement and
+leader election are over-engineered. Election-based liveness selects a writer by reachability, whereas R3 fixes
+the writer by operational command; \S~\ref{sec:eval-raft} measures this
+mismatch on a three-voter Raft baseline. A partition that correctly moves Raft
+leadership to a reachable majority is not the same as an operator-designated
+command transfer.
+
+\textit{CRDTs and strong eventual consistency.} CRDT and
+strong-eventual-consistency work, including richer local-first safety models and
+Hanssen's CRDT replication for emergency management---our closest
+baseline---provides convergence for mergeable replicated
+state~\cite{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,lewchenko2025boltonsc,hanssen2025emergency}.
+This serves R1 (offline operation) and R2 (durable local submission) well, but
+cannot satisfy R3. Authority-bearing incident decisions---resource assignments,
+status transitions, hazard annotations---are non-commutative. There is no
+application-defensible merge for two responders setting the same status to
+conflicting values. Any deterministic resolution rule implicitly invents
+the authority that R3 requires be explicit; AAL instead makes that authority
+operational rather than emergent.
+
+\textit{Offline-first and local-first systems.} Offline-first and local-first
+systems prioritize local availability and continued operation under poor
+connectivity~\cite{kleppmann2019localfirst,paul2019crimp,richardson2018microservices}.
+They satisfy R1 and R2 and are the right model for reference data, field
+submissions, and materialized views. But their design goal is replica
+\emph{autonomy}---every node is equally entitled to write and reconcile---which
+is precisely the property the command hierarchy rejects for authority-bearing
+decisions (R3).
+
+\textit{Emergency and edge networking.} Closest in setting is emergency and edge
+networking. CoNICE~\cite{jahanian2022conice} is a concrete consensus design for
+intermittently connected emergency response: it reaches agreement among
+infrastructure-less peers using One-Third-Rule consensus, and its agreement
+level is the strongest/highest-complexity option, layered over epidemic
+replication, causality metadata, and decision-invalidation support for
+long-term fragmentation. That is substantial machinery when the operational
+problem already designates a commander. Rescue-service incident command, by
+contrast, has a designated commander at every moment, and the network is not
+permitted to vote on incident decisions---so CoNICE's no-privileged-peer
+assumption is exactly the one R3 removes. Public-safety networking and edge/fog
+research place resilient
+transport and storage near
+responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng},
+addressing R1 transport but not which actor may issue an authority-bearing
+decision.
+
+Across these families, each helps responders keep working or order writes, but
+none decides \emph{which actor} may issue an authority-bearing decision during a
+partition. We are not aware
+of prior work that explicitly uses operational command authority as the
+linearization boundary while assigning weaker contracts to non-authority
+incident data.
+
+\subsection{Assumptions and Design Choices}
+\label{sec:assumptions}
+
+The requirements in \S~\ref{sec:requirements} are externally motivated; the
+following choices are this paper's response to them and could in principle be
+made differently. Most importantly, attributable command authority (R3) does not
+logically force a single-writer database. R3 is a requirement on attribution;
+aligning the incident-journal linearization boundary with command authority is
+the design choice this paper adopts to meet it. The design assumes that an
+incident has one current command authority; the command role is fixed at
+dispatch and changes only through an explicit operator decision.
+
+The deployment constraints identified in the introduction are separate: the mesh
+should act as routed transit rather than a stretched user network, and the system
+must reuse the rescue-service identity infrastructure. Their architectural
+consequences---edge cache and local services, tablet/edge outbox and retry, a
+single incident-journal writer, mesh-as-transit routing, and mTLS/CA identity
+integration---are developed in \S~\ref{sec:architecture}.

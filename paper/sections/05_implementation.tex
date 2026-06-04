@@ -1,66 +1,80 @@
-\section{Prototype Implementation}
+\section{Prototype and Evaluation}
 \label{sec:implementation}
 
-The repository contains a prototype service path for the core and edge tiers, plus deployment scaffolding for the target vehicle environment. Python services target Python~3.12 and use FastAPI, Pydantic models, asyncpg, and uvicorn. Database schemas are managed through numbered SQL migrations. Docker Compose files instantiate the emulated core, command edge, and responder edges used in Section~\ref{sec:validation}; a separate \path{baseline/crdt} Compose stack provides the CRDT-LWW comparison point. Table~\ref{tab:impl-mapping} maps the protocol concepts from Section~\ref{sec:sync} to the repository artefacts that realise them and records the evidence boundary per concept.
+\subsection{Prototype and Emulation Setup}
+\label{sec:eval-env}
+\label{sec:validation}
+\label{sec:evaluation}
+
+The artifact repository contains a prototype service path for the core and edge
+tiers, plus deployment scaffolding for the target vehicle environment. Python
+services target Python~3.12 and use FastAPI and asyncpg. Database schemas are
+managed through numbered SQL migrations. Docker
+Compose files instantiate the emulated core, command edge, and responder edges
+used in the emulation setup below; a separate \path{baseline/crdt} Compose stack
+provides the CRDT-LWW comparison point.
+
+Table~\ref{tab:impl-mapping} records the prototype evidence boundary for each
+protocol concept from \S~\ref{sec:architecture}. We use three evidence levels
+throughout: \emph{measured} (exercised on
+the prototype service path), \emph{model-level} (established by the TLA+/Hypothesis
+checks but not the service path), and \emph{deployment-only} (target-deployment
+design, not exercised here). Later references to the evidence boundary reuse this
+taxonomy.
 
 \begin{table}[!htbp]
 \centering
-\caption{Mapping from protocol concepts to prototype artifacts.}
+\caption{Prototype evidence boundary for each protocol concept.}
 \label{tab:impl-mapping}
 \scriptsize
 \setlength{\tabcolsep}{2pt}
-\begin{tabularx}{\columnwidth}{@{}p{0.23\columnwidth}p{0.40\columnwidth}X@{}}
+\begin{tabularx}{\columnwidth}{@{}p{0.34\columnwidth}X@{}}
 \toprule
-\textbf{Concept} & \textbf{Prototype artifact} & \textbf{Status} \\
+\textbf{Concept} & \textbf{Status} \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{M1--M2: Linearization boundary and incident-journal sequencing}} \\
+\multicolumn{2}{@{}l}{\textit{M1--M2: Linearization boundary and incident-journal sequencing}} \\
 \midrule
 Incident journal and \textit{event\_seq} &
-\path{edge/syncd/src/accept.py}; \path{incident.journal}; \path{incident.state} &
 Implemented; evaluated on the command-edge \textit{syncd} accept path. \\
 Command-edge accept during responder partition &
-\path{evaluate-command-local-partition.py} (in \path{scripts/}); \path{/accept/event-batch} &
 Evaluated for the direct command-edge \textit{syncd} accept path during responder isolation; tablet-facing command-edge \textit{ops-api} not exercised. \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{M3: Durable outbox and idempotency}} \\
+\multicolumn{2}{@{}l}{\textit{M3: Durable outbox and idempotency}} \\
 \midrule
 Responder durable outbox &
-\path{edge/ops-api/src/routes/api.py}; \path{outbox.device_outbox}; \path{edge/syncd/src/push.py} &
 Implemented; evaluated for responder forwarding. \\
 \textit{client\_event\_id} idempotency &
-\path{edge/db/migrations/004_idempotency_and_sync_state.sql}; \path{accept.py} &
-Implemented; evaluated by duplicate replay (§\ref{sec:eval-m3}). \\
+Implemented; evaluated by duplicate replay (\S~\ref{sec:eval-m3}). \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{M4: Fenced promotion}} \\
+\multicolumn{2}{@{}l}{\textit{M4: Fenced promotion}} \\
 \midrule
 Promotion and fencing &
-\path{edge/db/migrations/005_command_epoch.sql}; \path{edge/syncd/src/accept.py}; \path{promote-responder.sh}, \path{evaluate-fenced-promotion.py} (in \path{scripts/}); \path{formal/tla/RescueOIS.tla}; \path{formal/python/tests/test_no_two_writers.py} &
-Durable command-epoch table and stale-epoch rejection implemented at service level; matching TLA+/Hypothesis model checks; measured in §\ref{sec:eval-promotion}. \\
+Durable command-epoch table and stale-epoch rejection implemented at service level; matching TLA+/Hypothesis model checks; measured in \S~\ref{sec:eval-promotion}. \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{Supporting infrastructure (not authority-aligned)}} \\
+\multicolumn{2}{@{}l}{\textit{Supporting infrastructure (not authority-aligned)}} \\
 \midrule
 Core bootstrap and backhaul &
-\path{core/sync-api}; \path{core/db/migrations/003_incident_tables.sql} &
 Synthetic bootstrap and incident-journal backfill; evaluated in Docker. \\
 Vehicle edge roles &
-\path{edge/docker-compose.yml}; \path{edge/syncd/src/main.py}; \path{EDGE_ROLE} &
 Command and responder edges in Compose. \\
 Incident-journal forwarding to core &
-\path{edge/syncd/src/forward.py}; \path{core/sync-api/src/routes/sync.py}; \path{sync.state} &
 Implemented; evaluated for WAN recovery/backfill. \\
 Tablet client &
-\path{scripts/tablet-stub.py}; \path{tablet/} &
 Python stub in evaluation; Android scaffold only. \\
 Multi-condition netem evaluation &
-\path{scripts/evaluate-netem-propagation.py}; \path{edge/syncd/Dockerfile} \textit{tc} tooling &
-Implemented; measured under two link profiles in §\ref{sec:eval-m3}. \\
+Implemented; measured under two link profiles in \S~\ref{sec:eval-m3}. \\
 Transit and security controls &
-\path{docs/deployment/mesh-commissioning.md}; \path{core/wireguard/}; \path{edge/wireguard/} &
 Target-deployment documentation and configuration; physical mesh and security overhead are out of scope for the reported evaluation. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The evaluated path is narrower than the full target deployment. The \textit{sync-api} provides a synthetic incident bootstrap endpoint and accepts incident-journal backfill. The edge \textit{ops-api} persists field submissions into \textit{outbox.device\_outbox} with \textit{client\_event\_id} idempotency. The \textit{syncd} responder path forwards unacknowledged outbox entries to the command edge; the command-edge \textit{syncd} path assigns \textit{event\_seq} inside a database transaction and deduplicates duplicate \textit{client\_event\_id} values. The command-to-core forwarder backfills committed incident-journal entries to the core. These are the paths exercised by the evaluation.
+The evaluated path is narrower than the full target deployment: \textit{sync-api}
+bootstrap and backfill, the responder \textit{ops-api} outbox with
+\textit{client\_event\_id} idempotency, the \textit{syncd} forward path, the
+command-edge \textit{event\_seq} assignment, and the command-to-core backfill.
+Table~\ref{tab:impl-mapping} records each concept's evidence status.
 
-Authentication in the target deployment is layered: a VPN overlay protects vehicle-to-core traffic, Nginx terminates TLS/mTLS and passes certificate-derived identity to backend services, and tablets authenticate to their local vehicle using enrolled certificates. In the reported emulation these controls are deployment design, not measured mechanisms: traffic uses plain HTTP on a Docker bridge network and the Python tablet stub supplies synthetic device and user identifiers.
+Security controls (VPN overlay, mTLS termination, certificate-derived identity)
+are deployment design, not measured here; the emulation uses plain HTTP on a
+Docker bridge with synthetic device and user identifiers.

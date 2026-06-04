@@ -1,14 +1,19 @@
-\section{Architecture}
+\section{Authority-Aligned Architecture and Protocol}
 \label{sec:architecture}
+
+The requirements imply that not all incident data should be treated uniformly:
+offline operation and durable field submission favor local availability and
+eventual synchronization, while attributable command authority requires a single
+authoritative ordering of authority-bearing decisions.
 
 \subsection{State Classes and Consistency Contracts}
 \label{sec:state-taxonomy}
 
-AAL does not apply one consistency model to all data. The single-writer
-rule applies only to authority-bearing incident-journal entries.
-This split is a RedBlue-style~\cite{li2012redblue} consistency partition with
-authority-bearing decisions in the strong set and forward-only field
-submissions, cached reference data, and materialized state in the weaker
+A central architectural decision in \systemname{} is that different classes of
+incident data require different consistency guarantees.
+This split is a RedBlue-style~\cite{li2012redblue} consistency partition.
+Authority-bearing decisions go in the strong set; forward-only field
+submissions, cached reference data, and materialized state go in the weaker
 classes. Table~\ref{tab:state-contracts} summarizes the main state classes.
 
 Master and reference data are owned by the regional core and cached at edges.
@@ -21,20 +26,20 @@ Materialized state is derived from the append-only incident journal.
 Artifacts and attachments use immutable or manifest-based distribution. Audit
 records and command-to-core backhaul are forwarded eventually. Promotion and
 fencing metadata are part of the command-authority protocol. The current
-evidence for promotion/fencing is model-level; Section~\ref{sec:sync} gives the
+evidence for promotion/fencing is model-level; \S~\ref{sec:protocol-m4} gives the
 protocol rule.
 
 
 \begin{table}[t]
 \centering
-\caption{Synchronization contracts by state class.}
+\caption{Only authority-bearing journal entries use the single-writer contract; other incident state uses local or eventual synchronization contracts.}
 \label{tab:state-contracts}
 \input{figures/fig_state_contracts}
 \end{table}
 
 \subsection{Tiered Edge Topology}
 
-The architecture follows from these constraints. The regional core provides
+The regional core provides
 master/reference data and receives backhaul. Vehicle edges provide local
 services during disconnection. Responder vehicles queue submissions durably. The
 command edge owns the append-only incident journal. Tablets are leaf clients and

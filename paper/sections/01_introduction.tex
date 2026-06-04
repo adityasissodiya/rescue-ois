@@ -2,7 +2,7 @@
 \label{sec:introduction}
 
 Public-safety information systems must remain operational when commercial connectivity fails~\cite{wisniewski2023continuity, oecd2019resilience, karaman2024resilient}.
-Rescue-service vehicles operate up to several hours from regional dispatch centres in terrain where wireless connectivity alternates between full wide-area coverage, mesh-only operation, and total isolation~\cite{zimbelman2022mesh, wang2023overview, andreassen2020information}.
+Rescue-service vehicles operate up to several hours away from regional dispatch centres. In that terrain, wireless connectivity alternates between full wide-area coverage, mesh-only operation, and total isolation~\cite{zimbelman2022mesh, wang2023overview, andreassen2020information}.
 Disasters routinely degrade or destroy commercial telecom infrastructure precisely when coordination demand is highest~\cite{marshall2023telecommunications}, as documented in the 2018 Swedish forest-fire crisis~\cite{murphy2021digital}.
 Vehicles must continue acting on stale or partial information without external coordination.
 Field submissions entered on tablets must survive hours without connectivity.
@@ -10,26 +10,24 @@ In command-hierarchical environments the consequences of information loss are wr
 
 The operational constraints in this paper are grounded in public Swedish rescue-service guidance: R\"addningstj\"ansten Storg\"oteborg's incident-planning and municipal rescue-plan guidance~\cite{rsg-rad201, rsg-kommunalplan}, which treats incident-planning information as an ongoing, partly secrecy-restricted process handled in operational mobile IT support rather than a static paper artifact.
 Independent academic work on Swedish rescue-service information-systems practice corroborates these end-user requirements and information-flow shortcomings~\cite{pilemalm2014enabling, westman2021mobilisation}.
-From these public sources we derive five constraints.
-The system must operate without connection to any other tier.
-Tablets need durable forward-only field submissions.
-Incident-state decisions need clear command authority.
-The network design must avoid cross-vehicle broadcast hazards.
-The deployment must reuse existing rescue-service certificate and identity infrastructure.
-Section~\ref{sec:requirements} separates these externally motivated requirements from design assumptions and integration choices.
+From these public sources we derive three requirements and two deployment
+constraints. The requirements are R1 offline operation, R2 durable forward-only
+field submission, and R3 attributable command authority. The deployment
+constraints are avoiding cross-vehicle broadcast hazards and reusing existing
+rescue-service certificate and identity infrastructure. \S~\ref{sec:requirements}
+separates the externally motivated requirements from design assumptions and
+integration choices.
 
-This paper asks: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?}
-The answer is \methodname{} (AAL); a discipline that places the incident-journal linearization point at the command edge, the vehicle edge node that currently holds operational command authority.
-\systemname{} is the prototype system used to evaluate AAL.
-It combines core-to-edge reference-data distribution, responder outboxes, a single incident journal, and fenced promotion.
-The contribution is not a new consensus or CRDT mechanism; it is an empirical and architectural characterization of where the linearization boundary should sit for this class of rescue-service workflow.
+The design question is: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?}
+The answer is \methodname{} (AAL), a method that places the incident-journal linearization point at the command edge, the vehicle edge node that currently holds operational command authority.
+We evaluate the resulting AAL design with a prototype that combines core-to-edge reference-data distribution, responder outboxes (durable local queues that hold field submissions until command accepts them), a single incident journal, and fenced promotion.
+The contribution is not a new consensus or CRDT mechanism. It is a problem analysis that justifies a design: a characterization of where the linearization boundary should sit for this class of rescue-service workflow, and why the standard distributed-systems toolkit does not match this workflow well.
 We make three contributions:
-\begin{enumerate}
-  \item an empirical characterization of the authority-aligned linearization boundary, including a measured comparison with a Hanssen-style operation-based CRDT-LWW baseline on the same queue-depth workload shape and an explicitly scoped outage-duration comparison;
-  \item a fenced-promotion protocol that keeps the writer of record aligned with operational command authority, specified in TLA+ and mirrored by Hypothesis state-machine tests, with a service-path check that stale-epoch traffic is rejected at the command edge;
-  \item a Docker Compose and \textit{tc-netem} prototype study of responder-to-command propagation, command-to-core recovery, incident-journal linearization, idempotent replay, and the limits of the current implementation.
-\end{enumerate}
 
-The remainder of the paper motivates the requirements and architecture,
-presents the synchronization protocol, describes the prototype, reports the
-emulation and bounded safety results, and closes with scope and limitations.
+\begin{enumerate}
+  \item (C1) a problem analysis of authority-bearing incident coordination under intermittent connectivity. It positions local-first systems, CRDT-based replication, and consensus-based state-machine replication against the rescue-service operational requirements (R1--R3). It shows where each one is insufficient or over-engineered (does more than the workload needs): the workload is mostly lookups plus append-only incident reporting, yet it still requires attributable command authority;
+
+  \item (C2) an authority-aligned synchronization model based on a single authoritative incident journal and fenced promotion, with a TLA+ specification, corresponding Hypothesis state-machine tests, and a service-path mechanism that rejects stale-epoch traffic at the command edge;
+
+  \item (C3) a prototype implementation and evaluation using Docker Compose and \textit{tc-netem}, measuring propagation, recovery, sequencing, duplicate replay, stale-epoch rejection, strict-versus-weak promotion checks that falsify unfenced variants, and comparisons against Hanssen-style CRDT-LWW and Raft consensus baselines.
+\end{enumerate}

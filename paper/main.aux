@@ -1,0 +1,176 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{wisniewski2023continuity,oecd2019resilience,karaman2024resilient}
+\citation{zimbelman2022mesh,wang2023overview,andreassen2020information}
+\citation{marshall2023telecommunications}
+\citation{murphy2021digital}
+\citation{allen2014information}
+\citation{rsg-rad201,rsg-kommunalplan}
+\citation{pilemalm2014enabling,westman2021mobilisation}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{I}{1}{Introduction}{section.1}{}}
+\newlabel{sec:introduction@cref}{{[section][1][]I}{[1][1][]1}}
+\citation{zimbelman2022mesh,wang2023overview}
+\citation{rsg-rad201,rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}
+\citation{moynihan2008combining,moynihan2009network,nowell2018structure,nowell2019beyond}
+\citation{richardson2018microservices}
+\citation{helland2017life}
+\citation{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,vanrenesse2004chain}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Authority-Bearing Incident Coordination under Intermittent Connectivity}{2}{section.2}\protected@file@percent }
+\newlabel{sec:problem-analysis}{{II}{2}{Authority-Bearing Incident Coordination under Intermittent Connectivity}{section.2}{}}
+\newlabel{sec:problem-analysis@cref}{{[section][2][]II}{[1][2][]2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Operational Requirements}{2}{subsection.2.1}\protected@file@percent }
+\newlabel{sec:requirements}{{\mbox  {II-A}}{2}{Operational Requirements}{subsection.2.1}{}}
+\newlabel{sec:requirements@cref}{{[subsection][1][2]\mbox  {II-A}}{[1][2][]2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Operational setting. A regional core supports dispatch and reference data; vehicle edge nodes run near the incident site; tablets attach to a local vehicle. One vehicle holds command authority at any instant. Vehicles simultaneously occupy different connectivity regimes: wide-area backhaul, intermittent backhaul with mesh transit, or total isolation.}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:op-setting}{{1}{2}{Operational setting. A regional core supports dispatch and reference data; vehicle edge nodes run near the incident site; tablets attach to a local vehicle. One vehicle holds command authority at any instant. Vehicles simultaneously occupy different connectivity regimes: wide-area backhaul, intermittent backhaul with mesh transit, or total isolation}{figure.1}{}}
+\newlabel{fig:op-setting@cref}{{[figure][1][]1}{[1][2][]2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}{2}{subsection.2.2}\protected@file@percent }
+\newlabel{sec:positioning}{{\mbox  {II-B}}{2}{Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}{subsection.2.2}{}}
+\newlabel{sec:positioning@cref}{{[subsection][2][2]\mbox  {II-B}}{[1][2][]2}}
+\citation{almeida2014delta,gomes2017verifyingsec,haas2023lore,kohler2025consistent,lewchenko2025boltonsc,hanssen2025emergency}
+\citation{kleppmann2019localfirst,paul2019crimp,richardson2018microservices}
+\citation{jahanian2022conice}
+\citation{kumbhar2015legacy,wang2023overview,sagor2024distressnetng}
+\citation{li2012redblue}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Assumptions and Design Choices}{3}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:assumptions}{{\mbox  {II-C}}{3}{Assumptions and Design Choices}{subsection.2.3}{}}
+\newlabel{sec:assumptions@cref}{{[subsection][3][2]\mbox  {II-C}}{[1][3][]3}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Authority-Aligned Architecture and Protocol}{3}{section.3}\protected@file@percent }
+\newlabel{sec:architecture}{{III}{3}{Authority-Aligned Architecture and Protocol}{section.3}{}}
+\newlabel{sec:architecture@cref}{{[section][3][]III}{[1][3][]3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}State Classes and Consistency Contracts}{3}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:state-taxonomy}{{\mbox  {III-A}}{3}{State Classes and Consistency Contracts}{subsection.3.1}{}}
+\newlabel{sec:state-taxonomy@cref}{{[subsection][1][3]\mbox  {III-A}}{[1][3][]3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Tiered Edge Topology}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Only authority-bearing journal entries use the single-writer contract; other incident state uses local or eventual synchronization contracts.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:state-contracts}{{I}{4}{Only authority-bearing journal entries use the single-writer contract; other incident state uses local or eventual synchronization contracts}{table.1}{}}
+\newlabel{tab:state-contracts@cref}{{[table][1][]I}{[1][3][]4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Incident Journal Sequencing (M2)}{4}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:protocol-m2}{{\mbox  {III-C}}{4}{Incident Journal Sequencing (M2)}{subsection.3.3}{}}
+\newlabel{sec:protocol-m2@cref}{{[subsection][3][3]\mbox  {III-C}}{[1][4][]4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Durable Outbox and Idempotent Submission (M3)}{4}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:protocol-m3}{{\mbox  {III-D}}{4}{Durable Outbox and Idempotent Submission (M3)}{subsection.3.4}{}}
+\newlabel{sec:protocol-m3@cref}{{[subsection][4][3]\mbox  {III-D}}{[1][4][]4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Responder outbox protocol: the steady-state field-submission path from tablet to incident journal. The journal assigns the authoritative sequence number, and duplicate delivery is handled by \textit  {client\_event\_id}.}}{4}{figure.2}\protected@file@percent }
+\newlabel{fig:outbox-sequence}{{2}{4}{Responder outbox protocol: the steady-state field-submission path from tablet to incident journal. The journal assigns the authoritative sequence number, and duplicate delivery is handled by \textit {client\_event\_id}}{figure.2}{}}
+\newlabel{fig:outbox-sequence@cref}{{[figure][2][]2}{[1][4][]4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Fenced Promotion (M4)}{4}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:protocol-m4}{{\mbox  {III-E}}{4}{Fenced Promotion (M4)}{subsection.3.5}{}}
+\newlabel{sec:protocol-m4@cref}{{[subsection][5][3]\mbox  {III-E}}{[1][4][]4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Fenced promotion preserves the single-writer invariant. Left (single-border): with fencing, the stale command is forced to rejoin as a responder. Right (double-border): without fencing, two command authorities can append concurrently, producing a forked journal. The unsafe branch appears as a 3-state TLA+ trace for split authority and a 5-state trace for a forked journal; durable epoch storage and stale-epoch rejection are implemented in the prototype.}}{4}{figure.3}\protected@file@percent }
+\newlabel{fig:promotion-fencing}{{3}{4}{Fenced promotion preserves the single-writer invariant. Left (single-border): with fencing, the stale command is forced to rejoin as a responder. Right (double-border): without fencing, two command authorities can append concurrently, producing a forked journal. The unsafe branch appears as a 3-state TLA+ trace for split authority and a 5-state trace for a forked journal; durable epoch storage and stale-epoch rejection are implemented in the prototype}{figure.3}{}}
+\newlabel{fig:promotion-fencing@cref}{{[figure][3][]3}{[1][4][]4}}
+\citation{zimbelman2022mesh,kumbhar2015legacy}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-F}}Partition Behavior and Promotion Blocking}{5}{subsection.3.6}\protected@file@percent }
+\newlabel{sec:protocol-partition}{{\mbox  {III-F}}{5}{Partition Behavior and Promotion Blocking}{subsection.3.6}{}}
+\newlabel{sec:protocol-partition@cref}{{[subsection][6][3]\mbox  {III-F}}{[1][4][]5}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Prototype and Evaluation}{5}{section.4}\protected@file@percent }
+\newlabel{sec:implementation}{{IV}{5}{Prototype and Evaluation}{section.4}{}}
+\newlabel{sec:implementation@cref}{{[section][4][]IV}{[1][5][]5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Prototype and Emulation Setup}{5}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:eval-env}{{\mbox  {IV-A}}{5}{Prototype and Emulation Setup}{subsection.4.1}{}}
+\newlabel{sec:eval-env@cref}{{[subsection][1][4]\mbox  {IV-A}}{[1][5][]5}}
+\newlabel{sec:validation}{{\mbox  {IV-A}}{5}{Prototype and Emulation Setup}{subsection.4.1}{}}
+\newlabel{sec:validation@cref}{{[subsection][1][4]\mbox  {IV-A}}{[1][5][]5}}
+\newlabel{sec:evaluation}{{\mbox  {IV-A}}{5}{Prototype and Emulation Setup}{subsection.4.1}{}}
+\newlabel{sec:evaluation@cref}{{[subsection][1][4]\mbox  {IV-A}}{[1][5][]5}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Prototype evidence boundary for each protocol concept.}}{5}{table.2}\protected@file@percent }
+\newlabel{tab:impl-mapping}{{II}{5}{Prototype evidence boundary for each protocol concept}{table.2}{}}
+\newlabel{tab:impl-mapping@cref}{{[table][2][]II}{[1][5][]5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}M1--M2: linearization boundary and journal sequencing}{5}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:eval-independence}{{\mbox  {IV-B}}{5}{M1--M2: linearization boundary and journal sequencing}{subsection.4.2}{}}
+\newlabel{sec:eval-independence@cref}{{[subsection][2][4]\mbox  {IV-B}}{[1][5][]5}}
+\newlabel{sec:eval-m1}{{\mbox  {IV-B}}{5}{M1--M2: linearization boundary and journal sequencing}{subsection.4.2}{}}
+\newlabel{sec:eval-m1@cref}{{[subsection][2][4]\mbox  {IV-B}}{[1][5][]5}}
+\newlabel{sec:eval-m2}{{\mbox  {IV-B}}{5}{M1--M2: linearization boundary and journal sequencing}{subsection.4.2}{}}
+\newlabel{sec:eval-m2@cref}{{[subsection][2][4]\mbox  {IV-B}}{[1][5][]5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}M3: durable outbox and idempotent submission}{5}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:eval-m3}{{\mbox  {IV-C}}{5}{M3: durable outbox and idempotent submission}{subsection.4.3}{}}
+\newlabel{sec:eval-m3@cref}{{[subsection][3][4]\mbox  {IV-C}}{[1][5][]5}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Mechanism-to-requirement traceability. Each mechanism is traced to the requirement(s) it serves, the claim tested, the experiment, the key result, and its evidence level. All numbers are reproduced from Table~\ref {tab:evaluation}, Table~\ref {tab:falsification-cost}, and Fig.~\ref {fig:promotion-cost}.}}{6}{table.3}\protected@file@percent }
+\newlabel{tab:traceability}{{III}{6}{Mechanism-to-requirement traceability. Each mechanism is traced to the requirement(s) it serves, the claim tested, the experiment, the key result, and its evidence level. All numbers are reproduced from Table~\ref {tab:evaluation}, Table~\ref {tab:falsification-cost}, and Fig.~\ref {fig:promotion-cost}}{table.3}{}}
+\newlabel{tab:traceability@cref}{{[table][3][]III}{[1][5][]6}}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Service-path measurements for responder propagation, WAN recovery, command serialization, and responder isolation.}}{6}{table.4}\protected@file@percent }
+\newlabel{tab:evaluation}{{IV}{6}{Service-path measurements for responder propagation, WAN recovery, command serialization, and responder isolation}{table.4}{}}
+\newlabel{tab:evaluation@cref}{{[table][4][]IV}{[1][5][]6}}
+\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Responder propagation under \textit  {tc-netem} impairment, 20 measurements per cell; all cells complete with no drops.}}{6}{table.5}\protected@file@percent }
+\newlabel{tab:netem}{{V}{6}{Responder propagation under \textit {tc-netem} impairment, 20 measurements per cell; all cells complete with no drops}{table.5}{}}
+\newlabel{tab:netem@cref}{{[table][5][]V}{[1][6][]6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}M4: fenced promotion}{6}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:eval-promotion}{{\mbox  {IV-D}}{6}{M4: fenced promotion}{subsection.4.4}{}}
+\newlabel{sec:eval-promotion@cref}{{[subsection][4][4]\mbox  {IV-D}}{[1][6][]6}}
+\newlabel{sec:eval-m4}{{\mbox  {IV-D}}{6}{M4: fenced promotion}{subsection.4.4}{}}
+\newlabel{sec:eval-m4@cref}{{[subsection][4][4]\mbox  {IV-D}}{[1][6][]6}}
+\citation{hanssen2025emergency}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Fenced-promotion protocol cost by phase. Phase~A is pre-transition commits at epoch~$e$, phase~B is stale-epoch rejections at the boundary, phase~C is post-transition commits at epoch~$e+1$. $n=300$ events ($100$ per phase). The cost shown is the protocol path only; the operator-confirm step is excluded by design.}}{7}{figure.4}\protected@file@percent }
+\newlabel{fig:promotion-cost}{{4}{7}{Fenced-promotion protocol cost by phase. Phase~A is pre-transition commits at epoch~$e$, phase~B is stale-epoch rejections at the boundary, phase~C is post-transition commits at epoch~$e+1$. $n=\promotionN $ events ($\promotionNPerPhase $ per phase). The cost shown is the protocol path only; the operator-confirm step is excluded by design}{figure.4}{}}
+\newlabel{fig:promotion-cost@cref}{{[figure][4][]4}{[1][6][]7}}
+\@writefile{lot}{\contentsline {table}{\numberline {VI}{\ignorespaces Falsification-cost asymmetry. The strict variant verifies six safety invariants over tens of millions of distinct states; each weak variant produces a counterexample in hundreds to thousands of distinct states under a second of wall-clock.}}{7}{table.6}\protected@file@percent }
+\newlabel{tab:falsification-cost}{{VI}{7}{Falsification-cost asymmetry. The strict variant verifies six safety invariants over tens of millions of distinct states; each weak variant produces a counterexample in hundreds to thousands of distinct states under a second of wall-clock}{table.6}{}}
+\newlabel{tab:falsification-cost@cref}{{[table][6][]VI}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Scope-delimiting paths}{7}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:eval-raft}{{\mbox  {IV-E}1}{7}{Raft leadership follows the reachable quorum}{subsubsection.4.5.1}{}}
+\newlabel{sec:eval-raft@cref}{{[subsubsection][1][4,5]\mbox  {IV-E}1}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-E}1}Raft leadership follows the reachable quorum}{7}{subsubsection.4.5.1}\protected@file@percent }
+\newlabel{sec:eval-crdt}{{\mbox  {IV-E}2}{7}{CRDT semantics fail for authority-bearing data}{subsubsection.4.5.2}{}}
+\newlabel{sec:eval-crdt@cref}{{[subsubsection][2][4,5]\mbox  {IV-E}2}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-E}2}CRDT semantics fail for authority-bearing data}{7}{subsubsection.4.5.2}\protected@file@percent }
+\newlabel{sec:eval-wan}{{\mbox  {IV-E}3}{7}{Backhaul recovers within about a second of WAN heal}{subsubsection.4.5.3}{}}
+\newlabel{sec:eval-wan@cref}{{[subsubsection][3][4,5]\mbox  {IV-E}3}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {IV-E}3}Backhaul recovers within about a second of WAN heal}{7}{subsubsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Scope and Limitations}{7}{section.5}\protected@file@percent }
+\newlabel{sec:discussion}{{V}{7}{Scope and Limitations}{section.5}{}}
+\newlabel{sec:discussion@cref}{{[section][5][]V}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Threat Model and Security Scope}{7}{subsection.5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {VII}{\ignorespaces Raft consensus baseline comparison. The behavioral partition result is the R3-relevant finding; the commit-path row is context only because the Raft baseline is in-memory while AAL{} uses durable Postgres.}}{8}{table.7}\protected@file@percent }
+\newlabel{tab:raft-comparison}{{VII}{8}{Raft consensus baseline comparison. The behavioral partition result is the R3-relevant finding; the commit-path row is context only because the Raft baseline is in-memory while \systemname {} uses durable Postgres}{table.7}{}}
+\newlabel{tab:raft-comparison@cref}{{[table][7][]VII}{[1][7][]8}}
+\@writefile{lot}{\contentsline {table}{\numberline {VIII}{\ignorespaces Semantic comparison with a Hanssen-style operation-based CRDT-LWW baseline. The table separates measured service-path results from model-level AAL guards; the relabelled convergence row reports post-quiescence convergence after harness-triggered anti-entropy, not live network-partition impairment.}}{8}{table.8}\protected@file@percent }
+\newlabel{tab:crdt-comparison}{{VIII}{8}{Semantic comparison with a Hanssen-style operation-based CRDT-LWW baseline. The table separates measured service-path results from model-level AAL guards; the relabelled convergence row reports post-quiescence convergence after harness-triggered anti-entropy, not live network-partition impairment}{table.8}{}}
+\newlabel{tab:crdt-comparison@cref}{{[table][8][]VIII}{[1][7][]8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Evaluation Boundaries and Non-claims}{8}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:non-claims}{{\mbox  {V-B}}{8}{Evaluation Boundaries and Non-claims}{subsection.5.2}{}}
+\newlabel{sec:non-claims@cref}{{[subsection][2][5]\mbox  {V-B}}{[1][8][]8}}
+\bibstyle{IEEEtran}
+\bibdata{refs}
+\bibcite{wisniewski2023continuity}{1}
+\bibcite{oecd2019resilience}{2}
+\bibcite{karaman2024resilient}{3}
+\bibcite{zimbelman2022mesh}{4}
+\bibcite{wang2023overview}{5}
+\bibcite{andreassen2020information}{6}
+\bibcite{marshall2023telecommunications}{7}
+\bibcite{murphy2021digital}{8}
+\bibcite{allen2014information}{9}
+\bibcite{rsg-rad201}{10}
+\bibcite{rsg-kommunalplan}{11}
+\bibcite{pilemalm2014enabling}{12}
+\bibcite{westman2021mobilisation}{13}
+\bibcite{moynihan2008combining}{14}
+\bibcite{moynihan2009network}{15}
+\bibcite{nowell2018structure}{16}
+\bibcite{nowell2019beyond}{17}
+\bibcite{richardson2018microservices}{18}
+\bibcite{helland2017life}{19}
+\bibcite{lamport1998parttime}{20}
+\bibcite{ongaro2014raft}{21}
+\bibcite{balakrishnan2013tango}{22}
+\bibcite{vanrenesse2004chain}{23}
+\bibcite{almeida2014delta}{24}
+\bibcite{gomes2017verifyingsec}{25}
+\bibcite{haas2023lore}{26}
+\bibcite{kohler2025consistent}{27}
+\bibcite{lewchenko2025boltonsc}{28}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Conclusion}{9}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.1}\protected@file@percent }
+\bibcite{hanssen2025emergency}{29}
+\bibcite{kleppmann2019localfirst}{30}
+\bibcite{paul2019crimp}{31}
+\bibcite{jahanian2022conice}{32}
+\bibcite{kumbhar2015legacy}{33}
+\bibcite{sagor2024distressnetng}{34}
+\bibcite{li2012redblue}{35}
+\gdef \@abspage@last{10}
