@@ -11,7 +11,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RAFT_DATA = ROOT / "data" / "eval_raft_baseline.anon.jsonl"
-AAL_DATA = ROOT / "data" / "eval_metrics.anon.jsonl"
 OUT = ROOT / "tables" / "tab_raft_comparison.tex"
 
 
@@ -46,7 +45,6 @@ def fmt_eps(value: float) -> str:
 
 def main() -> None:
     raft = load_jsonl(RAFT_DATA)
-    aal = load_jsonl(AAL_DATA)
 
     sanity = next(
         (
@@ -86,26 +84,6 @@ def main() -> None:
         for behavior, count in l0_behaviors.items()
     )
 
-    raft_tput = [
-        record["scenario_params"]["events_per_sec"]
-        for record in raft
-        if record.get("scenario") == "raft_command_journal_throughput"
-        and record.get("metric_name") == "events_per_sec"
-        and record.get("run_index") != 0
-        and record.get("scenario_params", {}).get("events_per_sec") is not None
-    ]
-    aal_tput = [
-        record["scenario_params"]["events_per_sec"]
-        for record in aal
-        if record.get("scenario") == "command_throughput"
-        and record.get("run_index") != 0
-        and record.get("scenario_params", {}).get("events_per_sec") is not None
-    ]
-    if not raft_tput:
-        sys.exit("ERROR: missing Raft throughput records")
-    if not aal_tput:
-        sys.exit("ERROR: missing AAL throughput records")
-
     rows = [
         "Event sequencing sanity & "
         f"leader batch accepted {sanity['response']['accepted']} event, "
@@ -118,12 +96,7 @@ def main() -> None:
         f"new-leader median {fmt_ms(statistics.median(elections))}, "
         f"p95 {fmt_ms(percentile(elections, 95))} & "
         f"$L_0$ writes while isolated: {l0_behavior_text}; authority follows the reachable quorum, not an external command designation. \\\\",
-        "Commit-path context & "
-        f"Raft in-memory leader accept median {fmt_eps(statistics.median(raft_tput))}, "
-        f"p95 {fmt_eps(percentile(raft_tput, 95))} ($n={len(raft_tput)}$, one warmup excluded); "
-        f"\\systemname{{}} durable command accept median {fmt_eps(statistics.median(aal_tput))}, "
-        f"p95 {fmt_eps(percentile(aal_tput, 95))} ($n={len(aal_tput)}$, one warmup excluded) & "
-        r"Different storage contracts: Raft uses in-memory log/snapshot/FSM, while \systemname{} commits to Postgres; this is not a speed ranking. \\",
+
     ]
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

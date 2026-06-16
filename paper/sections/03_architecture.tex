@@ -1,33 +1,51 @@
 \section{Authority-Aligned Architecture and Protocol}
 \label{sec:architecture}
 
-The requirements imply that not all incident data should be treated uniformly:
-offline operation and durable field submission favor local availability and
-eventual synchronization, while attributable command authority requires a single
-authoritative ordering of authority-bearing decisions.
+The requirements place conflicting demands on incident data. R1 and R2 require
+local work and durable submission during disconnection; R3 requires one
+authoritative order for command decisions. \systemname{} handles that split with
+four mechanisms; M1 partitions state, M2 orders command writes, M3 carries
+responder submissions, and M4 moves command authority without forking the journal.
 
-\subsection{State Classes and Consistency Contracts}
+\subsection{State Classes and Consistency Contracts (M1)}
 \label{sec:state-taxonomy}
 
-A central architectural decision in \systemname{} is that different classes of
-incident data require different consistency guarantees.
-This split is a RedBlue-style~\cite{li2012redblue} consistency partition.
-Authority-bearing decisions go in the strong set; forward-only field
-submissions, cached reference data, and materialized state go in the weaker
-classes. Table~\ref{tab:state-contracts} summarizes the main state classes.
+M1 sets the consistency boundary for R1, R2, and R3. Non-authority classes use
+local/eventual contracts for R1 and R2; authority-bearing decisions use the
+single-writer contract R3 demands. An operation crosses the linearization
+boundary only when accepting concurrent versions would create an authority
+conflict, like resource assignments, incident status transitions, and command hazard
+annotations. These are accepted only by the command edge and inserted into the
+incident journal with a command-assigned \textit{event\_seq}. 
 
-Master and reference data are owned by the regional core and cached at edges.
-Their partition behavior is stale-but-available local read.
-Field submissions are durable at the responder first. They become authoritative
-only after command acceptance. Authority-bearing incident events are sequenced
-by the command edge with a command-assigned \textit{event\_seq}.
-Materialized state is derived from the append-only incident journal.
+This is the paper's
+RedBlue-style partition~\cite{li2012redblue}; the ``red'' set is the
+authority-bearing command decision stream, not the whole incident database.
+Figure~\ref{fig:linearization-boundary} is the visual definition of M1, the
+authority boundary follows command authority, not reachability or merge.
 
-Artifacts and attachments use immutable or manifest-based distribution. Audit
-records and command-to-core backhaul are forwarded eventually. Promotion and
-fencing metadata are part of the command-authority protocol. The current
-evidence for promotion/fencing is model-level; \S~\ref{sec:protocol-m4} gives the
-protocol rule.
+\begin{figure}[t]
+\centering
+\resizebox{0.9\columnwidth}{!}{\input{figures/fig_linearization_boundary}}
+\caption{AAL linearization-boundary/state-class partition. M1 places the
+single-writer authority boundary at the command edge: command decisions are
+serialized into the incident journal by M2 with command-assigned
+\textit{event\_seq}. Outside the boundary, reference/artifact data, responder
+outboxes, and materialized views use local/eventual contracts for R1/R2; M3
+forwards durable, idempotent field observations across the boundary, becoming
+authoritative only after command acceptance. M4 moves the boundary by fenced
+operator promotion, so the boundary is set by operational command rather than
+Raft-style reachability or CRDT-style merge.}
+\label{fig:linearization-boundary}
+\end{figure}
+
+Outside the boundary, edges still work while links are intermittent: reference
+data are core-owned and cached, so partitions permit stale local reads, not local
+redefinition, and immutable artifacts, audit records, and command-to-core backhaul
+use validation or eventual forwarding rather than command-edge linearization.
+Moving command authority requires the fenced-promotion rule of
+\S~\ref{sec:protocol-m4} so a stale command edge cannot keep appending;
+Table~\ref{tab:state-contracts} summarizes these contracts.
 
 
 \begin{table}[t]
@@ -39,12 +57,16 @@ protocol rule.
 
 \subsection{Tiered Edge Topology}
 
-The regional core provides
-master/reference data and receives backhaul. Vehicle edges provide local
-services during disconnection. Responder vehicles queue submissions durably. The
-command edge owns the append-only incident journal. Tablets are leaf clients and
-do not participate directly in command sequencing.
+Vehicle edges provide local services during disconnection; tablets are leaf
+clients outside command sequencing (Figure~\ref{fig:tiered-topology}).
 
-The mesh is transit, not the consistency mechanism. User VLANs are not extended
-across vehicles. Application services communicate between edge nodes over routed
-links in the target deployment.
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{\input{figures/fig_tiered_topology}}
+\caption{Tiered edge topology. The regional core holds master/reference data and
+receives backhaul; vehicle edges run local services, with the command edge owning
+the append-only incident journal and responder edges queuing submissions; tablets
+are leaf clients. The mesh between vehicles is routed transit, not a consistency
+mechanism, and user VLANs are not extended across vehicles.}
+\label{fig:tiered-topology}
+\end{figure}

@@ -1,0 +1,96 @@
+% M1: state-class routing and the AAL linearization boundary.
+% Inspection-oriented TikZ source: intentionally spacious so every label,
+% arrow, and box can be read when compiled separately.
+\begin{tikzpicture}[
+  x=1cm,y=1cm,
+  every node/.style={font=\small},
+  title/.style={font=\small\bfseries, align=center},
+  box/.style={draw, rounded corners=1pt, align=left, inner sep=5pt,
+    minimum height=16mm, text width=45mm},
+  authority/.style={box, fill=gray!18, line width=0.9pt},
+  local/.style={box, fill=gray!7},
+  gate/.style={box, align=center, fill=white, text width=42mm},
+  result/.style={box, align=center, fill=gray!7, text width=48mm},
+  journal/.style={result, fill=gray!18, double, double distance=0.7pt,
+    line width=0.9pt},
+  note/.style={draw, rounded corners=1pt, align=left, font=\small,
+    inner sep=5pt, fill=white, text width=137mm},
+  arrowlabel/.style={font=\scriptsize, align=center, fill=white, inner sep=2pt},
+  flow/.style={->, >=Stealth, line width=0.65pt},
+  dashedflow/.style={->, >=Stealth, densely dashed, line width=0.65pt},
+  boundary/.style={line width=1.1pt, densely dashed}
+]
+
+% Column headings.
+\node[title, text width=45mm] at (0,1.35) {STATE CLASS / INPUT};
+\node[title, text width=42mm] at (6.1,1.35) {M1 GATE};
+\node[title, text width=48mm] at (12.6,1.35) {CONTRACT / CONSEQUENCE};
+
+% Linearization boundary, deliberately separated from boxes and labels.
+\draw[boundary] (9.25,0.85) -- (9.25,-10.55);
+\node[arrowlabel, text width=28mm] at (9.25,1.05)
+  {linearization\\boundary};
+
+% Row 1: command decisions.
+\node[authority] (cmd) at (0,0)
+  {\textbf{Command decisions}\\resource assignment\\incident status\\command hazard annotations};
+\node[gate] (cmdgate) at (6.1,0)
+  {Would accepting two concurrent versions create an authority conflict?\\[2pt]
+   \textbf{Yes}};
+\node[journal] (journal) at (12.6,0)
+  {\textbf{Command edge appends}\\single incident journal\\command-assigned \textit{event\_seq}\\M2 total order};
+
+% Row 2: responder observations.
+\node[local] (obs) at (0,-2.55)
+  {\textbf{Field observations}\\responder submissions\\tablet-originated reports};
+\node[gate] (outbox) at (6.1,-2.55)
+  {Responder may accept locally only into a durable outbox.\\[2pt]
+   Not authoritative yet.};
+\node[result] (accepted) at (12.6,-2.55)
+  {\textbf{Authoritative after command accept}\\M3 forwards idempotently\\then command edge inserts journal entry};
+
+% Row 3: reference/artifact state.
+\node[local] (ref) at (0,-5.10)
+  {\textbf{Reference / artifacts}\\maps\\plans\\immutable files};
+\node[gate] (cache) at (6.1,-5.10)
+  {Core-owned or content-addressed.\\[2pt]
+   Local stale reads are allowed.};
+\node[result] (nocross) at (12.6,-5.10)
+  {\textbf{No authority crossing}\\does not redefine incident command state\\does not allocate resources};
+
+% Row 4: materialized views.
+\node[local] (view) at (0,-7.65)
+  {\textbf{Materialized views}\\dashboard state\\derived summaries\\local UI projections};
+\node[gate] (derived) at (6.1,-7.65)
+  {Read model only.\\[2pt]
+   Rebuild from journal and caches.};
+\node[result] (rebuild) at (12.6,-7.65)
+  {\textbf{May lag, replay, or rebuild}\\cannot become a writer\\cannot fork authority};
+
+% Main left-to-right row flows.
+\draw[flow] (cmd.east) -- node[arrowlabel, above] {classify} (cmdgate.west);
+\draw[flow] (cmdgate.east) -- node[arrowlabel, above] {M2 serialize} (journal.west);
+
+\draw[flow] (obs.east) -- node[arrowlabel, above] {local accept} (outbox.west);
+\draw[flow] (outbox.east) -- node[arrowlabel, above] {M3 forward} (accepted.west);
+
+\draw[flow] (ref.east) -- node[arrowlabel, above] {cache / validate} (cache.west);
+\draw[dashedflow] (cache.east) -- node[arrowlabel, above] {does not cross} (nocross.west);
+
+\draw[flow] (view.east) -- node[arrowlabel, above] {derive} (derived.west);
+\draw[flow] (derived.east) -- node[arrowlabel, above] {rebuild} (rebuild.west);
+
+% Cross-row dependency arrows, routed outside boxes to avoid overlap.
+\draw[flow] (accepted.east) -- ++(1.15,0) |- node[arrowlabel, pos=0.78, right]
+  {accepted observation becomes\\a journaled command fact} (journal.east);
+\draw[flow] (journal.east) -- ++(1.85,0) |- node[arrowlabel, pos=0.72, right]
+  {journal drives\\derived views} (rebuild.east);
+
+% Promotion note.
+\node[note] (promotion) at (6.25,-10.35)
+  {\textbf{M4 fenced promotion:} the whole command-authority boundary moves by
+   operator promotion from epoch $e$ to epoch $e{+}1$.  A stale command edge is
+   rejected at the boundary; its writes are not merged with the new command edge.};
+\draw[flow] (promotion.north) -- ++(0,0.45) -| node[arrowlabel, near start, above]
+  {moves boundary, not individual rows} (9.25,-8.70);
+\end{tikzpicture}

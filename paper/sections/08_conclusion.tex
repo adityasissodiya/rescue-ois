@@ -1,18 +1,26 @@
 \section{Conclusion}
 
-Authority-aligned linearization rests on an operational fact that consensus and CRDT designs cannot assume: at every moment, one principal is designated as authoritative.
-The incident-journal linearization point is the command edge, the vehicle edge node that currently holds that authority.
-Reference data, field submissions, materialized state, and audit forwarding sit outside that boundary on weaker contracts.
-Command transfer uses fenced promotion rather than leader election.
+Authority-aligned linearization rests on an operational fact that consensus and
+CRDT designs do not directly address: at every moment, one principal is
+designated as authoritative. The incident-journal linearization point is the
+command edge, the vehicle edge node that currently holds that authority.
+Reference data, field submissions, materialized state, and audit forwarding sit
+outside that boundary on weaker contracts. Command transfer uses fenced promotion
+rather than leader election. Conventional offline-first synchronization does
+not provide this. A backend-authoritative design cannot hold the command-decision
+order under backhaul partition, the regime in which rescue-service incidents
+operate.
 
-The model checks and the prototype agree on the safety boundary. Under strict
-fencing, the model permits no two writers and no forked journal; the weak variant
-produces the expected split-brain witness, and command-edge writes proceed
-independently of responder reachability. The CRDT-LWW comparison shows the trade-off:
-CRDT replicas accept local writes at multiple nodes and converge quickly after
-anti-entropy exchange. AAL, by contrast, preserves one incident journal and treats
-semantic conflict rejection as part of the linearization boundary. The cost is no
-automatic failover and lower write availability for authority-bearing operations.
+The TLA+ model establishes the safety boundary, while the prototype demonstrates
+its operational realization. Under strict fencing, the model verifies single
+authority and no forked journal. The weak variant produces the expected
+split-brain witness, and the prototype shows command-edge writes proceed
+independently of responder reachability. The CRDT-LWW comparison shows the
+trade-off: CRDT replicas accept local writes at multiple nodes and converge
+quickly after anti-entropy exchange. AAL, by contrast, preserves one incident
+journal and treats semantic conflict rejection as a model-level boundary
+property. The cost is no automatic failover and lower write availability for
+authority-bearing operations.
 
 Future work is to deploy the prototype on a vehicle-mounted mesh, exercise fenced
 promotion across multiple command edges, implement service-path semantic

@@ -3,21 +3,21 @@
 
 \subsection{Threat Model and Security Scope}
 
-The target deployment assumes an organizational CA or identity provider,
-enrolled devices and users, and backend trust in certificate-derived identity
-only when the reverse proxy and service boundary are correctly configured. It
-handles replayed field submissions through \textit{client\_event\_id} idempotency
-and limits tablet reachability through local edge APIs and network segmentation.
+The target deployment assumes an organizational CA or identity provider with
+enrolled devices and users; the backend trusts certificate-derived identity only
+when the reverse proxy and service boundary are correctly configured. It handles
+replayed field submissions through \textit{client\_event\_id} idempotency and
+limits tablet reachability through local edge APIs and network segmentation.
 
 Several threats remain outside the prototype evaluation. A stolen or compromised
 tablet can be revoked only when nodes regain contact with the authority
-infrastructure or receive an updated trust bundle; instantaneous revocation
+infrastructure or receive an updated trust bundle, so instantaneous revocation
 during total disconnection is not provided. A stolen vehicle node is more serious
-because it may hold cached data. If that node is the command edge, it also holds
-operational authority. The architecture relies on device encryption, operational fencing,
-and audit rather than Byzantine tolerance. Because authority is explicit, a captured or
-buggy command edge can poison the incident journal while it holds authority: a
-central trade-off of making command authority explicit.
+because it may hold cached data, and if it is the command edge it also holds
+operational authority. The architecture relies on device encryption, operational
+fencing, and audit rather than Byzantine tolerance: because authority is explicit,
+a captured or buggy command edge can poison the incident journal while it holds
+authority, a central trade-off of making command authority explicit.
 
 The design also does not address a compromised organizational CA, Byzantine
 command behavior, physical tamper resistance beyond deployment controls, or
@@ -28,40 +28,28 @@ hardening questions, not properties established by the emulation.
 \subsection{Evaluation Boundaries and Non-claims}
 \label{sec:non-claims}
 
-The CRDT-LWW comparison is well-defined on the executable service path and is
-comparable in outage duration but not in transport mechanism. \S~\ref{sec:eval-crdt}
-and Table~\ref{tab:crdt-comparison} explain why the absent background gossip and
-live link impairment favor the CRDT baseline.
-
-For the two invariant-violation scenarios, the CRDT result is measured on its
-service path while the AAL guarantee rests on the TLA+ model
-(\S~\ref{sec:eval-promotion}). Four of the six invariants have service-path
-witnesses in the live runs: \textit{EpochAuthorityCoupling},
+The evidence for each invariant matches the appropriate verification method.
+\textit{SingleAuthority} and \textit{SingleCommand} express properties over all
+possible interleavings of concurrent authority claims---properties that model
+checking establishes exhaustively over 38.56\,M distinct states but that a
+service-path test can only sample. The prototype's service path is single-edge
+because core-to-edge journal bootstrap is not implemented, so multi-edge single
+authority is verified at the model level only; the two-edge Hypothesis handoff
+model covers prefix bootstrap and stale-authority rejection, and semantic
+rejection remains outside the prototype. \textit{EpochAuthorityCoupling},
 \textit{NoForkedJournal}, \textit{DurabilityAcrossPromotion}, and
-\textit{LocalIdempotency}. The other two, \textit{SingleAuthority} and
-\textit{SingleCommand}, remain model-only because the promotion harness is
-single-edge. The service path enforces epoch fencing but does
-not yet implement semantic rejection for those conflicts.
+\textit{LocalIdempotency} have both model verification and live service-path
+witnesses.
 
-The prototype evaluation runs on a single-host Docker Compose emulation with
-\textit{tc-netem} impairment. This isolates protocol behavior and keeps the
-artifact reproducible, but it does not claim physical Rajant mesh behavior,
-measured WireGuard or mTLS overhead, or end-to-end Android validation. The
-workload is single-incident and limited-scale.
-
-Promotion is operator-initiated. The paper does not claim automatic failover or
-storage-layer leader election after silent command death; an operator runbook is
-part of the operational procedure. The service-path promotion check is also
-single-edge: it shows that stale-epoch traffic cannot poison the current command
-journal after an epoch change, not that a full multi-edge promotion has been
-measured under all operator races. End-to-end promotion wall-clock with a live
-operator-confirm step is out of scope for the reported emulation; only the
-protocol-side cost is measured (\S~\ref{sec:eval-promotion}), and the
-operator-confirm floor is asserted by design rather than measured.
-
-The strict-versus-weak model check compares fenced and unfenced promotion
-abstractions: relaxing epoch coupling or journal uniqueness yields short
-counterexamples, while the strict model checks the stated invariants. This is a
-bounded step toward comparing operator-initiated promotion with automated
-failover, not field evidence for operator handoff.
+The prototype is scoped to measure protocol behavior under controlled partition
+conditions. The emulation isolates the authority, outbox, and fencing mechanisms
+from deployment variables---physical mesh transport, security overlay cost, and
+Android client integration---that do not bear on the authority model's
+correctness. Accordingly, it does not claim physical Rajant mesh behavior,
+measured WireGuard or mTLS overhead, or end-to-end Android validation, and the
+workload is single-incident and limited-scale. The authority model's safety
+properties are established by the TLA+ verification; the prototype demonstrates
+that the protocol can be implemented and operated under partition, and the
+Hypothesis state-machine tests check that the implementation's behavior agrees
+with the model on the sampled traces.
 

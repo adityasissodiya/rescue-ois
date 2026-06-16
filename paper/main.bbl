@@ -97,26 +97,39 @@ A.~Westman \emph{et~al.}, ``Mobilisation of emergency services for chemical
   \emph{Scandinavian Journal of Trauma, Resuscitation and Emergency Medicine},
   vol.~29, p.~99, 2021.
 
+\bibitem{tlaplus}
+L.~Lamport, \emph{Specifying Systems: The {TLA+} Language and Tools for
+  Hardware and Software Engineers}.\hskip 1em plus 0.5em minus 0.4em\relax
+  Addison-Wesley, 2002.
+
+\bibitem{maciver2019hypothesis}
+D.~R. MacIver, Z.~Hatfield-Dodds, and {many other contributors}, ``Hypothesis:
+  A new approach to property-based testing,'' \emph{Journal of Open Source
+  Software}, vol.~4, no.~43, p. 1891, 2019.
+
+\bibitem{naja2010provenance}
+I.~Naja, L.~Moreau, and A.~Rogers, ``Provenance of decisions in emergency
+  response environments,'' in \emph{Provenance and Annotation of Data and
+  Processes}.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2010, pp.
+  221--230.
+
 \bibitem{moynihan2008combining}
 D.~P. Moynihan, ``Combining structural forms in the search for policy tools:
   Incident command systems in {U.S.} crisis management,'' \emph{Governance},
   vol.~21, no.~2, pp. 205--229, 2008.
 
-\bibitem{moynihan2009network}
-------, ``The network governance of crisis response: Case studies of incident
-  command systems,'' \emph{Journal of Public Administration Research and
-  Theory}, vol.~19, no.~4, pp. 895--915, 2009.
+\bibitem{wennman2022organizational}
+I.~Wennman, C.~Jacobson, E.~Carlstr{\"o}m, A.~Hyltander, and A.~Khorram-Manesh,
+  ``Organizational changes needed in disasters and public health emergencies: A
+  qualitative study among managers at a major hospital,'' \emph{International
+  Journal of Disaster Risk Science}, vol.~13, pp. 481--494, 2022.
 
-\bibitem{nowell2018structure}
-B.~Nowell, T.~Steelman, A.-L.~K. Velez, and Z.~Yang, ``The structure of
-  effective governance of disaster response networks: Insights from the
-  field,'' \emph{The American Review of Public Administration}, vol.~48, no.~7,
-  pp. 699--715, 2018.
-
-\bibitem{nowell2019beyond}
-B.~Nowell and T.~Steelman, ``Beyond {ICS}: How should we govern complex
-  disasters in the {United States}?'' \emph{Journal of Homeland Security and
-  Emergency Management}, vol.~16, no.~2, p. 20180067, 2019.
+\bibitem{dalessio2024leading}
+I.~D'Alessio, A.~Quaglieri, J.~Burrai, A.~Pizzo, E.~Mari, U.~Aitella, G.~Lausi,
+  G.~Tagliaferri, P.~Cordellieri, A.~Giannini, and C.~Cricenti, ``Leading
+  through crisis: A systematic review of institutional decision-makers in
+  emergency contexts,'' \emph{Behavioral Sciences}, vol.~14, no.~6, p. 481,
+  2024.
 
 \bibitem{richardson2018microservices}
 C.~Richardson, \emph{Microservices Patterns: With Examples in Java}.\hskip 1em
@@ -155,26 +168,6 @@ P.~S. Almeida, A.~Shoker, and C.~Baquero, ``Efficient state-based {CRDT}s by
   delta-mutation,'' in \emph{International Conference on Networked Systems
   (NETYS)}, 2014.
 
-\bibitem{gomes2017verifyingsec}
-V.~B.~F. Gomes, M.~Kleppmann, D.~P. Mulligan, and A.~R. Beresford, ``Verifying
-  strong eventual consistency in distributed systems,'' \emph{Proceedings of
-  the ACM on Programming Languages}, vol.~1, no. OOPSLA, pp. 1--28, 2017.
-
-\bibitem{haas2023lore}
-J.~Haas, V.~Balegas \emph{et~al.}, ``Lore: A programming model for verifiably
-  safe local-first software,'' \emph{ACM Transactions on Programming Languages
-  and Systems}, 2023.
-
-\bibitem{kohler2025consistent}
-M.~K{\"o}hler, G.~Salvaneschi \emph{et~al.}, ``Consistent local-first software:
-  Enforcing safety and invariants for local-first applications,'' \emph{IEEE
-  Transactions on Software Engineering}, 2025.
-
-\bibitem{lewchenko2025boltonsc}
-N.~V. Lewchenko, G.~Kaki, and B.-Y.~E. Chang, ``Bolt-on strong consistency:
-  Specification, implementation, and verification,'' \emph{Proceedings of the
-  ACM on Programming Languages}, vol.~9, no. OOPSLA, pp. 1604--1631, 2025.
-
 \bibitem{hanssen2025emergency}
 {\O}.~Hanssen, ``Data replication for distributed emergency management
   systems,'' in \emph{Norsk IKT-konferanse for forskning og utdanning (NIK)},
@@ -195,10 +188,6 @@ M.~Kleppmann, A.~Wiggins, P.~van Hardenberg, and M.~McGranaghan, ``Local-first
   the 2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and
   Reflections on Programming and Software}, 2019.
 
-\bibitem{paul2019crimp}
-P.~K. Paul \emph{et~al.}, ``{CRIMP}: Here crisis mapping goes offline,''
-  \emph{Journal of Network and Computer Applications}, 2019.
-
 \bibitem{jahanian2022conice}
 M.~Jahanian and K.~K. Ramakrishnan, ``{CoNICE}: Consensus in
   intermittently-connected environments by exploiting naming with application
@@ -217,6 +206,10 @@ M.~F.~H. Sagor, A.~Haroon, R.~Stoleru, S.~Bhunia, A.~Altaweel, M.~Chao, L.~Jin,
   \emph{ACM Transactions on Cyber-Physical Systems}, vol.~8, no.~3, pp.
   37:1--37:31, 2024.
 
+\bibitem{kleppmann2017ddia}
+M.~Kleppmann, \emph{Designing Data-Intensive Applications}.\hskip 1em plus
+  0.5em minus 0.4em\relax O'Reilly Media, 2017.
+
 \bibitem{li2012redblue}
 \BIBentryALTinterwordspacing
 C.~Li, D.~Porto, A.~Clement, J.~Gehrke, N.~Pregui\c{c}a, and R.~Rodrigues,
@@ -226,10 +219,5 @@ C.~Li, D.~Porto, A.~Clement, J.~Gehrke, N.~Pregui\c{c}a, and R.~Rodrigues,
   CA: USENIX Association, 2012, pp. 265--278. [Online]. Available:
   \url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/li}
 \BIBentrySTDinterwordspacing
-
-\bibitem{li2023raftreliability}
-Y.~Li, Y.~Fan, L.~Zhang, and J.~Crowcroft, ``{RAFT} consensus reliability in
-  wireless networks: Probabilistic analysis,'' \emph{{IEEE} Internet of Things
-  Journal}, vol.~10, no.~14, pp. 12\,839--12\,853, 2023.
 
 \end{thebibliography}

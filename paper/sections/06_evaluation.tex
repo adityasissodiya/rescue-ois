@@ -1,56 +1,24 @@
 We evaluate the prototype on a single-host emulation, organized by the four
-mechanisms of \S~\ref{sec:architecture}: M1--M2 (the linearization boundary and
-incident-journal sequencing), M3 (the durable responder outbox), and M4 (fenced
-promotion). Each subsection names the requirement it serves, the claim it tests,
-and the evidence level---\emph{measured}, \emph{model-level}, or
-\emph{deployment-only} (\S~\ref{sec:implementation}).
-Table~\ref{tab:traceability} maps mechanisms to requirements at a glance. Three
+mechanisms of \S~\ref{sec:architecture} (M1--M2, M3, and M4). Each subsection
+names the requirement it serves, the claim it tests, and the evidence
+level---\emph{measured}, \emph{model-level}, or \emph{deployment-only}
+(\S~\ref{sec:implementation}).
+Three
 further experiments delimit what \systemname{} does not promise rather than
 evaluate a mechanism: a Raft consensus baseline (\S~\ref{sec:eval-raft}), a
 CRDT-LWW semantic falsification (\S~\ref{sec:eval-crdt}), and command-to-core
 WAN backhaul recovery (\S~\ref{sec:eval-wan}).
 
 Measurements come from a Docker Compose emulation with one regional core, one
-command edge, and three responder edges on a shared bridge. The propagation,
-recovery, and throughput cells use a single responder path; the other responders
-only populate the topology, so reported latencies are per-path, not aggregate.
-Each cell repeats $n=30$ unless noted, with median and p95 reported. Partitions
-are injected with \textit{tc} in a narrowly targeted way: only the targeted path
-is cut, so
-unrelated paths stay reachable and each cell isolates one effect. Impairment uses
-two \textit{tc-netem} profiles informed by published mesh
+command edge, and three responder edges. The propagation, recovery, and
+throughput cells use a single responder path, so reported latencies are per-path,
+not aggregate. Each cell repeats $n=30$ unless noted, with median and p95
+reported. Partitions cut only the targeted path with \textit{tc}, so each cell
+isolates one effect.
+Impairment uses two \textit{tc-netem} profiles informed by published mesh
 measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}: stressed
 (80\,ms~$\pm$~30\,ms delay, 2\,\% loss) and degraded (200\,ms~$\pm$~80\,ms delay,
 8\,\% loss). Table~\ref{tab:evaluation} collects the primary service-path numbers.
-
-\begin{table*}[t]
-\centering
-\caption{Mechanism-to-requirement traceability. Each mechanism is traced to the
-requirement(s) it serves, the claim tested, the experiment, the key result, and
-its evidence level. All numbers are reproduced from Table~\ref{tab:evaluation},
-Table~\ref{tab:falsification-cost}, and Fig.~\ref{fig:promotion-cost}.}
-\label{tab:traceability}
-\scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\textwidth}{@{}p{0.05\textwidth}p{0.06\textwidth}p{0.21\textwidth}p{0.17\textwidth}Xp{0.11\textwidth}@{}}
-\toprule
-\textbf{R} & \textbf{M} & \textbf{Claim tested} & \textbf{Experiment} & \textbf{Key result} & \textbf{Evidence} \\
-\midrule
-R3, R1 & M1--M2 & Authority-bearing writes commit without responder reachability and stay totally ordered &
-Command accept under responder isolation; saturation throughput &
-20/20 commits, \textit{event\_seq} 1--20 gap-free, 0 duplicate seqs & measured \\
-\addlinespace
-R1, R2 & M3 & Durable idempotent submissions reach the journal exactly once under retry, restart, and impairment &
-Propagation latency, duplicate replay, crash-restart, netem &
-median $\le$931.5\,ms; exactly 50 rows on replay; 50/50 survive restart ($\sim$2.6\,s) & measured \\
-\addlinespace
-R3 & M4 & Fenced promotion preserves single authority across transfer and rejects stale epochs cheaply &
-TLA+/Hypothesis bounds; service-path promotion &
-commit median \promotionMedianA{}/\promotionMedianC{}, stale reject \promotionMedianB{} ($2.5\times$ cheaper); strict 38.56\,M states vs.\ weak counterexamples \textless1\,s &
-measured; model-only for \textit{SingleAuthority}, \textit{SingleCommand} \\
-\bottomrule
-\end{tabularx}
-\end{table*}
 
 \begin{table}[t]
 \centering
@@ -71,10 +39,9 @@ measured; model-only for \textit{SingleAuthority}, \textit{SingleCommand} \\
 \label{sec:eval-m1}
 \label{sec:eval-m2}
 
-M1--M2 (the linearization boundary and incident-journal sequencing) serve R3, and
-R1 for command-side writes. Claim: authority-bearing writes commit independently
-of responder reachability and receive consecutive, non-duplicate
-\textit{event\_seq} values. Evidence: measured.
+M1--M2 serve R3, and R1 for command-side writes. Claim: authority-bearing writes
+commit independently of responder reachability and receive consecutive,
+non-duplicate \textit{event\_seq} values. Evidence: measured.
 
 With one responder isolated for ten seconds, direct single-event POSTs to
 \textit{/accept/event-batch} all commit, assigning consecutive non-duplicate
@@ -84,7 +51,9 @@ With one responder isolated for ten seconds, direct single-event POSTs to
 work. Responder reachability is therefore not in the commit path.
 
 Saturation throughput at the linearization point (Table~\ref{tab:evaluation})
-reflects a single-writer serializer.
+reflects a single-writer serializer. Even a generous 10 authority-bearing events
+per minute is 0.17 events/s, so the measured 356.3 events/s exceeds plausible
+incident demand by three orders of magnitude.
 
 \subsection{M3: durable outbox and idempotent submission}
 \label{sec:eval-m3}
@@ -94,8 +63,8 @@ serves R1 and R2. Claim: responder submissions reach the journal exactly once
 under retry, process restart, and impairment typical of a mesh network.
 Evidence: measured.
 
-Propagation latency stays sub-second across queue depths 1--100
-(Table~\ref{tab:evaluation}).
+Median propagation stays sub-second across queue depths 1--100; the p95 at
+depth 100 marginally exceeds 1~s (1045.5~ms, Table~\ref{tab:evaluation}).
 
 Replaying 50 unique \textit{client\_event\_id} values five times each leaves
 exactly 50 journal rows across $n=30$ runs: forwarding is at-least-once and
@@ -131,24 +100,22 @@ Table~\ref{tab:netem}).
 \label{sec:eval-m4}
 
 M4 (fenced promotion with stale-epoch rejection) serves R3 under command
-transfer, exercising the C2 mechanism. Claim: a fenced promotion preserves single
+transfer, exercising the fenced-promotion mechanism (C2). Claim: a fenced promotion preserves single
 authority across an epoch change and rejects stale-epoch traffic before any
-incident-journal work. Evidence: measured on the service path; \textit{SingleAuthority}
-and \textit{SingleCommand} are model-only because the promotion harness is
-single-edge.
+incident-journal work. Evidence: stale-epoch rejection is measured on the
+service path; multi-edge \textit{SingleAuthority} and \textit{SingleCommand} are model-level
+because the service harness is single-edge and lacks core-to-edge journal bootstrap.
 
 Protocol cost is single-digit milliseconds across all three phases of a
 transition (Figure~\ref{fig:promotion-cost}), measured over $n=\promotionN$
-events (\promotionNPerPhase{} per phase). Commit phases~A (pre-transition) and~C
-(post-transition) have medians \promotionMedianA{} (p95 \promotionPNinetyFiveA{})
-and \promotionMedianC{} (p95 \promotionPNinetyFiveC{}). Phase~B, the
-stale-rejection path, is $2.5\times$ cheaper (median \promotionMedianB{}, p95
-\promotionPNinetyFiveB{}) by construction: the fence rejects stale traffic before
-the incident-journal write, so the saving is a skipped write, not a faster check
-on the write path. Operator confirmation sits in the critical path by design,
-bounded below by seconds of deliberation under stress; the protocol contribution
-is orders of magnitude smaller, so promotion wall-clock is an operator cost, not
-a network cost.
+events (\promotionNPerPhase{} per phase). Commit phases~A and~C have medians
+\promotionMedianA{} (p95 \promotionPNinetyFiveA{}) and \promotionMedianC{} (p95
+\promotionPNinetyFiveC{}); the phase~B stale-rejection path is $2.5\times$ cheaper
+(median \promotionMedianB{}, p95 \promotionPNinetyFiveB{}) by construction, since
+the fence rejects stale traffic before the journal write, so the saving is a
+skipped write. Operator confirmation sits in the critical path by design and
+dominates wall-clock; the protocol contribution is orders of magnitude smaller, an
+operator cost rather than a network cost.
 
 \begin{figure}[t]
 \centering
@@ -156,8 +123,10 @@ a network cost.
 \caption{Fenced-promotion protocol cost by phase. Phase~A is pre-transition
 commits at epoch~$e$, phase~B is stale-epoch rejections at the boundary,
 phase~C is post-transition commits at epoch~$e+1$. $n=\promotionN$ events
-($\promotionNPerPhase$ per phase). The cost shown is the protocol path
-only; the operator-confirm step is excluded by design.}
+($\promotionNPerPhase$ per phase). Vertical markers are pooled across phases:
+median \promotionMedianCombined{}, p95 \promotionPNinetyFiveCombined{}. The
+cost shown is the protocol path only; the operator-confirm step is excluded by
+design.}
 \label{fig:promotion-cost}
 \end{figure}
 
@@ -169,14 +138,15 @@ journal holds 200 rows total, split 100/100 between epochs, with no
 
 Table~\ref{tab:falsification-cost} contrasts the cost of verifying the strict
 variant with the cost of falsifying the weak ones. The strict configuration
-($V=3$, $J=7$, $C=7$, $P=3$) verifies six safety invariants over 38.56\,M
-distinct states in 13 minutes. Each weak variant fails in under a second:
-counterexample traces have length 3, 3, and 5 for \textit{SingleAuthority},
-\textit{EpochAuthorityCoupling}, and \textit{NoForkedJournal}, found after 185,
-144, and 1{,}015 distinct states respectively. A Hypothesis state-machine test
-mirrors this in Python over 2000 examples of length~50: no strict violation, and
-an on-demand weak counterexample. Without the fence, single-authority fails
-immediately.
+(3 vehicles, journal bound 7, 7 client-event IDs, 3 fenced promotions, defined as
+state-space caps in the TLA+ comments) verifies six safety invariants over
+38.56\,M distinct states in 13 minutes; each weak variant instead produces a
+counterexample of trace length 3--5 in under a second.
+Python Hypothesis tests mirror the strict/weak model over 2000 examples
+of length~50 and add a two-command-edge handoff model over 1000 examples of
+length~40, checking forwarded-prefix bootstrap, stale-authority rejection before
+journal mutation, and suffix extension on the promoted edge. No strict violation
+appears, and weak variants have on-demand counterexamples.
 
 \begin{table}[t]
 \centering
@@ -197,40 +167,27 @@ states under a second of wall-clock.}
 
 \subsection{Scope-delimiting paths}
 
-The remaining three experiments bound what \systemname{} does not promise; none
-evaluates a mechanism.
-
 \subsubsection{Raft leadership follows the reachable quorum}
 \label{sec:eval-raft}
 
 This tests the R3-relevant mismatch between consensus leadership and operational
-command authority. The baseline is the three-voter \texttt{hashicorp/raft}
-journal-commit cluster in \texttt{baseline-raft/}: the HTTP leader accepts event
-batches, applies each event through Raft, and the in-memory FSM assigns
-\textit{event\_seq} values with \textit{client\_event\_id} deduplication.
+command authority. The baseline is the three-voter \textit{hashicorp/raft}
+journal-commit cluster in \textit{baseline-raft/}, whose in-memory FSM assigns
+\textit{event\_seq} values with \textit{client\_event\_id} deduplication. For each
+behavioral run, the harness records the current leader $L_0$ as the node holding
+write authority and hard-cuts it from the other two voters; the reachable majority
+then elects $L_1$ and accepts writes there (Table~\ref{tab:raft-comparison}), with
+election timing randomized across unseeded runs. This is correct Raft behavior,
+authority moves to a node that can form a quorum~\cite{ongaro2014raft}, and it is
+exactly the mechanism mismatch for R3: Raft has no input by which an operator can
+pin the writer to an externally designated command edge.
 
-For each behavioral run, the harness first records the current Raft leader
-$L_0$, treats it as the node currently holding write authority, and hard-cuts it
-from the other two voters by disconnecting its container from the shared Docker
-network. The reachable majority then elects $L_1$ and accepts writes there
-(Table~\ref{tab:raft-comparison}); election timing is randomized, so reported
-latencies are sample statistics over unseeded runs. This is correct Raft behavior: authority
-moves to a node that can form a quorum~\cite{li2023raftreliability}. It is also the mechanism mismatch for
-R3, because Raft has no input by which an operator can pin the writer to an
-externally designated command edge.
-
-The same table also reports a no-partition commit-path context measurement using
-the same single-event command-journal workload shape as the prototype's direct
-accept-path throughput run. This row is not a speed comparison. The Raft
-baseline uses in-memory log, snapshot, and FSM stores, while \systemname{}
-commits to durable Postgres; the row is included only to bound the cost of this
-particular baseline path under its weaker storage contract.
 
 \begin{table*}[t]
 \centering
-\caption{Raft consensus baseline comparison. The behavioral partition result is
-the R3-relevant finding; the commit-path row is context only because the Raft
-baseline is in-memory while \systemname{} uses durable Postgres.}
+\caption{Raft consensus baseline comparison. The partition result is the
+R3-relevant finding: authority follows the reachable quorum rather than an
+operator-designated command edge.}
 \label{tab:raft-comparison}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -245,34 +202,33 @@ baseline is in-memory while \systemname{} uses durable Postgres.}
 \subsubsection{CRDT semantics fail for authority-bearing data}
 \label{sec:eval-crdt}
 
-This tests the C1 claim that mergeable-by-default replication cannot encode
-authority for non-commutative incident decisions: we attempt to preserve R3 on a
-CRDT-LWW baseline and observe where it fails. It is a semantic falsification, not
-a speed comparison. The throughput figures in \S~\ref{sec:eval-independence} and
-\S~\ref{sec:eval-m3} accept writes under different durability and convergence
-models, so they bound a design trade-off in different units rather than rank the
-implementations.
+This tests C1: mergeable-by-default replication cannot encode authority for
+non-commutative incident decisions. It is a semantic falsification, not a speed
+comparison.
 
 The CRDT-LWW baseline is four FastAPI replicas using Hanssen's operation-based
-Last-Writer-Wins Element Set with physical-clock timestamps~\cite{hanssen2025emergency}.
-It preserves local acceptance but loses authority-bearing conflicts: concurrent
-status updates converge to the latest timestamp, and a later update resurrects an
-element deleted by another replica. The prototype service path currently orders
-and fences these events rather than rejecting them semantically; that gap is a
-limitation in \S~\ref{sec:non-claims}.
+Last-Writer-Wins Element Set~\cite{hanssen2025emergency}. It preserves local
+acceptance but loses authority-bearing conflicts: concurrent status updates
+converge to the latest timestamp, and a later update resurrects a deleted
+element. LWW discards the losing status from materialized state, whereas AAL
+preserves both writes in an attributed total order. Ordering and attribution are
+R3's service-path scope; semantic rejection is an additional guard disclosed in
+\S~\ref{sec:non-claims}.
 
-The infrastructure is asymmetric: the CRDT baseline is in-memory with no
-background anti-entropy, converging only through harness-triggered
-\texttt{full\_sync()} after traffic stops, whereas the prototype carries a
-durable Postgres outbox. These asymmetries favor CRDT where it already performs
-better; we keep them because the test is only whether mergeable-by-default
-semantics can encode authority. Following the evidence taxonomy of
-\S~\ref{sec:implementation}, Table~\ref{tab:crdt-comparison} reports measured AAL
-behavior, model-level AAL safety, and measured CRDT-LWW merge semantics.
+The baseline is kept deliberately lightweight, in-memory, with no background
+anti-entropy, converging only through harness-triggered \textit{full\_sync()}
+after traffic stops. This is because the test does not require storage parity; it
+requires only that the merge rule be exercised on concurrent authority-bearing
+writes. The asymmetry favors CRDT where it already performs better, which is the
+correct bias for a falsification: if mergeable-by-default semantics cannot encode
+authority even under favorable conditions, the semantic argument holds regardless
+of infrastructure differences.
+Table~\ref{tab:crdt-comparison} keeps measured AAL behavior, model-level AAL
+safety, and measured CRDT-LWW semantics separate.
 
 \begin{table*}[t]
 \centering
-\caption{Semantic comparison with a Hanssen-style operation-based CRDT-LWW baseline. The table separates measured service-path results from model-level AAL guards; the relabelled convergence row reports post-quiescence convergence after harness-triggered anti-entropy, not live network-partition impairment.}
+\caption{Semantic comparison with a Hanssen-style operation-based CRDT-LWW baseline, separating measured service-path results from model-level AAL guards.}
 \label{tab:crdt-comparison}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -287,13 +243,12 @@ behavior, model-level AAL safety, and measured CRDT-LWW merge semantics.
 \subsubsection{Backhaul recovers within about a second of WAN heal}
 \label{sec:eval-wan}
 
-This measures command-to-core forwarding after a WAN heal: a narrowly targeted
-\textit{tc} cut of the command-to-core path only, so command Postgres and
-responder reachability stay available and the measurement isolates backhaul flush
-time (Table~\ref{tab:evaluation}). Recovery is bounded by the forward poll loop
-and backlog, not outage length.
+This measures command-to-core forwarding after a WAN heal, with a narrowly
+targeted \textit{tc} cut of the command-to-core path only, so the measurement
+isolates backhaul flush time (Table~\ref{tab:evaluation}). Recovery is bounded by
+the forward poll loop and backlog, not outage length: the forwarder polls every
+1.0~s while forwarding and every 2.0~s after empty cycles, so non-monotonic
+medians across 1, 10, and 60~s outages are expected poll-phase effects.
 
 Together, these results place the authority boundary where \S~\ref{sec:architecture}
-does, at the cost (detailed in \S~\ref{sec:non-claims}) of no automatic failover
-and lower write availability for authority-bearing operations, concentrated at
-operator-driven command transitions.
+does; \S~\ref{sec:non-claims} details the resulting limitations and non-claims.
