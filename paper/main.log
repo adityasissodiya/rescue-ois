@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.3.11)  4 JUN 2026 14:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.3.11)  15 JUN 2026 13:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -830,131 +830,92 @@ Package hyperref Info: Link coloring OFF on input line 55.
 \@outlinefile=\write4
 \openout4 = `main.out'.
 
- (./sections/00_abstract.tex
-LaTeX Font Info:    Trying to load font information for U+msa on input line 1.
+ (./sections/00_abstract.tex)
+(./sections/01_introduction.tex
+Underfull \hbox (badness 2302) in paragraph at lines 29--30
+[]\T1/ptm/m/n/10 (C3) an ex-e-cutable pro-to-type (Docker Com-pose, \T1/ptm/m/i
+t/10 tc-
+ []
+
+) (./sections/02_problem_analysis.tex [1{/var/lib/texmf/fonts/map/pdftex/updmap
+/pdftex.map}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}
+
+
+]
+
+pdfTeX warning: pdflatex (file ./figures/operationalSetting.drawio.pdf): PDF in
+clusion: found PDF version <1.7>, but at most version <1.5> allowed
+<figures/operationalSetting.drawio.pdf, id=152, 200.6697pt x 274.1442pt>
+File: figures/operationalSetting.drawio.pdf Graphic file (type pdf)
+<use figures/operationalSetting.drawio.pdf>
+Package pdftex.def Info: figures/operationalSetting.drawio.pdf  used on input l
+ine 15.
+(pdftex.def)             Requested size: 181.4403pt x 247.8862pt.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 29.
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 1.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 29.
+
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-))
-(./sections/01_introduction.tex
-Underfull \vbox (badness 5077) has occurred while \output is active []
-
- [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf
--dist/fonts/enc/dvips/base/8r.enc}
-
-
-]) (./sections/02_problem_analysis.tex
-
-pdfTeX warning: pdflatex (file ./figures/operationalSetting.drawio.pdf): PDF in
-clusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figures/operationalSetting.drawio.pdf, id=148, 200.6697pt x 274.1442pt>
-File: figures/operationalSetting.drawio.pdf Graphic file (type pdf)
-<use figures/operationalSetting.drawio.pdf>
-Package pdftex.def Info: figures/operationalSetting.drawio.pdf  used on input l
-ine 19.
-(pdftex.def)             Requested size: 181.4403pt x 247.8862pt.
-
-Underfull \hbox (badness 2608) in paragraph at lines 72--84
+)
+Underfull \hbox (badness 2608) in paragraph at lines 69--79
 []\T1/ptm/m/it/10 Consensus and repli-cated state ma-chines. \T1/ptm/m/n/10 Con
 -sen-sus,
  []
 
-[2 <./figures/operationalSetting.drawio.pdf>]
-Underfull \hbox (badness 1558) in paragraph at lines 85--97
-\T1/ptm/m/n/10 mod-els and Hanssen's CRDT repli-ca-tion for emer-gency
- []
+[2 <./figures/operationalSetting.drawio.pdf>]) (./sections/03_architecture.tex
+(./figures/fig_linearization_boundary.tex) [3]
+(./figures/fig_state_contracts.tex) (./figures/fig_tiered_topology.tex
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1
+4.
 
-) (./sections/03_architecture.tex (./figures/fig_state_contracts.tex))
-(./sections/04_synchronization_protocol.tex [3]
-Underfull \hbox (badness 1430) in paragraph at lines 5--9
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)))
+(./sections/04_synchronization_protocol.tex
+Underfull \hbox (badness 6268) in paragraph at lines 5--8
 []\T1/ptm/m/n/10 The main iden-ti-fiers are \T1/ptm/m/it/10 in-ci-dent_id\T1/pt
-m/m/n/10 , a client-supplied
+m/m/n/10 , client-supplied
  []
 
-
+(./figures/fig_journal_sequencing.tex)
 
 pdfTeX warning: pdflatex (file ./figures/fig_outbox_sequence.drawio.pdf): PDF i
 nclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figures/fig_outbox_sequence.drawio.pdf, id=227, 416.5161pt x 196.8153pt>
+<figures/fig_outbox_sequence.drawio.pdf, id=241, 416.5161pt x 196.8153pt>
 File: figures/fig_outbox_sequence.drawio.pdf Graphic file (type pdf)
 <use figures/fig_outbox_sequence.drawio.pdf>
 Package pdftex.def Info: figures/fig_outbox_sequence.drawio.pdf  used on input 
-line 33.
-(pdftex.def)             Requested size: 214.20154pt x 101.21835pt.
-
+line 41.
+(pdftex.def)             Requested size: 252.0pt x 119.08113pt.
+[4 <./figures/fig_outbox_sequence.drawio.pdf>]
 
 pdfTeX warning: pdflatex (file ./figures/fig_promotion_fencing.drawio.pdf): PDF
  inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<figures/fig_promotion_fencing.drawio.pdf, id=230, 204.765pt x 288.11641pt>
+<figures/fig_promotion_fencing.drawio.pdf, id=269, 204.765pt x 288.11641pt>
 File: figures/fig_promotion_fencing.drawio.pdf Graphic file (type pdf)
 <use figures/fig_promotion_fencing.drawio.pdf>
 Package pdftex.def Info: figures/fig_promotion_fencing.drawio.pdf  used on inpu
-t line 67.
+t line 76.
 (pdftex.def)             Requested size: 156.23877pt x 219.84999pt.
-) (./sections/05_implementation.tex [4 <./figures/fig_outbox_sequence.drawio.pd
-f> <./figures/fig_promotion_fencing.drawio.pdf>]
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 14
+) (./sections/05_implementation.tex
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 13
 .
 
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
-)
-Underfull \hbox (badness 4341) in paragraph at lines 69--69
-[]|\T1/ptm/m/n/7 Target-deployment doc-u-men-ta-tion and con-fig-u-ra-tion;
- []
-
-) (./sections/06_evaluation.tex
-Underfull \hbox (badness 6348) in paragraph at lines 78--12
+))
+(./sections/06_evaluation.tex
+Underfull \hbox (badness 6348) in paragraph at lines 69--11
 []\T1/ptm/m/n/10 Security con-trols (VPN over-lay, mTLS ter-mi-na-tion,
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 52--52
-[]|\T1/ptm/m/n/7 Authority-bearing writes com-mit
- []
-
-
-Underfull \hbox (badness 2229) in paragraph at lines 52--52
-\T1/ptm/m/n/7 with-out re-spon-der reach-a-bil-ity and
- []
-
-
-Underfull \hbox (badness 2837) in paragraph at lines 52--52
-[]|\T1/ptm/m/n/7 Command ac-cept un-der re-
- []
-
-
-Underfull \hbox (badness 3679) in paragraph at lines 52--52
-\T1/ptm/m/n/7 spon-der iso-la-tion; sat-u-ra-tion
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 52--52
-[]|\T1/ptm/m/n/7 TLA+/Hypothesis bounds;
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 52--52
-[]|\T1/ptm/m/n/7 measured;
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 52--52
-\T1/ptm/m/n/7 model-only for
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 52--52
-\T1/ptm/m/it/7 Sin-gleAu-thor-ity\T1/ptm/m/n/7 ,
- []
-
-(./tables/tab_evaluation.tex) (./tables/tab_evaluation.tex)
-(./tables/tab_evaluation.tex
+[5 <./figures/fig_promotion_fencing.drawio.pdf>] (./tables/tab_evaluation.tex)
+(./tables/tab_evaluation.tex) (./tables/tab_evaluation.tex
 Underfull \hbox (badness 10000) in paragraph at lines 4--5
 []|\T1/ptm/m/n/7 outbox-to-command jour-nal
  []
@@ -1029,16 +990,20 @@ Underfull \hbox (badness 10000) in paragraph at lines 18--19
 \T1/ptm/m/n/7 path; me-dian/p95 la-tency
  []
 
-) [5]
+)
+Underfull \hbox (badness 2142) in paragraph at lines 66--68
+\T1/ptm/m/n/10 1--100; the p95 at depth 100 marginally ex-ceeds 1 s
+ []
+
 
 LaTeX Font Warning: Font shape `T1/ptm/m/scit' undefined
-(Font)              using `T1/ptm/m/it' instead on input line 117.
+(Font)              using `T1/ptm/m/it' instead on input line 86.
 
 (./tables/tab_netem.tex)
-<figures/fig_promotion_cost.pdf, id=303, 259.1464pt x 184.34778pt>
+<figures/fig_promotion_cost.pdf, id=310, 259.1464pt x 184.34778pt>
 File: figures/fig_promotion_cost.pdf Graphic file (type pdf)
 <use figures/fig_promotion_cost.pdf>
-Package pdftex.def Info: figures/fig_promotion_cost.pdf  used on input line 155
+Package pdftex.def Info: figures/fig_promotion_cost.pdf  used on input line 122
 .
 (pdftex.def)             Requested size: 214.20154pt x 152.3785pt.
  [6] (./tables/tab_falsification_cost.tex)
@@ -1070,23 +1035,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 6--6
 []|\T1/ptm/m/n/7 CRDT all-replica con-ver-gence me-dian
  []
 
-)) (./sections/07_discussion.tex [7 <./figures/fig_promotion_cost.pdf>]
-Underfull \hbox (badness 2809) in paragraph at lines 36--44
-\T1/ptm/m/n/10 sult is mea-sured on its ser-vice path while the AAL
- []
-
-
-Underfull \hbox (badness 3547) in paragraph at lines 36--44
-\T1/ptm/m/it/10 nal\T1/ptm/m/n/10 , \T1/ptm/m/it/10 Dura-bil-ity-AcrossPro-mo-t
-ion\T1/ptm/m/n/10 , and \T1/ptm/m/it/10 Lo-calIdem-po-tency\T1/ptm/m/n/10 ---
- []
-
-
-Underfull \vbox (badness 3657) has occurred while \output is active []
-
- [8])
-(./sections/08_conclusion.tex) (./main.bbl [9]
-Underfull \hbox (badness 1681) in paragraph at lines 194--198
+)) (./sections/07_discussion.tex [7 <./figures/fig_promotion_cost.pdf>])
+(./sections/08_conclusion.tex [8]) (./main.bbl
+Underfull \hbox (badness 1681) in paragraph at lines 192--196
 []\T1/ptm/m/n/8 M. Ja-ha-nian and K. K. Ra-makr-ish-nan, ``CoN-ICE: Con-sen-sus
  in
  []
@@ -1103,42 +1054,41 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[10
-
-] (./main.aux)
+[9] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: D151C94BE7CCA4FC63D72E6FDEE03CC3;6193.
+(rerunfilecheck)             Checksum: 802168B7A9BCD045D4E675350A872D99;6227.
  ) 
 Here is how much of TeX's memory you used:
- 24985 strings out of 474222
- 476861 string characters out of 5748733
- 1956975 words of memory out of 5000000
- 46669 multiletter control sequences out of 15000+600000
- 677630 words of font info for 162 fonts, out of 8000000 for 9000
+ 25346 strings out of 474222
+ 483989 string characters out of 5748733
+ 1957975 words of memory out of 5000000
+ 47012 multiletter control sequences out of 15000+600000
+ 682372 words of font info for 167 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,11n,87p,1758b,599s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,11n,87p,1792b,856s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share
 /texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texliv
-e/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf
--dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></u
-sr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texliv
-e/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/f
-onts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/
-times/utmri8a.pfb>
-Output written on main.pdf (10 pages, 1011773 bytes).
+e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+sy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pf
+b></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share
+/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-
+dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/typ
+e1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/ut
+mri8a.pfb>
+Output written on main.pdf (9 pages, 1021629 bytes).
 PDF statistics:
- 465 PDF objects out of 1000 (max. 8388607)
- 387 compressed objects within 4 object streams
- 90 named destinations out of 1000 (max. 500000)
+ 467 PDF objects out of 1000 (max. 8388607)
+ 388 compressed objects within 4 object streams
+ 91 named destinations out of 1000 (max. 500000)
  241 words of extra memory for PDF output out of 10000 (max. 10000000)
 

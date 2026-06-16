@@ -1,9 +1,14 @@
 # Rescue OIS Reviewer Guide
 
-This repository backs the NCA 2026 paper **Authority-Aligned Linearization for
-Rescue-Service Incident Response over Intermittent Edge Networks**. It contains
-the prototype services, Docker Compose emulation, evaluation harnesses, CRDT
-baseline, formal models, generated paper tables/figures, and the LaTeX paper.
+This repository backs the NCA 2026 paper **Authority-Aligned Linearization
+(AAL) for Rescue-Service Incident Response over Intermittent Edge Networks**. It
+contains the prototype services, Docker Compose emulation, evaluation harnesses,
+CRDT baseline, formal models, generated paper tables/figures, and the LaTeX
+paper.
+
+**Reviewers who only want to read the paper:** the compiled, 9-page PDF is
+checked in at [`paper/main.pdf`](paper/main.pdf). Nothing needs to be built to
+read it.
 
 The core protocol rule is:
 

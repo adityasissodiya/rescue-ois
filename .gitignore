@@ -31,6 +31,21 @@ captures/
 # Docker
 *.pid
 
+# LaTeX build artifacts (paper/main.pdf and main.bbl are kept intentionally)
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.out
+*.blg
+paper/*.log
+
+# Evaluation runtime artifacts
+partition_audit.jsonl
+
 # Formal verification local outputs
 formal/tla/tlc_*.log
 formal/tla/states/
