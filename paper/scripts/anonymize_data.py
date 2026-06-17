@@ -10,12 +10,16 @@ Keeps docker_compose_version, docker_server_version, host_cpu_count, timestamp_i
 
 Usage:
     python3 paper/scripts/anonymize_data.py paper/data/*.jsonl
+    python3 paper/scripts/anonymize_data.py --in-place paper/data/*.jsonl
 
 Run from the repo root. Output: `<input>.anon.jsonl` next to each input.
+With `--in-place`, inputs are scrubbed in place and raw JSONL inputs also refresh
+their sibling anonymized files.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -93,17 +97,46 @@ def anonymize_file(src: Path) -> Path:
     return dst
 
 
+def anonymize_in_place(src: Path) -> list[Path]:
+    tmp = src.with_name(src.name + ".tmp-anon")
+    with src.open(encoding="utf-8") as fin, tmp.open("w", encoding="utf-8") as fout:
+        for line in fin:
+            line = line.rstrip("\n")
+            if not line:
+                fout.write("\n")
+                continue
+            record = json.loads(line)
+            fout.write(json.dumps(walk(record), separators=(", ", ": ")))
+            fout.write("\n")
+    os.replace(tmp, src)
+
+    written = [src]
+    if not src.name.endswith(".anon.jsonl"):
+        written.append(anonymize_file(src))
+    return written
+
+
 def main(argv: list[str]) -> int:
-    if len(argv) < 2:
-        print("usage: anonymize_data.py FILE [FILE ...]", file=sys.stderr)
+    args = argv[1:]
+    in_place = False
+    if args and args[0] == "--in-place":
+        in_place = True
+        args = args[1:]
+
+    if not args:
+        print("usage: anonymize_data.py [--in-place] FILE [FILE ...]", file=sys.stderr)
         return 2
-    for arg in argv[1:]:
+    for arg in args:
         src = Path(arg)
         if not src.is_file():
             print(f"skip: {src} not a file", file=sys.stderr)
             continue
-        dst = anonymize_file(src)
-        print(f"{src} -> {dst}")
+        if in_place:
+            for dst in anonymize_in_place(src):
+                print(f"{src} -> {dst}")
+        else:
+            dst = anonymize_file(src)
+            print(f"{src} -> {dst}")
     return 0
 
 

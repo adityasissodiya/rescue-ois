@@ -3,7 +3,10 @@
 - [ ] Fresh `cd paper && latexmk -pdf -interaction=nonstopmode main.tex` build.
 - [ ] No undefined citations or references in `paper/main.log`.
 - [ ] `pdfinfo paper/main.pdf` shows no author-identifying metadata.
+- [ ] Reviewer bundle exported from a working tree without `.git/`, local remotes, branch names, or commit history.
+- [ ] `python3 paper/scripts/anonymize_data.py --in-place paper/data/*.jsonl baseline/data/*.jsonl` run after any harness rerun.
 - [ ] Anonymisation grep clean for the manuscript and reviewer-facing bundle.
+- [ ] Android/tablet package namespace remains neutral (`org.review.rescueois`).
 - [ ] Page count <= 10 pages for regular paper with both paid extra pages.
 - [ ] PDF eXpress validation passed if required by the final submission system.
 - [ ] All `% verify` markers resolved in `paper/refs.bib`, or unused incomplete references removed.

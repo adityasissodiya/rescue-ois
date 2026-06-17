@@ -10,6 +10,15 @@ paper.
 checked in at [`paper/main.pdf`](paper/main.pdf). Nothing needs to be built to
 read it.
 
+## Double-Blind Artifact Boundary
+
+The tracked files are prepared for double-blind review. Submit an exported
+working-tree archive, not `.git/`, so local remotes, branch names, and commit
+history are not part of the reviewer material. Checked-in evaluation JSONL files
+have host paths, kernel strings, local Git commits, and host memory/model fields
+redacted. If you rerun any harness before packaging, run the in-place anonymizer
+commands below before rebuilding tables or figures.
+
 The core protocol rule is:
 
 > Core owns master data. The current command edge owns authority-bearing
@@ -151,19 +160,16 @@ Important details:
 ## Anonymize Fresh AAL Data
 
 Table and plot generators consume anonymized JSONL files. After rerunning AAL
-harnesses, run:
+harnesses, scrub raw outputs in place and refresh sibling `*.anon.jsonl` files:
 
 ```bash
-python3 paper/scripts/anonymize_data.py \
-  paper/data/eval_metrics.jsonl \
-  paper/data/eval_command_local_partition.jsonl \
-  paper/data/eval_fenced_promotion.jsonl \
-  paper/data/eval_outbox_crash_restart.jsonl \
-  paper/data/eval_netem_propagation.jsonl
+python3 paper/scripts/anonymize_data.py --in-place paper/data/*.jsonl
 ```
 
-The anonymizer writes sibling `*.anon.jsonl` files and redacts host-specific
-paths and environment fields.
+The anonymizer redacts host-specific paths, kernel strings, local Git commits,
+and host memory/model fields. Without `--in-place`, it writes only sibling
+`*.anon.jsonl` files, which is useful for private rerun analysis but not enough
+for a double-blind reviewer bundle that includes raw JSONL files.
 
 ## Re-run the CRDT-LWW Baseline
 
@@ -205,6 +211,13 @@ Stop the CRDT baseline:
 
 ```bash
 docker compose -f baseline/docker-compose.yml down -v
+```
+
+Before packaging a double-blind bundle after CRDT reruns, scrub both the
+`baseline/data/` outputs and the copied `paper/data/` files:
+
+```bash
+python3 paper/scripts/anonymize_data.py --in-place baseline/data/*.jsonl paper/data/eval_crdt*.jsonl
 ```
 
 The CRDT harness models four FastAPI replicas (`a`, `b`, `c`, `core`) using an

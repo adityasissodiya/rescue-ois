@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "se.ltu.rescueois"
+    namespace = "org.review.rescueois"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "se.ltu.rescueois"
+        applicationId = "org.review.rescueois"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
