@@ -2,8 +2,7 @@
 """Evaluate the Hanssen-style CRDT-LWW baseline.
 
 The harness drives real HTTP requests against the Docker Compose replicas in
-../docker-compose.yml. It emits JSONL records compatible with the paper data
-layout and copies an anonymized sibling into paper/data/ for table generation.
+../docker-compose.yml and emits JSONL records for the CRDT comparison.
 """
 
 from __future__ import annotations
@@ -12,7 +11,6 @@ import argparse
 import json
 import os
 import platform
-import shutil
 import statistics
 import subprocess
 import sys
@@ -430,25 +428,6 @@ def collect_environment() -> dict[str, Any]:
     }
 
 
-def anonymize(src: Path) -> Path:
-    dst = src.with_suffix(".anon.jsonl")
-    with src.open(encoding="utf-8") as fin, dst.open("w", encoding="utf-8") as fout:
-        for line in fin:
-            record = json.loads(line)
-            env = record.get("environment")
-            if isinstance(env, dict):
-                env = dict(env)
-                env.pop("host_uname", None)
-                if "git_commit" in env:
-                    env["git_commit"] = "REDACTED-FOR-DOUBLE-BLIND"
-                record["environment"] = env
-            fout.write(json.dumps(record, sort_keys=True, default=str) + "\n")
-    paper_data = REPO / "paper" / "data"
-    paper_data.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, paper_data / src.name)
-    shutil.copy2(dst, paper_data / dst.name)
-    return dst
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -497,9 +476,7 @@ def main() -> int:
         scenario_throughput(handle, args.runs, args.throughput_events)
         scenario_convergence_after_partition(handle, partition_runs, args.partition_s, args.edits_per_replica)
     remove_netem()
-    anon = anonymize(output)
     print(f"wrote {output}")
-    print(f"wrote {anon}")
     return 0
 
 

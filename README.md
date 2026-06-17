@@ -1,14 +1,11 @@
-# Rescue OIS Reviewer Guide
+# Rescue OIS Reference Material
 
 This repository backs the NCA 2026 paper **Authority-Aligned Linearization
 (AAL) for Rescue-Service Incident Response over Intermittent Edge Networks**. It
 contains the prototype services, Docker Compose emulation, evaluation harnesses,
-CRDT baseline, formal models, generated paper tables/figures, and the LaTeX
-paper.
-
-**Reviewers who only want to read the paper:** the compiled, 9-page PDF is
-checked in at [`paper/main.pdf`](paper/main.pdf). Nothing needs to be built to
-read it.
+CRDT baseline, formal models, architecture notes, deployment notes, and tablet
+scaffold. The manuscript source and PDF are submitted separately and are not part
+of this reference-material repository.
 
 The core protocol rule is:
 
@@ -17,46 +14,38 @@ The core protocol rule is:
 > outbox and forward them to the command edge.
 
 The repository is a research artifact, not a production deployment. The measured
-path covers the service paths used in Section V of the paper: command-edge
-journal serialization, responder outbox forwarding, idempotent replay, fenced
-promotion, command-to-core recovery, CRDT-LWW comparison, and bounded formal
-safety checks. It does not claim physical Rajant radio behavior, Android
-end-to-end validation, measured WireGuard/mTLS overhead, or automatic failover.
+path covers the service paths used by the evaluation: command-edge journal
+serialization, responder outbox forwarding, idempotent replay, fenced promotion,
+command-to-core recovery, CRDT-LWW comparison, and bounded formal safety checks.
+It does not claim physical Rajant radio behavior, Android end-to-end validation,
+measured WireGuard/mTLS overhead, or automatic failover.
 
 ## Fast Reviewer Path
 
 To inspect the artifact without rerunning long measurements:
 
-1. Read the paper source in `paper/sections/`, especially
-   `paper/sections/04_synchronization_protocol.tex`,
-   `paper/sections/05_implementation.tex`, and
-   `paper/sections/06_evaluation.tex`.
-2. Inspect the generated evaluation artifacts in `paper/data/`, `paper/tables/`,
-   and `paper/figures/`.
-3. Build the paper from checked-in artifacts:
-
-```bash
-cd paper
-latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
-pdfinfo main.pdf
-cd ..
-```
+1. Read the architecture and protocol notes in `docs/architecture/` and
+   `docs/adr/`.
+2. Inspect the service implementations under `core/`, `edge/`, and `baseline/`.
+3. Inspect the formal models under `formal/`.
+4. Use the smoke run below if you only want to validate wiring.
 
 ## Repository Map
 
 | Path | Reviewer use |
 | --- | --- |
-| `paper/` | LaTeX paper, generated figures/tables, and JSONL evaluation data. |
 | `core/` | Regional core services and database migrations. |
 | `edge/` | Vehicle-edge services: `ops-api`, `syncd`, local Postgres, outbox, journal, WireGuard/Nginx scaffolding. |
 | `scripts/` | Docker stack helpers and AAL evaluation harnesses. |
 | `baseline/crdt/` | Hanssen-style operation-based CRDT-LWW baseline service. |
 | `baseline/scripts/` | CRDT baseline evaluation harness. |
+| `baseline-raft/` | Historical/contextual Raft baseline code. |
 | `formal/tla/` | TLA+ safety model, strict and weak configs, recorded run notes. |
 | `formal/python/` | Hypothesis state-machine tests mirroring the TLA+ safety properties. |
 | `docs/` | Architecture notes, ADRs, deployment notes, and runbooks. |
 | `tablet/` | Android tablet scaffold; not part of the reported end-to-end evaluation. |
-| `baseline-raft/` | Historical/contextual baseline code, not used by the current Section V CRDT comparison. |
+| `ui_kits/` | Tablet UI click-through prototype. |
+| `preview/` | Static visual previews used during design. |
 
 ## Prerequisites
 
@@ -65,8 +54,7 @@ Install only the tools needed for the path you will run.
 - Docker Engine with Docker Compose v2.
 - Python 3.11+ on the host for harness scripts; Python 3.12 is used inside the
   service containers. Host scripts need `httpx` and plot generation needs
-  `matplotlib`.
-- LaTeX (`latexmk`, `pdflatex`, BibTeX) for the paper build.
+  `matplotlib` only if you run local plotting scripts of your own.
 - Java plus `tla2tools.jar` for TLA+ checks.
 - `pytest` and `hypothesis` for `formal/python`.
 
@@ -80,8 +68,8 @@ python3 -m pip install httpx matplotlib pytest hypothesis
 
 ## Start the AAL Emulation Stack
 
-The paper setup uses one core, one command edge, and three responder edges on the
-shared Docker network `rescue-ois-net`.
+The evaluation setup uses one core, one command edge, and three responder edges
+on the shared Docker network `rescue-ois-net`.
 
 ```bash
 RESPONDERS=3 ./scripts/dev-up.sh
@@ -111,7 +99,8 @@ them against a stack that contains data you want to keep.
 ## Re-run the AAL Evaluation Harnesses
 
 Run from the repository root after starting the stack and applying migrations.
-These commands overwrite their corresponding `paper/data/*.jsonl` files.
+These commands write generated JSONL files under `artifacts/data/` by default.
+The `artifacts/` directory is ignored by Git.
 
 ```bash
 python3 scripts/evaluate-pilot.py
@@ -123,13 +112,13 @@ python3 scripts/evaluate-netem-propagation.py
 
 What each harness drives:
 
-| Paper cell | Script | Default output |
+| Evaluation cell | Script | Default output |
 | --- | --- | --- |
-| V-A/V-D/V-F plus throughput/idempotency | `scripts/evaluate-pilot.py` | `paper/data/eval_metrics.jsonl` |
-| V-C responder-isolation command commits | `scripts/evaluate-command-local-partition.py` | `paper/data/eval_command_local_partition.jsonl` |
-| V-B fenced promotion phases A/B/C | `scripts/evaluate-fenced-promotion.py --n 5 --writes-per-phase 20` | `paper/data/eval_fenced_promotion.jsonl` |
-| V-D outbox survives responder DB restart | `scripts/evaluate-outbox-crash-restart.py` | `paper/data/eval_outbox_crash_restart.jsonl` |
-| V-D stressed/degraded `tc-netem` propagation | `scripts/evaluate-netem-propagation.py` | `paper/data/eval_netem_propagation.jsonl` |
+| Propagation, recovery, throughput, idempotency | `scripts/evaluate-pilot.py` | `artifacts/data/eval_metrics.jsonl` |
+| Responder-isolation command commits | `scripts/evaluate-command-local-partition.py` | `artifacts/data/eval_command_local_partition.jsonl` |
+| Fenced promotion phases A/B/C | `scripts/evaluate-fenced-promotion.py --n 5 --writes-per-phase 20` | `artifacts/data/eval_fenced_promotion.jsonl` |
+| Outbox survives responder DB restart | `scripts/evaluate-outbox-crash-restart.py` | `artifacts/data/eval_outbox_crash_restart.jsonl` |
+| Stressed/degraded `tc-netem` propagation | `scripts/evaluate-netem-propagation.py` | `artifacts/data/eval_netem_propagation.jsonl` |
 
 Important details:
 
@@ -137,8 +126,8 @@ Important details:
   `RUNS_PER_CELL=1` for a fast sanity run.
 - Throughput inside `evaluate-pilot.py` uses 1000 concurrent submissions and
   emits both direct command `/accept/event-batch` and end-to-end responder
-  `/api/events` measurements. The first run is a warm-up and is excluded by the
-  table generator.
+  `/api/events` measurements. The first run is a warm-up and is excluded from
+  downstream summary calculations.
 - `evaluate-fenced-promotion.py --n 5 --writes-per-phase 20` produces 300
   attempts total: 100 per phase.
 - `evaluate-netem-propagation.py` installs `tc-netem` on the responder and
@@ -147,8 +136,8 @@ Important details:
 
 ## Re-run the CRDT-LWW Baseline
 
-The current paper comparison uses the CRDT-LWW baseline under `baseline/crdt`,
-not the historical `baseline-raft` stack.
+The current comparison uses the CRDT-LWW baseline under `baseline/crdt`, not the
+historical `baseline-raft` stack.
 
 Start the CRDT baseline:
 
@@ -156,8 +145,7 @@ Start the CRDT baseline:
 docker compose -f baseline/docker-compose.yml up -d --build
 ```
 
-Run the main CRDT baseline cells (`n=30`, throughput target 300). This writes
-baseline outputs under `baseline/data/` and copies table inputs into `paper/data/`:
+Run the main CRDT baseline cells (`n=30`, throughput target 300):
 
 ```bash
 python3 baseline/scripts/evaluate-crdt-baseline.py \
@@ -168,9 +156,8 @@ python3 baseline/scripts/evaluate-crdt-baseline.py \
   --output data/eval_crdt_baseline.jsonl
 ```
 
-Run the 60-second post-quiescence convergence file used by the comparison table
-(`n=10` for the long wait row, with only smoke-size values for the other cells in
-that file):
+Run the 60-second post-quiescence convergence case (`n=10` for the long-wait
+comparison, with only smoke-size values for the other cells in that file):
 
 ```bash
 python3 baseline/scripts/evaluate-crdt-baseline.py \
@@ -191,37 +178,10 @@ The CRDT harness models four FastAPI replicas (`a`, `b`, `c`, `core`) using an
 operation-based LWW element set with physical-clock timestamps. It has no
 background gossip; convergence is driven by harness-triggered `full_sync()`.
 
-## Regenerate Paper Tables and Figures
-
-After rerunning data:
-
-```bash
-python3 paper/scripts/generate_plots.py
-python3 paper/scripts/plot_promotion_cdf.py
-python3 paper/scripts/generate_tables.py
-```
-
-Generated outputs:
-
-| Generator | Inputs | Outputs |
-| --- | --- | --- |
-| `paper/scripts/generate_plots.py` | evaluation metrics JSONL in `paper/data/` | `paper/figures/fig_recovery.pdf` |
-| `paper/scripts/plot_promotion_cdf.py` | fenced-promotion JSONL in `paper/data/` | `paper/figures/fig_promotion_cost.pdf`, `paper/data/promotion_summary.tex` |
-| `paper/scripts/generate_tables.py` | evaluation JSONL files in `paper/data/` | `paper/tables/tab_evaluation.tex`, `paper/tables/tab_crdt_comparison.tex` |
-
-Then rebuild the paper:
-
-```bash
-cd paper
-latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
-pdfinfo main.pdf
-cd ..
-```
-
 ## Smoke Run Instead of Full Reproduction
 
 A reviewer who only wants to validate wiring can run a small destructive smoke
-pass. These commands do not reproduce paper statistics.
+pass. These commands do not reproduce evaluation statistics.
 
 ```bash
 RESPONDERS=3 ./scripts/dev-up.sh
@@ -275,7 +235,7 @@ cd ../..
 
 ## Current Evidence Boundaries
 
-The paper and repository intentionally separate implemented evidence from
+The manuscript and repository intentionally separate implemented evidence from
 non-claims:
 
 - The service path sequences and fences incident-journal writes, but semantic
@@ -283,20 +243,19 @@ non-claims:
   the measured service path.
 - Promotion is operator-initiated and single-edge in the service-path harness;
   multi-edge operator races are model-level or future work.
-- The Android tablet directory is a scaffold; Section V uses Python/tablet stubs
-  and service APIs.
+- The Android tablet directory is a scaffold; the evaluation uses Python/tablet
+  stubs and service APIs.
 - The Docker evaluation is single-host emulation with `tc-netem`, not a physical
   mesh or measured WireGuard/mTLS deployment.
 
 ## Troubleshooting
 
 - If Docker names or networks collide, run `./scripts/dev-down.sh` and retry.
-- If `paper/scripts/generate_tables.py` reports a missing file, confirm the
-  expected JSONL files exist in `paper/data/`.
+- If an evaluation script reports a missing output directory, confirm
+  `artifacts/data/` can be created by your user.
 - If netem results look stuck, remove the stack with `./scripts/dev-down.sh`;
   the netem harness cleans up on normal exit, but a killed run can leave qdiscs
   in a bad state.
-- If the paper build reports changed references, rerun `latexmk` once more.
 
 ## License
 

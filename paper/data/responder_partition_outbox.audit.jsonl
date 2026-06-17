@@ -1,2 +1,0 @@
-{"run_id": "pytest-3113ec0d-ac5b-44d6-86b2-815c252486c6", "scenario": "partition_mesh", "metric_name": "partition_injected", "value_ms": null, "timestamp_iso": "2026-05-28T07:39:17Z", "notes": "model=docker-detach container=edge-resp-1-syncd-1 duration_s=5"}
-{"run_id": "pytest-3113ec0d-ac5b-44d6-86b2-815c252486c6", "scenario": "partition_mesh", "metric_name": "partition_resolved", "value_ms": 5255, "timestamp_iso": "2026-05-28T07:39:22Z", "notes": "model=docker-detach container=edge-resp-1-syncd-1 duration_ms=5255"}

@@ -31,7 +31,7 @@ from typing import Any
 import httpx
 
 RUNS_PER_CELL = int(os.environ.get("RUNS_PER_CELL", "30"))
-METRICS_PATH = Path(os.environ.get("RESCUE_OIS_METRICS_PATH", "paper/data/eval_metrics.jsonl"))
+METRICS_PATH = Path(os.environ.get("RESCUE_OIS_METRICS_PATH", "artifacts/data/eval_metrics.jsonl"))
 
 CORE_BASE = os.environ.get("CORE_BASE", "http://127.0.0.1:18000")
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")

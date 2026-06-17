@@ -31,7 +31,7 @@ captures/
 # Docker
 *.pid
 
-# LaTeX build artifacts (paper/main.pdf and main.bbl are kept intentionally)
+# LaTeX build artifacts
 *.aux
 *.fls
 *.fdb_latexmk
@@ -41,9 +41,10 @@ captures/
 *.lot
 *.out
 *.blg
-paper/*.log
 
 # Evaluation runtime artifacts
+artifacts/
+baseline/data/*.jsonl
 partition_audit.jsonl
 
 # Formal verification local outputs
@@ -72,7 +73,7 @@ wg0*.conf
 # OS
 Thumbs.db
 
-# Pre-submission documents that leak author identity (NCA 2026 double-blind)
+# Local pre-submission documents
 Rescue OIS Supervisor-Review Research Report.md
 Rescue OIS Whitepaper.html
 FACTUAL_EVIDENCE_REPORT.md

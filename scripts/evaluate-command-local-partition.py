@@ -32,7 +32,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / "paper" / "data" / "eval_command_local_partition.jsonl"
+DEFAULT_ARTIFACT = ROOT / "artifacts" / "data" / "eval_command_local_partition.jsonl"
 NETWORK_NAME = "rescue-ois-net"
 CMD_SYNCD = os.environ.get("CMD_SYNCD", "http://127.0.0.1:18081")
 

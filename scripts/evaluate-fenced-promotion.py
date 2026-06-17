@@ -22,7 +22,7 @@ The invariants checked per run match the paper claim:
   * Within each epoch the surviving event_seq values are contiguous.
 
 This experiment intentionally runs single-edge. The architectural reasons
-are documented in paper/sections (Phase 4 limitations) and on the plan: each
+are documented in the manuscript limitations discussion and on the plan: each
 edge has its own Postgres, so a cross-edge promotion exercises a different
 shape of the property. The single-edge variant tests the journal-poisoning
 invariant the paper actually claims: stale-epoch traffic cannot land in the
@@ -47,7 +47,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / "paper" / "data" / "eval_fenced_promotion.jsonl"
+DEFAULT_ARTIFACT = ROOT / "artifacts" / "data" / "eval_fenced_promotion.jsonl"
 CMD_SYNCD = os.environ.get("CMD_SYNCD", "http://127.0.0.1:18081")
 CMD_PG_CONTAINER = os.environ.get("CMD_PG_CONTAINER", "edge-cmd-postgres-1")
 CMD_SYNCD_CONTAINER = os.environ.get("CMD_SYNCD_CONTAINER", "edge-cmd-syncd-1")

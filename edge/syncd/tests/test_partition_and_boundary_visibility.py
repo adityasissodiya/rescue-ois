@@ -208,7 +208,7 @@ def test_responder_partition_outbox_accumulates_then_replays() -> None:
     event_count = 5
     responder_syncd = "edge-resp-1-syncd-1"
     aliases = _network_aliases(responder_syncd)
-    audit_path = ROOT / "paper" / "data" / "responder_partition_outbox.audit.jsonl"
+    audit_path = ROOT / "artifacts" / "data" / "responder_partition_outbox.audit.jsonl"
     partition_proc: subprocess.Popen[str] | None = None
 
     try:

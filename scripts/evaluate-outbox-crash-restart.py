@@ -19,8 +19,8 @@ Procedure (single responder edge, command edge, core already up):
      contiguous event_seq and no duplicates, and the outbox is fully drained
      (forwarded_at set on all N).
 
-Emits per-phase plus summary JSONL records compatible with the paper data
-layout.
+Emits per-phase plus summary JSONL records compatible with the evaluation
+data layout.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / "paper" / "data" / "eval_outbox_crash_restart.jsonl"
+DEFAULT_ARTIFACT = ROOT / "artifacts" / "data" / "eval_outbox_crash_restart.jsonl"
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
 RESPONDER_INDEX = int(os.environ.get("RESPONDER_INDEX", "1"))
 RESP_SYNCD = f"edge-resp-{RESPONDER_INDEX}-syncd-1"

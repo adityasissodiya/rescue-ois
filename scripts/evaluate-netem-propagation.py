@@ -25,9 +25,7 @@ Prerequisites:
     baked into the image.
 
 Output:
-    paper/data/eval_netem_propagation.jsonl   (un-anonymized source)
-    Anonymize with paper/scripts/anonymize_data.py to produce the
-    .anon.jsonl version referenced by the paper.
+    artifacts/data/eval_netem_propagation.jsonl
 """
 from __future__ import annotations
 
@@ -48,7 +46,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / "paper" / "data" / "eval_netem_propagation.jsonl"
+DEFAULT_ARTIFACT = ROOT / "artifacts" / "data" / "eval_netem_propagation.jsonl"
 
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
 CMD_PG_CONTAINER = os.environ.get("CMD_PG_CONTAINER", "edge-cmd-postgres-1")

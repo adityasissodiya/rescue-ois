@@ -2,8 +2,8 @@
 """Phase 4 Raft baseline evaluator.
 
 Drives the Rescue OIS comparison scenarios against the 3-node hashicorp/raft
-cluster in baseline-raft/. Output goes to paper/data/eval_metrics_raft.jsonl
-following the same schema as paper/data/eval_metrics.jsonl with one extra
+cluster in baseline-raft/. Output goes to artifacts/data/eval_metrics_raft.jsonl
+following the same schema as artifacts/data/eval_metrics.jsonl with one extra
 field: scenario_params.baseline = "raft".
 """
 
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import httpx
 
-METRICS_PATH = Path("paper/data/eval_metrics_raft.jsonl")
+METRICS_PATH = Path("artifacts/data/eval_metrics_raft.jsonl")
 RUNS_PER_CELL = int(os.environ.get("RUNS_PER_CELL", "30"))
 
 NODES = {
