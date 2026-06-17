@@ -10,15 +10,6 @@ paper.
 checked in at [`paper/main.pdf`](paper/main.pdf). Nothing needs to be built to
 read it.
 
-## Double-Blind Artifact Boundary
-
-The tracked files are prepared for double-blind review. Submit an exported
-working-tree archive, not `.git/`, so local remotes, branch names, and commit
-history are not part of the reviewer material. Checked-in evaluation JSONL files
-have host paths, kernel strings, local Git commits, and host memory/model fields
-redacted. If you rerun any harness before packaging, run the in-place anonymizer
-commands below before rebuilding tables or figures.
-
 The core protocol rule is:
 
 > Core owns master data. The current command edge owns authority-bearing
@@ -50,9 +41,6 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 pdfinfo main.pdf
 cd ..
 ```
-
-The generated tables read anonymized JSONL files (`*.anon.jsonl`). If you rerun
-harnesses, regenerate anonymized copies before regenerating tables.
 
 ## Repository Map
 
@@ -157,20 +145,6 @@ Important details:
   command `syncd` containers. If it fails, run `./scripts/dev-down.sh` and start
   a clean stack before retrying.
 
-## Anonymize Fresh AAL Data
-
-Table and plot generators consume anonymized JSONL files. After rerunning AAL
-harnesses, scrub raw outputs in place and refresh sibling `*.anon.jsonl` files:
-
-```bash
-python3 paper/scripts/anonymize_data.py --in-place paper/data/*.jsonl
-```
-
-The anonymizer redacts host-specific paths, kernel strings, local Git commits,
-and host memory/model fields. Without `--in-place`, it writes only sibling
-`*.anon.jsonl` files, which is useful for private rerun analysis but not enough
-for a double-blind reviewer bundle that includes raw JSONL files.
-
 ## Re-run the CRDT-LWW Baseline
 
 The current paper comparison uses the CRDT-LWW baseline under `baseline/crdt`,
@@ -182,8 +156,8 @@ Start the CRDT baseline:
 docker compose -f baseline/docker-compose.yml up -d --build
 ```
 
-Run the main CRDT baseline cells (`n=30`, throughput target 300). This writes to
-`baseline/data/` and copies anonymized siblings into `paper/data/`:
+Run the main CRDT baseline cells (`n=30`, throughput target 300). This writes
+baseline outputs under `baseline/data/` and copies table inputs into `paper/data/`:
 
 ```bash
 python3 baseline/scripts/evaluate-crdt-baseline.py \
@@ -213,20 +187,13 @@ Stop the CRDT baseline:
 docker compose -f baseline/docker-compose.yml down -v
 ```
 
-Before packaging a double-blind bundle after CRDT reruns, scrub both the
-`baseline/data/` outputs and the copied `paper/data/` files:
-
-```bash
-python3 paper/scripts/anonymize_data.py --in-place baseline/data/*.jsonl paper/data/eval_crdt*.jsonl
-```
-
 The CRDT harness models four FastAPI replicas (`a`, `b`, `c`, `core`) using an
 operation-based LWW element set with physical-clock timestamps. It has no
 background gossip; convergence is driven by harness-triggered `full_sync()`.
 
 ## Regenerate Paper Tables and Figures
 
-After rerunning and anonymizing data:
+After rerunning data:
 
 ```bash
 python3 paper/scripts/generate_plots.py
@@ -238,9 +205,9 @@ Generated outputs:
 
 | Generator | Inputs | Outputs |
 | --- | --- | --- |
-| `paper/scripts/generate_plots.py` | `paper/data/eval_metrics.anon.jsonl` | `paper/figures/fig_recovery.pdf` |
-| `paper/scripts/plot_promotion_cdf.py` | `paper/data/eval_fenced_promotion.anon.jsonl` | `paper/figures/fig_promotion_cost.pdf`, `paper/data/promotion_summary.tex` |
-| `paper/scripts/generate_tables.py` | `eval_metrics.anon.jsonl`, `eval_command_local_partition.anon.jsonl`, CRDT anon files | `paper/tables/tab_evaluation.tex`, `paper/tables/tab_crdt_comparison.tex` |
+| `paper/scripts/generate_plots.py` | evaluation metrics JSONL in `paper/data/` | `paper/figures/fig_recovery.pdf` |
+| `paper/scripts/plot_promotion_cdf.py` | fenced-promotion JSONL in `paper/data/` | `paper/figures/fig_promotion_cost.pdf`, `paper/data/promotion_summary.tex` |
+| `paper/scripts/generate_tables.py` | evaluation JSONL files in `paper/data/` | `paper/tables/tab_evaluation.tex`, `paper/tables/tab_crdt_comparison.tex` |
 
 Then rebuild the paper:
 
@@ -325,7 +292,7 @@ non-claims:
 
 - If Docker names or networks collide, run `./scripts/dev-down.sh` and retry.
 - If `paper/scripts/generate_tables.py` reports a missing file, confirm the
-  matching `*.anon.jsonl` exists in `paper/data/`.
+  expected JSONL files exist in `paper/data/`.
 - If netem results look stuck, remove the stack with `./scripts/dev-down.sh`;
   the netem harness cleans up on normal exit, but a killed run can leave qdiscs
   in a bad state.
