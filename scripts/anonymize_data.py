@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
-"""Anonymize JSONL evaluation artifacts for double-blind submission.
+"""Scrub machine-identifying detail from JSONL evaluation artifacts.
 
 For every input file, write a sibling `*.anon.jsonl` with:
 - every nested `environment` block stripped of host_uname, host_cpu_model,
-  host_mem_total_kb, and with git_commit replaced by REDACTED-FOR-DOUBLE-BLIND;
+  host_mem_total_kb -- these name the author's workstation and contribute
+  nothing a reader can act on;
 - every string value with the local repo prefix replaced by a repo-relative path.
 
-Keeps docker_compose_version, docker_server_version, host_cpu_count, timestamp_iso.
+Keeps docker_compose_version, docker_server_version, host_cpu_count,
+timestamp_iso, and `git_commit`.
+
+`git_commit` was previously rewritten to REDACTED-FOR-DOUBLE-BLIND. WONS 2027 is
+not double-blind, so that redaction bought no anonymity and cost the one thing
+the artifact most needs: the tie from each published number back to the tree that
+produced it. It is the traceability the paper's reproducibility section claims.
+Do not reinstate it without a venue that actually requires it.
 
 Usage:
     python3 paper/scripts/anonymize_data.py paper/data/*.jsonl
@@ -27,8 +35,6 @@ REPO_PATH_PATTERNS = [
 ]
 
 ENV_DROP_KEYS = {"host_uname", "host_cpu_model", "host_mem_total_kb"}
-ENV_REDACT_KEYS = {"git_commit"}
-REDACT_VALUE = "REDACTED-FOR-DOUBLE-BLIND"
 
 
 def scrub_path_string(value: str) -> str:
@@ -42,9 +48,6 @@ def scrub_environment(env: dict) -> dict:
     result = {}
     for k, v in env.items():
         if k in ENV_DROP_KEYS:
-            continue
-        if k in ENV_REDACT_KEYS:
-            result[k] = REDACT_VALUE
             continue
         if isinstance(v, str):
             result[k] = scrub_path_string(v)
