@@ -1,0 +1,32 @@
+\section{Authority-Aligned Architecture and Protocol}
+\label{sec:architecture}
+
+The requirements place conflicting demands on incident data. R1 and R2 require
+local work and durable submission during disconnection; R3 requires one
+authoritative order for command decisions. \systemname{} handles that split with
+four mechanisms; M1 partitions state, M2 orders command writes, M3 carries
+responder submissions, and M4 moves command authority without forking the journal.
+
+\subsection{State Classes and Consistency Contracts (M1)}
+\label{sec:state-taxonomy}
+
+M1 sets the consistency boundary for R1, R2, and R3. Non-authority classes use
+local/eventual contracts for R1 and R2; authority-bearing decisions use the
+single-writer contract R3 demands. An operation crosses the linearization boundary only when accepting concurrent versions
+would create an authority conflict---resource assignments, incident status transitions,
+and command hazard annotations---and is then accepted only by the command edge, with a
+command-assigned \textit{event\_seq}. This is a RedBlue-style
+partition~\cite{li2012redblue} whose ``red'' set is the authority-bearing command
+decision stream, not the whole incident database.
+
+Outside the boundary, edges still work while links are intermittent; reference
+data are core-owned and cached, so partitions permit stale local reads, not local
+redefinition, and immutable artifacts, audit records, and command-to-core backhaul
+use validation or eventual forwarding rather than command-edge linearization.
+Moving command authority requires the fenced-promotion rule of
+\S~\ref{sec:protocol-m4} so a stale command edge cannot keep appending.
+
+
+Vehicle edges provide local services during disconnection; tablets are leaf
+clients outside command sequencing. The mesh between vehicles is routed transit,
+not a consistency mechanism, and user VLANs are not extended across vehicles.

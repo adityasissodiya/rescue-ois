@@ -1,0 +1,46 @@
+\section{Discussion}
+\label{sec:discussion}
+
+The target deployment assumes an organizational CA with enrolled devices and users;
+the backend trusts certificate-derived identity only when the reverse proxy and service
+boundary are correctly configured. Replayed field submissions are handled through
+\textit{client\_event\_id} idempotency.
+
+Several threats remain outside the prototype evaluation. Revocation of a stolen
+tablet or vehicle node is eventual rather than immediate under total
+disconnection, and because authority is designated rather than emergent, a
+captured or malfunctioning command edge can poison the incident journal for as
+long as it holds authority. That is the central trade-off of making command
+authority explicit: a quorum-inferred design fails differently, not better, by
+moving authority away from the designated commander. The architecture relies on operational fencing and audit rather than Byzantine
+tolerance, and does not address a compromised CA, physical tamper resistance, or
+audit-log integrity against a fully compromised node. These are deployment questions,
+not properties established by the emulation; the artifact repository records the full
+threat model.
+
+
+\subsection{Evaluation Boundaries and Non-claims}
+\label{sec:non-claims}
+
+The evidence for each invariant matches the appropriate verification method.
+\textit{SingleAuthority} and \textit{SingleCommand} quantify over all interleavings of
+concurrent authority claims---properties model checking establishes exhaustively over
+38.56\,M states but a service-path test can only sample. The service path now exercises
+promotion across two independent edges (\S~\ref{sec:eval-two-edge}), so multi-edge
+single authority has a runtime witness as well as a model one. Authority binding is a protocol boundary, not an authentication
+one: the emulation uses unauthenticated identifiers, so a node could assert
+another's identity, and semantic rejection of conflicting values remains
+outside the prototype. \textit{EpochAuthorityCoupling},
+\textit{NoForkedJournal}, \textit{DurabilityAcrossPromotion}, and
+\textit{LocalIdempotency} have both model verification and live service-path
+witnesses.
+
+The emulation isolates the authority, outbox, and fencing mechanisms from deployment
+variables---physical mesh transport, security overlay cost, and Android client
+integration---that do not bear on the authority model's correctness. Accordingly, it
+does not claim physical Rajant mesh behavior, measured WireGuard or mTLS overhead, or
+end-to-end Android validation, and the workload is single-incident and limited-scale.
+The safety properties are established by the TLA+ verification; the prototype shows the
+protocol can be implemented and operated under partition, and the Hypothesis
+state-machine tests check that its behavior agrees with the model on sampled traces.
+

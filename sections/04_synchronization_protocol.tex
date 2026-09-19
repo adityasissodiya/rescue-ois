@@ -1,0 +1,96 @@
+After M1 fixes which operations need command ordering, the protocol handles three cases:
+command writes crossing the boundary, responder submissions reaching it, and command
+transfer moving it. The identifiers are \textit{incident\_id}, client-supplied
+\textit{client\_event\_id}, command-assigned \textit{event\_seq}, and a command epoch (a
+numbered tenure; higher means newer authority).
+
+\subsection{Incident Journal Sequencing (M2)}
+\label{sec:protocol-m2}
+
+At that boundary, M2 lets command keep writing during responder outages without
+weakening R3. The command edge linearizes authority-bearing operations into a
+totally ordered journal (Figure~\ref{fig:journal-sequencing}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\columnwidth]{figures/fig_journal_sequencing.drawio.pdf}
+\caption{M2 incident-journal sequencing. The command edge accepts each
+\textit{client\_event\_id} once and assigns \textit{event\_seq} atomically with
+journal insertion, producing a totally ordered log; a duplicate
+\textit{client\_event\_id} folds onto its existing entry rather than taking a new
+sequence number. Consumers replay in \textit{event\_seq} order, and materialized
+state is rebuildable from the journal.}
+\label{fig:journal-sequencing}
+\end{figure}
+
+\subsection{Durable Outbox and Idempotent Submission (M3)}
+\label{sec:protocol-m3}
+
+For R1 and R2, M3 gives responders a safe local path before command is reachable:
+non-authority data are locally durable, idempotent, and eventually forwarded to the
+incident journal (Figure~\ref{fig:outbox-sequence}). The boundary is between local
+durability and authoritative command commit---a responder may acknowledge local
+acceptance after the outbox insert, but marks an item forwarded only after
+incident-journal acceptance or duplicate recognition.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_outbox_sequence.drawio.pdf}
+\caption{Responder outbox protocol is the steady-state field-submission path from tablet to incident journal. The journal assigns the authoritative sequence number, and duplicate delivery is handled by \textit{client\_event\_id}.}
+\label{fig:outbox-sequence}
+\end{figure}
+
+The M3 contract has three parts:
+\begin{enumerate}
+  \item Each submission has a globally unique idempotency key, \textit{client\_event\_id}, scoped by the incident and originating client identity.
+  \item A responder accepts a submission only after the event is stored in its local outbox.
+  \item A responder may mark an outbox item forwarded only after the command edge acknowledges durable incident-journal acceptance or duplicate recognition.
+\end{enumerate}
+
+Outbox delivery is at least once and is deduplicated at the command edge; there is
+no claim of causal ordering across independent responder outboxes before
+command assignment.
+
+\subsection{Fenced Promotion (M4)}
+\label{sec:protocol-m4}
+
+When command authority moves, M4 keeps R3 intact. Authority transfers without
+forking the journal. The design does not provide autonomous failover. An operator
+confirms fenced promotion, and fencing prevents stale command authority from
+continuing.
+
+Figure~\ref{fig:promotion-fencing} summarizes the rule. Each command tenure has
+a monotonically increasing epoch, issued per incident by the regional core
+rather than by the edge taking authority. Core issuance is what makes promotion
+serializable across independent vehicles: each edge owns its database, so an
+edge-local counter cannot distinguish two edges that both believe they lead.
+Promotion is gated on three preconditions. The candidate must already hold the
+complete journal prefix, fetched from core and verified contiguous; the epoch
+must be obtained from core, whose insert serializes concurrent attempts; and
+only then does the role change.
+
+Authority is bound to a node, not merely to a number. An edge that is demoted
+and later reconnects can read the current epoch from core and would otherwise
+look current to itself, so the journal boundary checks that a forwarded batch
+comes from the node recorded as holding that epoch. This is a protocol
+boundary, not an authentication one; the emulation uses unauthenticated
+identifiers (\S~\ref{sec:non-claims}).
+
+An isolated former command is the harder case, and the model is explicit about
+why: no message can reach it, so it cannot learn that its epoch is stale. It
+therefore fences \emph{itself}. Write authority is a lease renewed against core,
+and an edge that cannot renew stops accepting authority-bearing writes when the
+lease lapses---on a timeout it cannot refresh, not on being told. This
+sacrifices local write availability for the isolated edge in exchange for
+bounding the window in which two edges can both believe they hold authority.
+Because backhaul loss is not authority loss, the lease is renewed on an idle
+heartbeat as well as on traffic, so a quiet incident does not self-fence.
+\S~\ref{sec:eval-promotion} reports both outcomes and the strict-versus-weak
+comparison.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.62\columnwidth]{figures/fig_promotion_fencing.drawio.pdf}
+\caption{Fenced promotion preserves the single-writer invariant. Left (single-border): with fencing, the stale command is forced to rejoin as a responder. Right (double-border): without fencing, two command authorities can append concurrently, producing a forked journal.}
+\label{fig:promotion-fencing}
+\end{figure}

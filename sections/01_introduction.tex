@@ -1,0 +1,43 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Public-safety information systems must remain operational when commercial connectivity fails.
+Rescue-service vehicles operate up to several hours away from regional dispatch centres. In that terrain, wireless connectivity alternates between full wide-area coverage, mesh-only operation, and total isolation~\cite{zimbelman2022mesh, wang2023overview}.
+Disasters routinely degrade or destroy commercial telecom infrastructure precisely when
+coordination demand is highest. Vehicles must continue acting on stale or partial
+information, and field submissions entered on tablets must survive hours without
+connectivity. In command-hierarchical environments the consequences of information loss
+are wrong assignments, missed hazards, and conflicting orders.
+
+The operational constraints are grounded in public Swedish rescue-service
+guidance~\cite{rsg-rad201, rsg-kommunalplan}, which treats incident-planning information
+as an ongoing, secrecy-restricted process rather than a static artifact; independent
+studies of Swedish rescue-service information systems confirm these requirements and the
+gaps in information flow~\cite{pilemalm2014enabling, westman2021mobilisation}.
+From these public sources we derive three requirements and two deployment
+constraints. The requirements are \textit{R1:} offline operation, \textit{R2:} durable forward-only
+field submission, and \textit{R3:} attributable command authority. The deployment
+constraints are avoiding cross-vehicle broadcast hazards and reusing existing
+rescue-service certificate and identity infrastructure.
+
+The design question is: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?}
+The answer is \methodname{} (AAL), a consistency discipline that places the
+incident-journal linearization point at the command edge, the vehicle edge node currently
+holding operational command authority. We specify and verify AAL using
+TLA+~\cite{tlaplus} and Hypothesis~\cite{maciver2019hypothesis} and implement it in a
+prototype built around responder outboxes, a single incident journal, and fenced
+promotion: the operator-initiated transfer of command authority between edges.
+
+\systemname{} is a newly named design discipline, not a newly invented
+primitive. Single-writer replication, transactional outboxes, idempotency keys,
+epochs, and fencing are all established; what is new is the domain-derived
+authority boundary that decides which mechanism governs which incident data.
+We make three contributions:
+
+\begin{enumerate}
+  \item (C1) a problem analysis of authority-bearing incident coordination under intermittent vehicle-edge connectivity, and an authority/state-class boundary that neither local-first, CRDT-based, nor consensus-based designs directly satisfy, formalized in TLA+ and mirrored by two independent Hypothesis state machines;
+
+  \item (C2) a two-edge realization of fenced promotion---core-issued per-incident command epochs, journal-prefix bootstrap as a promotion precondition, epoch-holder binding at the journal boundary, and a renewable authority lease---implemented and measured across two independent vehicle-edge instances under a real network partition, including the case where the superseded edge cannot be informed at all;
+
+  \item (C3) a partition-based evaluation on an executable prototype\footnote{Zip file of the repository attached with the reference material for double-blind compliance.} (Docker Compose, \textit{tc-netem}) against Hanssen-style CRDT-LWW and Raft baselines, separating safety and authority claims from availability and latency trade-offs, and extending beyond static impairment to transitions between connectivity regimes and to fleets of up to ten concurrent responder edges.
+\end{enumerate}

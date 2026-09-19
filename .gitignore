@@ -1,0 +1,9 @@
+# LaTeX build output (regenerable via build.ps1)
+/build/
+
+# Scratch render directories used for page measurement / previews
+/tmp/
+
+# Python
+__pycache__/
+*.pyc

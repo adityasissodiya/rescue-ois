@@ -1,0 +1,80 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{rotating}
+\usepackage[hidelinks]{hyperref}
+% Allow \path{} to break across lines at typical path separators so long
+% file paths in tables do not overflow their column.
+\Urlmuskip=0mu plus 1mu\relax
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\do\/\do\-\do\_\do\.}
+\makeatother
+\hypersetup{
+  pdfauthor={},
+  pdftitle={Authority-Aligned Linearization: Fenced Command Authority for Vehicle-Edge Networks under Intermittent Connectivity},
+  pdfsubject={WONS 2027 Submission},
+  pdfkeywords={},
+  pdfproducer={},
+  pdfcreator={}
+}
+% Suppress pdfTeX-generated CreationDate/ModDate and the random trailer ID;
+% these fields can carry the build host's local timezone and otherwise
+% identify the build environment under double-blind review.
+\pdfinfoomitdate=1
+\pdftrailerid{}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds}
+
+\setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=2pt}
+\setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
+
+\newcommand{\systemname}{AAL}
+\newcommand{\methodname}{authority-aligned linearization}
+\input{data/promotion_summary}
+\input{data/throughput_summary}
+
+\title{Authority-Aligned Linearization: Fenced Command Authority for Vehicle-Edge Networks under Intermittent Connectivity}
+
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{Anonymous Affiliation\\
+Submitted to WONS 2027 (double-blind review)}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\input{sections/00_abstract}
+\end{abstract}
+
+\begin{IEEEkeywords}
+authority-aligned linearization, intermittent connectivity, distributed systems \& Platforms, incident response, prototypes \& experiences
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_problem_analysis}
+\input{sections/03_architecture}
+\input{sections/04_synchronization_protocol}
+\input{sections/05_implementation}
+\input{sections/06_evaluation}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

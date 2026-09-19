@@ -1,0 +1,154 @@
+\section{Problem Analysis}
+\label{sec:problem-analysis}
+
+Rescue-service incident response exposes a design tension between availability and authority. Responders must continue operating under intermittent connectivity, yet authority-bearing incident decisions must remain attributable to a single operational commander.
+
+The target setting is municipal rescue-service incident response: a regional core
+supports dispatch and reference data, vehicle edge nodes operate near the incident site,
+and field tablets attach to local vehicles as leaf clients. Vehicles move between
+wide-area connectivity, mesh-only contact, and total
+isolation~\cite{zimbelman2022mesh,wang2023overview}. One vehicle edge node holds the
+command role for the incident---the \emph{command edge}. The role can move to another
+vehicle, but only through an explicit human decision that the protocol must respect. 
+
+\subsection{Operational Requirements}
+\label{sec:requirements}
+
+R1 and R2 follow from mobile-IT and incident-reporting findings that responders need
+locally available information and durable later
+documentation~\cite{rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}; R3
+follows from decision-provenance requirements and rescue-service command
+guidance~\cite{naja2010provenance,rsg-rad201}.
+
+The externally motivated operational requirements are:
+\begin{itemize}
+  \item \textbf{\textit{R1 (Offline operation)}} Each tier must keep working from
+  previously synchronized data without continuous connectivity.
+  \item \textbf{\textit{R2 (Durable forward-only submission)}} Field submissions entered
+  on tablets must survive vehicle restart and prolonged partition.
+  \item \textbf{\textit{R3 (Attributable command authority)}} Resource assignments,
+  status transitions, and hazard annotations must be attributable to one
+  operational command authority at any instant.
+\end{itemize}
+
+These requirements sit at different layers by design: R1 and R2 are availability and
+durability properties \systemname{} satisfies with weaker local and eventual contracts
+outside the authority boundary, while R3 is a single-authority property satisfied inside
+it. The contribution is the state-class partition that lets the three be met by different
+contracts rather than forcing one contract on all incident data.
+
+R3 is not a claim that crisis governance is simple. Incident-command studies and
+emergency-management reviews describe hierarchies embedded in multi-actor
+response networks, where authority may be shared, delegated, contested, or
+legally bounded.
+Yet emergency-response decision provenance still requires a defined subset of
+command decisions to remain attributable to the authority that made
+them~\cite{naja2010provenance}; R3 abstracts that accountability property---
+authority-bearing writes have one current command authority, while other coordination need
+not be single-leader---yielding conservative transfer semantics: a new command edge is
+accepted only after operator-initiated promotion, never inferred from reachability.
+
+\subsection{Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}
+\label{sec:positioning}
+
+\systemname{} recombines known mechanisms--single-leader replication,
+transactional outbox~\cite{richardson2018microservices}, idempotency keys, and
+manual fencing--under a domain rule (the command edge is the incident-journal
+linearization point). The incident-state entity owns its decision history;
+external actors submit forward-only events rather than mutate it
+directly.
+
+\textit{Consensus and replicated state machines.} These provide totally ordered logs
+under their stated failure
+models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,vanrenesse2004chain},
+but election-based liveness selects the writer by reachability, whereas R3 fixes it by
+operational command (\S~\ref{sec:eval-raft}).
+
+\textit{CRDTs and strong eventual consistency.} Mergeable replicated
+state~\cite{almeida2014delta,hanssen2025emergency,almeida2024crdtsurvey} serves
+R1 and R2 well but cannot satisfy R3~\cite{mao2024reliablecrdt}: authority-bearing
+decisions are non-commutative, and no merge is application-defensible when two responders
+set the same status to conflicting values. R3 requires attribution and a single
+authoritative order, not automatic conflict resolution. \systemname{}'s measured path
+preserves both writes in an attributed total order; semantic guards are a disclosed
+extension (\S~\ref{sec:non-claims}).
+
+\textit{Offline-first and local-first systems.} These prioritize local
+availability~\cite{kleppmann2019localfirst,richardson2018microservices} and are
+the right model for reference data, field submissions, and materialized views,
+but their goal is replica \emph{autonomy}---precisely what the command hierarchy
+rejects for authority-bearing decisions (R3).
+
+\textit{Why not a centralized backend?} No server can serialize writes it cannot reach,
+and partition from the incident is the common case---vehicles operate hours from dispatch
+(\S~\ref{sec:introduction})---so authority-bearing decisions must serialize at the
+incident during total backhaul isolation. A backend-authoritative offline-first design
+has two bad options: block command decisions while isolated, violating R1 for the command
+stream, or let field nodes write provisionally and reconcile later, reintroducing the
+multi-writer merge problem R3 forbids. \systemname{} places the linearization point at
+the command edge precisely so the authoritative order survives backhaul partition; the
+regional core still owns reference data, which tolerates the weaker R1 and R2
+contracts.
+
+\textit{Emergency and edge networking.} Closest in setting,
+CoNICE~\cite{jahanian2022conice} reaches consensus among infrastructure-less peers using
+One-Third-Rule agreement over epidemic replication and causality metadata---substantial
+machinery when the operational problem already designates a commander, and its
+no-privileged-peer assumption is exactly the one R3 removes. Public-safety and edge/fog
+research places resilient transport and storage near
+responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng}, addressing
+R1 transport but not which actor may issue an authority-bearing decision.
+
+\begin{table*}[t]
+\centering
+\caption{Positioning of \systemname{} against the closest system families. The
+discriminating column is authority transfer: every other family either elects a
+writer by reachability, admits any replica as a writer, or has no authority
+concept at all.}
+\label{tab:related-work}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}p{0.13\textwidth}p{0.175\textwidth}p{0.185\textwidth}p{0.17\textwidth}X@{}}
+\toprule
+\textbf{System} & \textbf{Writer selection} & \textbf{Partition behavior} & \textbf{Authority transfer} & \textbf{Core assumption} \\
+\midrule
+\textbf{\systemname{} (this paper)} & Fixed to the externally designated command role, not inferred from reachability & Command-side writes continue; responder writes queue durably & Fenced, operator-confirmed, epoch-gated & The command edge's local storage stays reachable to itself \\
+\addlinespace
+Primary/backup with fencing~\cite{kleppmann2017ddia} & Manual failover from a configured primary & Backup blocked until fenced failover & Manual, fencing-token-based & A fencing mechanism (STONITH-class) is available \\
+\addlinespace
+RedBlue consistency~\cite{li2012redblue} & Red operations need a single order; blue commute & Blue proceeds under partition; red blocks & None (no authority concept) & Operations are classifiable as commutative or not \\
+\addlinespace
+CoNICE~\cite{jahanian2022conice} & One-Third-Rule agreement among reachable peers & Epidemic replication with causality metadata & Peer-driven; no designated commander & No peer is privileged --- exactly what R3 rejects \\
+\addlinespace
+Emergency CRDT-LWW~\cite{hanssen2025emergency} & Any replica (mergeable by default) & All replicas keep writing & None & The merge function is application-acceptable \\
+\addlinespace
+Raft / shared log~\cite{ongaro2014raft,balakrishnan2013tango} & Reachable quorum elects a leader & Minority partition cannot commit & Election, reachability-driven & The leader is whoever the quorum reaches, not who the organization designates \\
+\addlinespace
+Local-first~\cite{kleppmann2019localfirst} & Any replica (replica autonomy) & All replicas keep working & None & Replica autonomy is acceptable for the data class \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Each family helps responders keep working or order writes, but none decides \emph{which
+actor} may issue an authority-bearing decision during a partition
+(Table~\ref{tab:related-work}). Primary/backup systems already use manual failover and
+fencing tokens~\cite{kleppmann2017ddia}; the distinction here is using operational command
+authority to set the linearization boundary while assigning weaker contracts to
+non-authority incident data.
+
+\subsection{Assumptions and Design Choices}
+\label{sec:assumptions}
+
+The assumptions made in this paper are responses to the requirements, not the requirements
+themselves. R3 does not require a single-writer database for all incident state;
+it requires authority-bearing decisions to remain attributable to the current
+command authority. \systemname{} conservatively places the incident-journal
+linearization boundary at the command edge, while reference data, field
+submissions, and materialized views keep weaker local or eventual contracts.
+
+The deployment constraints identified in the introduction are separate. The mesh
+should act as routed transit rather than a stretched user network, and the system
+must reuse the rescue-service identity infrastructure. Their architectural
+consequences---edge cache and local services, tablet/edge outbox and retry, a
+single incident-journal writer, mesh-as-transit routing, and mTLS/CA identity
+integration---are developed in \S~\ref{sec:architecture}.
