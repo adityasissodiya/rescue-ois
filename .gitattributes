@@ -1,0 +1,4 @@
+# Shell scripts must stay LF: CRLF breaks shebang handling when the artifact
+# is run on Linux, and broke dev-up.sh when invoked from a non-MSYS parent
+# process (Git Bash tolerates CR, a directly-spawned bash.exe does not).
+*.sh text eol=lf
