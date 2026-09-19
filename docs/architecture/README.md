@@ -59,10 +59,13 @@ This rule avoids multi-writer conflict resolution for authority-bearing incident
 The current repository evaluates the implemented Docker/Python service path:
 responder outbox forwarding, command-side idempotent sequencing,
 command-to-core backfill, duplicate replay, selected partition behavior, and
-model-level promotion safety. It does not validate Rajant radio behavior,
-Android tablet persistence, WireGuard or mTLS overhead, production
-promotion/fencing, service-level durable `command_epoch` rejection, or exhaustive
-crash-boundary safety.
+model-level promotion safety. Service-level durable `command_epoch` storage and
+stale-epoch rejection **are** measured on the single-edge command path
+(`edge/syncd/src/accept.py`, `scripts/evaluate-fenced-promotion.py`). It does not
+validate Rajant radio behavior, Android tablet persistence, WireGuard or mTLS
+overhead, production promotion/fencing, genuine multi-edge fenced promotion
+(two independent edges, journal-prefix transfer, isolated stale writer), or
+exhaustive crash-boundary safety.
 
 The direct command accept-path partition artifact is intentionally narrow. It
 isolates a responder `syncd` process and submits command-originated writes

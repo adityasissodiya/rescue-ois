@@ -22,7 +22,7 @@ Only **one K430 per incident** writes authority-bearing events to `incident.jour
 
 **Negative:**
 
-- The command vehicle is a single point of write availability for authority-bearing incident events. Recovery requires explicit fenced promotion; the current service implementation does not yet persist durable command epochs or reject stale epochs.
+- The command vehicle is a single point of write availability for authority-bearing incident events. Recovery requires explicit fenced promotion. Durable command epochs and stale-epoch rejection are implemented on the single-edge service path (`edge/db/migrations/005_command_epoch.sql`, `edge/syncd/src/accept.py::validate_request_epoch`), but multi-edge promotion is not: an isolated former command edge has no channel by which to learn its epoch is stale, and journal-prefix bootstrap from core is unimplemented. See ADR-0004 for the promotion authority model.
 - Responder vehicles must persist outbox entries durably until acked.
 - Promotion must be auditable and fenced to prevent split authority.
 

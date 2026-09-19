@@ -60,21 +60,47 @@ partition.
 
 Model-level evidence covers the central safety failure: weak promotion without
 fencing produces a `SingleAuthority` counterexample and can produce a
-`NoForkedJournal` violation. The running services do not yet implement durable
-`command_epoch` storage or stale-epoch rejection.
+`NoForkedJournal` violation.
+
+Durable `command_epoch` storage and stale-epoch rejection **are** implemented on
+the single-edge service path. Migration `edge/db/migrations/005_command_epoch.sql`
+creates `incident.command_epoch` and the `incident.current_epoch` view;
+`edge/syncd/src/accept.py` caches the epoch (`init_epoch_cache`,
+`refresh_epoch_cache`) and validates `X-Command-Epoch` in
+`validate_request_epoch`, rejecting stale, future, and missing values with HTTP
+409 before any journal write; each accepted row is stamped with its
+`command_epoch`. Unit-covered by `edge/syncd/tests/test_accept_epoch.py` and
+measured by `scripts/evaluate-fenced-promotion.py`.
+
+What remains unimplemented is genuine **multi-edge** fenced promotion: an
+isolated former command edge learning that its epoch is stale, and a newly
+promoted edge obtaining the journal prefix from core (`edge/syncd/src/pull.py` is
+a no-op stub and `core/sync-api` exposes no journal-row endpoint). Rejection
+today happens at the current command's own acceptor, not at the stale writer.
 
 ## Test Gaps To Keep Visible
 
-The repository should keep these missing validations visible until they are
-implemented:
+All of the tests below live in
+`edge/syncd/tests/test_partition_and_boundary_visibility.py`. Four are now
+implemented as opt-in integration tests (`RESCUE_OIS_INTEGRATION_TESTS=1`, which
+starts or reuses the local Compose stack):
 
 - `test_responder_partition_outbox_accumulates_then_replays`
 - `test_crash_after_local_outbox_insert_before_forward_preserves_event`
-- `test_crash_after_command_append_before_ack_does_not_duplicate_on_retry`
-- `test_crash_before_forwarded_mark_retries_without_duplicate_journal_row`
+  (drives `scripts/evaluate-outbox-crash-restart.py`)
 - `test_stale_command_epoch_rejected_after_promotion`
 - `test_promotion_record_required_before_new_command_accepts_events`
-- `test_no_two_command_writers_for_same_incident_epoch`
+
+Three remain genuinely unimplemented and are kept visible as
+`@pytest.mark.xfail(strict=True)`, so they fail the suite if they ever start
+passing silently:
+
+- `test_no_two_command_writers_for_same_incident_epoch` — cross-edge two-writer
+  race; model-only, see the strict TLA+ `SingleCommand` property
+- `test_crash_after_command_append_before_ack_does_not_duplicate_on_retry` —
+  mid-flight ack-loss crash injection not automated
+- `test_crash_before_forwarded_mark_retries_without_duplicate_journal_row` —
+  mid-flight forwarded-mark crash injection not automated
 
 The Raft baseline is only a quorum-progress illustration. It is not a
 workflow-equivalent baseline for the Rescue OIS application.

@@ -52,3 +52,51 @@ Rescue OIS does not issue identities. It consumes:
 - Existing organizational CA for device, service, and operator certificates
 
 This avoids a parallel identity universe and keeps revocation in one place.
+
+## Threat Model and Residual Risks
+
+The sections above describe the controls the design applies. This section records
+what those controls do **not** cover. None of it is established by the Docker
+emulation; these are deployment and hardening questions.
+
+### Trust assumptions
+
+The target deployment assumes an organizational CA or identity provider with
+enrolled devices and users. The backend trusts certificate-derived identity only
+when the reverse proxy and service boundary are correctly configured. Replayed
+field submissions are handled by `client_event_id` idempotency, and tablet
+reachability is limited by local edge APIs and network segmentation.
+
+### Stolen or compromised tablet
+
+Revocation is possible only when nodes regain contact with the authority
+infrastructure or receive an updated trust bundle. **Instantaneous revocation
+during total disconnection is not provided.** See
+[../adr/0005-revocation-under-partition.md](../adr/0005-revocation-under-partition.md)
+for the fail-safe-after-grace model.
+
+### Stolen vehicle node
+
+More serious than a stolen tablet, because the node may hold cached incident data
+— and if it is the command edge, it also holds operational authority. Mitigation
+is device encryption, operational fencing, and audit, not cryptographic
+prevention.
+
+### Captured or buggy command edge
+
+**This is the central trade-off of making command authority explicit.** Because
+authority is designated rather than emergent, a command edge that is captured or
+malfunctioning can poison the incident journal for as long as it holds authority.
+The architecture relies on operational fencing and audit rather than Byzantine
+tolerance. A system that inferred authority from quorum would fail differently,
+not better: it would move authority away from the operationally designated
+commander (see `docs/what-fails-without-our-solution.md`).
+
+### Explicitly out of scope
+
+The design does not address:
+
+- a compromised organizational CA;
+- Byzantine command behavior;
+- physical tamper resistance beyond deployment controls;
+- audit-log integrity against a fully compromised node.
