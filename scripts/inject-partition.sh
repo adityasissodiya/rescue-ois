@@ -4,8 +4,9 @@
 # Usage:
 #   ./scripts/inject-partition.sh wan 60      # cut ONLY the command-to-core backhaul for 60s
 #   ./scripts/inject-partition.sh mesh 60     # detach a responder edge from the network for 60s
+#   ./scripts/inject-partition.sh cmd 60      # detach the COMMAND edge from the network for 60s
 #
-# Two partition models, deliberately different:
+# Three partition models, deliberately different:
 #
 #   wan  - Surgical command-core WAN cut. Drops traffic between the command
 #          syncd and the regional core sync-api ONLY, using tc on the command
@@ -23,6 +24,20 @@
 #          harness, where the only requirement is that the responder syncd is
 #          unreachable from the command edge; the responder is not written to
 #          while isolated, so a full detach does not distort that measurement.
+#
+#   cmd  - Full detach of the COMMAND edge from the bridge. This is the
+#          primitive the two-edge fenced-promotion experiment needs: it
+#          isolates the incumbent command so a responder can be promoted
+#          around it, and so the incumbent's behaviour while unreachable
+#          (continuing to accept locally, then being refused on rejoin) can be
+#          measured rather than asserted.
+#
+#          Note this severs the command edge from its own Postgres as well,
+#          because that container is reached over the same bridge. That is the
+#          intended semantics here -- a vehicle that has driven out of range
+#          loses every peer at once -- but it is why `wan` exists separately:
+#          `wan` cuts only the backhaul and deliberately leaves local storage
+#          reachable. Do not use `cmd` to measure backhaul-only recovery.
 #
 # Emits structured audit events to $RESCUE_OIS_PARTITION_AUDIT_PATH
 # (default partition_audit.jsonl). These records are intentionally separate
@@ -147,11 +162,46 @@ run_mesh() {
     echo "Mesh partition on $container resolved after ${DURATION}s."
 }
 
+# ---------------------------------------------------------------------------
+# cmd: full detach of the command edge from the bridge.
+# ---------------------------------------------------------------------------
+run_cmd() {
+    local container="$CMD_SYNCD_CONTAINER"
+    if ! docker container inspect "$container" >/dev/null 2>&1; then
+        echo "Container $container not found. Is the stack up?" >&2
+        exit 1
+    fi
+
+    # Capture the network aliases before detaching: reconnecting without them
+    # would leave the command edge reachable by IP but not by `syncd.edge-cmd`,
+    # so responders would stay silently unable to reach it after the heal.
+    local aliases
+    aliases=$(docker inspect "$container" -f \
+        '{{range $i,$v := (index .NetworkSettings.Networks "'"$NETWORK_NAME"'").Aliases}}{{if $i}} {{end}}{{$v}}{{end}}')
+
+    local t0_ns
+    t0_ns=$(date +%s%N)
+    docker network disconnect "$NETWORK_NAME" "$container"
+    emit "partition_injected" "null" "model=docker-detach container=$container duration_s=$DURATION"
+
+    sleep "$DURATION"
+
+    local alias_args=()
+    for a in $aliases; do alias_args+=(--alias "$a"); done
+    docker network connect "${alias_args[@]}" "$NETWORK_NAME" "$container"
+    local t1_ns dur_ms
+    t1_ns=$(date +%s%N)
+    dur_ms=$(( (t1_ns - t0_ns) / 1000000 ))
+    emit "partition_resolved" "$dur_ms" "model=docker-detach container=$container duration_ms=$dur_ms"
+    echo "Command-edge partition on $container resolved after ${DURATION}s."
+}
+
 case "$TARGET" in
     wan)  run_wan ;;
     mesh) run_mesh ;;
+    cmd)  run_cmd ;;
     *)
-        echo "Unknown target: $TARGET (expected wan|mesh)" >&2
+        echo "Unknown target: $TARGET (expected wan|mesh|cmd)" >&2
         exit 1
         ;;
 esac
