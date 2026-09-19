@@ -1,28 +1,32 @@
-"""Pull baseline master data and published packages from the regional core.
+"""Core-to-edge baseline pull. NOT IMPLEMENTED.
 
-Sync flow 1: Core → Vehicle baseline. Both responder and command roles run
-this. Polls `sync-api`/`packages` over the WireGuard overlay, applies master
-events to the local edge cache, and downloads new package files via HTTP range
-requests for resumable transfer.
+Sync flow 1 (core master data and published packages replicated down to every
+vehicle edge) is deployment design only. No baseline replication, package
+download, or HTTP range-request transfer is implemented in this prototype, and
+the evaluation does not measure any of it.
+
+This module previously contained a loop that slept and then emitted
+``pull_sync_start`` / ``pull_sync_complete`` records with a fabricated
+``latency_ms`` to a logger named ``eval_metrics``. Those numbers described
+nothing that happened and shared a namespace with the real evaluation harness
+output, so they were removed rather than left to be mistaken for measurements.
+
+For the one replication path that *is* implemented -- fetching the
+authoritative incident-journal prefix from core before a promotion -- see
+``src/bootstrap.py``.
 """
 
+from __future__ import annotations
 
-import time
 import logging
-import json
-import asyncio
 
-logger = logging.getLogger("eval_metrics")
+logger = logging.getLogger("syncd.pull")
+
 
 async def run() -> None:
-    """Continuously pull master events and packages from core into the local cache."""
-    while True:
-        t0 = time.time()
-        logger.info(json.dumps({"metric": "pull_sync_start", "ts": t0}))
-        
-        # Simulate network fetch latency
-        await asyncio.sleep(0.5)
-        
-        t1 = time.time()
-        logger.info(json.dumps({"metric": "pull_sync_complete", "ts": t1, "latency_ms": (t1 - t0) * 1000}))
-        await asyncio.sleep(5)
+    """No-op. Kept so the module remains importable and the gap stays visible.
+
+    Not started by ``main.py``: the lifespan wires only ``push`` (responder) and
+    ``forward`` (command).
+    """
+    logger.info("pull: core-to-edge baseline replication is not implemented; see bootstrap.py")
