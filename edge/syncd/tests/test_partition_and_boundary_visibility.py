@@ -19,7 +19,6 @@ from urllib.request import Request, urlopen
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[3]
 NETWORK_NAME = "rescue-ois-net"
 RESP_OPS = os.environ.get("RESP_OPS", "http://127.0.0.1:18101")
@@ -370,14 +369,140 @@ def test_promotion_record_required_before_new_command_accepts_events() -> None:
     assert body.get("detail", {}).get("reason") == "future_epoch"
 
 
-@pytest.mark.xfail(
-    reason="cross-edge SingleCommand is established by the strict TLA+ model (Sec V); the "
-    "single-edge service harness cannot run two command-role writers for the same incident, "
-    "so this property has no service-path witness",
-    strict=True,
-)
+CORE_API = os.environ.get("CORE_API", "http://127.0.0.1:18000")
+
+
+def _core_batch(incident_id: str, seq: int, *, epoch: int | None = None, node_id: str | None = None) -> dict:
+    body: dict = {
+        "events": [
+            {
+                "incident_id": incident_id,
+                "event_seq": seq,
+                "event_type": "observation",
+                "payload": {"seq": seq},
+                "device_id": "pytest",
+                "user_id": "pytest",
+                "client_event_id": str(uuid.uuid4()),
+                "created_at": datetime.now(UTC).isoformat(),
+            }
+        ]
+    }
+    if epoch is not None:
+        body["command_epoch"] = epoch
+    if node_id is not None:
+        body["node_id"] = node_id
+    return body
+
+
+def _core_event_count(incident_id: str) -> int:
+    """Count core-side events for one incident, over HTTP.
+
+    Deliberately not `docker exec psql`: keeping these two tests on the HTTP
+    surface lets them run anywhere that can reach core -- including from inside
+    a container -- instead of requiring a Docker socket on the test host.
+    """
+    status, body = _http_json(
+        "GET",
+        f"{CORE_API}/sync/journal-events?incident_id={incident_id}&after_seq=0&limit=500",
+    )
+    assert status == 200, body
+    return len(body["events"])
+
+
+@pytest.mark.integration
 def test_no_two_command_writers_for_same_incident_epoch() -> None:
-    raise AssertionError("cross-edge two-writer race is model-only; see strict TLA+ SingleCommand")
+    """Two independent edges cannot both write to the authoritative journal.
+
+    This is the service-path witness for the property that was previously
+    model-only (strict TLA+ SingleCommand). It exercises the enforcement point
+    that decides it: core's journal-batch acceptance.
+
+    Holding the right epoch *number* is not sufficient, and that distinction is
+    the whole point. A demoted command edge that reconnects can read the
+    current epoch from core, so it looks current to itself; authority is held
+    by a specific node, and core checks the node recorded against the epoch.
+    A second writer is therefore rejected even when it quotes the correct
+    epoch. Both rejections must also leave the journal untouched.
+    """
+    _require_integration()
+    incident_id = str(uuid.uuid4())
+
+    # Seed a prefix, then issue two epochs so the current one is unambiguous.
+    status, _ = _http_json("POST", f"{CORE_API}/sync/journal-batch", _core_batch(incident_id, 1))
+    assert status == 200
+    for _ in range(2):
+        status, promoted = _http_json(
+            "POST",
+            f"{CORE_API}/sync/command-epoch/promote",
+            {"incident_id": incident_id, "started_by": "pytest", "node_id": "edge-alpha"},
+        )
+        assert status == 200, promoted
+    current_epoch = promoted["epoch_id"]
+
+    before = _core_event_count(incident_id)
+
+    # A different node, quoting the correct current epoch, must be refused.
+    status, body = _http_json(
+        "POST",
+        f"{CORE_API}/sync/journal-batch",
+        _core_batch(incident_id, 2, epoch=current_epoch, node_id="edge-beta"),
+    )
+    assert status == 409, body
+    assert body["detail"]["reason"] == "not_epoch_holder"
+    assert body["detail"]["epoch_held_by"] == "edge-alpha"
+
+    # A stale epoch from any node is likewise refused.
+    status, body = _http_json(
+        "POST",
+        f"{CORE_API}/sync/journal-batch",
+        _core_batch(incident_id, 3, epoch=current_epoch - 1, node_id="edge-alpha"),
+    )
+    assert status == 409, body
+    assert body["detail"]["reason"] == "stale_epoch"
+
+    # Neither rejection may have written anything: the fence precedes the write.
+    assert _core_event_count(incident_id) == before
+
+    # The holder itself is still able to write, so the check fences the
+    # impostor rather than the incident.
+    status, body = _http_json(
+        "POST",
+        f"{CORE_API}/sync/journal-batch",
+        _core_batch(incident_id, 2, epoch=current_epoch, node_id="edge-alpha"),
+    )
+    assert status == 200, body
+    assert _core_event_count(incident_id) == before + 1
+
+
+@pytest.mark.integration
+def test_forked_sequence_is_rejected_as_protocol_error_not_server_error() -> None:
+    """A duplicate event_seq from a different client_event_id is a forked journal.
+
+    The UNIQUE (incident_id, event_seq) constraint catches it, but it must
+    surface as a protocol rejection rather than a 500: forward.py treats
+    non-200/non-409 as transient and would retry a fork forever instead of
+    standing down.
+    """
+    _require_integration()
+    incident_id = str(uuid.uuid4())
+
+    status, _ = _http_json("POST", f"{CORE_API}/sync/journal-batch", _core_batch(incident_id, 1))
+    assert status == 200
+    status, promoted = _http_json(
+        "POST",
+        f"{CORE_API}/sync/command-epoch/promote",
+        {"incident_id": incident_id, "started_by": "pytest", "node_id": "edge-alpha"},
+    )
+    assert status == 200, promoted
+
+    # Same event_seq, different client_event_id => two writers allocated it.
+    status, body = _http_json(
+        "POST",
+        f"{CORE_API}/sync/journal-batch",
+        _core_batch(incident_id, 1, epoch=promoted["epoch_id"], node_id="edge-alpha"),
+    )
+    assert status == 409, body
+    assert body["detail"]["reason"] == "forked_sequence"
 
 
 @pytest.mark.integration
