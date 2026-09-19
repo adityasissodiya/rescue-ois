@@ -164,6 +164,12 @@ Important details:
   saturation rate. A 200-event batch is dominated by fixed per-event latency
   rather than serializer throughput; both are lower bounds on different axes.
 
+All three of these harnesses record `git_tree_dirty` next to `git_commit` in
+their `environment` block. A commit hash only identifies the code that ran if
+the working tree matched it, so if `git_tree_dirty` is `true` in a dataset,
+treat its `git_commit` as the nearest commit rather than as the code under test.
+Commit before a measurement run you intend to publish.
+
 A note on `tc` scope that cost real debugging time: a **root qdisc** impairs all
 egress from the container, including its own Postgres connection over the same
 bridge, which silently inflates any latency measured through that container. Use
@@ -366,7 +372,8 @@ non-claims:
   the netem harness cleans up on normal exit, but a killed run can leave qdiscs
   in a bad state.
 - If a harness that shells out to `./scripts/*.sh` dies with
-  `$'': command not found`, your checkout has CRLF line endings. `.gitattributes`
+  `$'
+': command not found`, your checkout has CRLF line endings. `.gitattributes`
   pins `*.sh text eol=lf`; re-clone or run `git add --renormalize .`.
 - On Windows, Python's `subprocess` resolves a bare `bash` to WSL's bash, whose
   distro usually has no Docker integration (`The command 'docker' could not be
