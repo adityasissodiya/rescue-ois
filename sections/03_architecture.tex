@@ -12,7 +12,7 @@ responder submissions, and M4 moves command authority without forking the journa
 
 M1 sets the consistency boundary for R1, R2, and R3. Non-authority classes use
 local/eventual contracts for R1 and R2; authority-bearing decisions use the
-single-writer contract R3 demands. An operation crosses the linearization boundary only when accepting concurrent versions
+single-writer contract R3 demands. An operation crosses the authority boundary only when accepting concurrent versions
 would create an authority conflict---resource assignments, incident status transitions,
 and command hazard annotations---and is then accepted only by the command edge, with a
 command-assigned \textit{event\_seq}. This is a RedBlue-style
@@ -27,6 +27,5 @@ Moving command authority requires the fenced-promotion rule of
 \S~\ref{sec:protocol-m4} so a stale command edge cannot keep appending.
 
 
-Vehicle edges provide local services during disconnection; tablets are leaf
-clients outside command sequencing. The mesh between vehicles is routed transit,
-not a consistency mechanism, and user VLANs are not extended across vehicles.
+The mesh between vehicles is routed transit, not a consistency mechanism, and
+user VLANs are not extended across vehicles.

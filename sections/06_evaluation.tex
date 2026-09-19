@@ -14,7 +14,8 @@ not aggregate. Each cell repeats $n=30$ unless noted, with median and p95
 reported. Partitions cut only the targeted path with \textit{tc}, so each cell
 isolates one effect.
 Impairment uses two \textit{tc-netem} profiles informed by published mesh
-measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}. Table~\ref{tab:evaluation} collects the primary service-path numbers.
+measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}.
+Table~\ref{tab:evaluation} collects the primary service-path numbers.
 
 \begin{table}[t]
 \centering
@@ -30,7 +31,7 @@ measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}. Table~\ref{tab:evaluati
 \end{tabularx}
 \end{table}
 
-\subsection{Linearization boundary and journal sequencing (M1--M2)}
+\subsection{Authority boundary and journal sequencing (M1--M2)}
 \label{sec:eval-independence}
 \label{sec:eval-m1}
 \label{sec:eval-m2}
@@ -85,7 +86,7 @@ rather than a network cost.
 \centering
 \includegraphics[width=0.85\columnwidth]{figures/fig_promotion_cost.pdf}
 \caption{Fenced-promotion protocol cost by phase. Phase~A is pre-transition
-commits at epoch~$e$, phase~B is stale-epoch rejections at the boundary,
+commits at epoch~$e$, phase~B is stale-epoch rejections at the journal boundary,
 phase~C is post-transition commits at epoch~$e+1$. $n=\promotionN$ events
 ($\promotionNPerPhase$ per phase). Vertical markers are pooled across phases:
 median \promotionMedianCombined{}, p95 \promotionPNinetyFiveCombined{}. The
@@ -113,8 +114,9 @@ Two outcomes matter for R3, and both are measured rather than asserted. First, w
 superseded edge reconnects and forwards the writes it buffered while isolated, core
 refuses them because another node holds the epoch; the edge demotes itself, and its own
 accept path then refuses authority-bearing writes. Its buffered rows are retained for
-reconciliation, and the authoritative journal is unchanged throughout---the fork is
-contained at the boundary and never admitted. Second, when the \emph{current} holder
+reconciliation, and the authoritative journal is unchanged throughout---the fork
+is contained at the
+journal boundary and never admitted. Second, when the \emph{current} holder
 loses only its backhaul, it accepts writes while its lease is valid and refuses them
 once the lease lapses, recovering when the link returns. It is never informed that
 anything happened; it stops on a timeout it cannot renew, which is the honest form of
@@ -179,7 +181,8 @@ R3's service-path scope; semantic rejection is an additional guard disclosed in
 
 The baseline is deliberately lightweight and in-memory, converging only through
 harness-triggered \textit{full\_sync()}: the test needs the merge rule exercised on
-concurrent authority-bearing writes, not storage parity. The asymmetry favors CRDT where it already performs better, which is the
+concurrent authority-bearing writes, not storage parity. The asymmetry favors
+CRDT where it already performs better, which is the
 correct bias for a falsification: if mergeable-by-default semantics cannot encode
 authority even under favorable conditions, the semantic argument holds regardless
 of infrastructure differences.
@@ -205,7 +208,8 @@ safety, and measured CRDT-LWW semantics separate.
 
 This measures command-to-core forwarding after a WAN heal, with a narrowly
 targeted \textit{tc} cut of the command-to-core path only, so the measurement
-isolates backhaul flush time (Table~\ref{tab:evaluation}). Recovery is bounded by the forward poll loop and backlog, not outage length, so
+isolates backhaul flush time (Table~\ref{tab:evaluation}). Recovery is bounded
+by the forward poll loop and backlog, not outage length, so
 non-monotonic medians across 1, 10, and 60~s outages are expected poll-phase effects.
 
 \subsection{Time-varying connectivity and fleet size}
@@ -303,5 +307,6 @@ topology are simulated; the regime durations and impairment parameters are
 literature-informed and the transitions are synthetic, which is what makes them
 reproducible.
 
-Together, these results place the authority boundary where \S~\ref{sec:architecture}
-does; \S~\ref{sec:non-claims} details the resulting limitations and non-claims.
+Every cell leaves the authority boundary where \S~\ref{sec:architecture} places
+it: no forked journal, no submission lost, no write admitted from a node that
+does not hold the epoch. \S~\ref{sec:non-claims} details the non-claims.

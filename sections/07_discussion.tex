@@ -7,12 +7,13 @@ boundary are correctly configured. Replayed field submissions are handled throug
 \textit{client\_event\_id} idempotency.
 
 Several threats remain outside the prototype evaluation. Revocation of a stolen
-tablet or vehicle node is eventual rather than immediate under total
+tablet or vehicle node is eventual, not immediate, under total
 disconnection, and because authority is designated rather than emergent, a
 captured or malfunctioning command edge can poison the incident journal for as
 long as it holds authority. That is the central trade-off of making command
 authority explicit: a quorum-inferred design fails differently, not better, by
-moving authority away from the designated commander. The architecture relies on operational fencing and audit rather than Byzantine
+moving authority away from the designated commander. The architecture relies on
+operational fencing and audit, not Byzantine
 tolerance, and does not address a compromised CA, physical tamper resistance, or
 audit-log integrity against a fully compromised node. These are deployment questions,
 not properties established by the emulation; the artifact repository records the full
@@ -27,7 +28,8 @@ The evidence for each invariant matches the appropriate verification method.
 concurrent authority claims---properties model checking establishes exhaustively over
 38.56\,M states but a service-path test can only sample. The service path now exercises
 promotion across two independent edges (\S~\ref{sec:eval-two-edge}), so multi-edge
-single authority has a runtime witness as well as a model one. Authority binding is a protocol boundary, not an authentication
+single authority has a runtime witness as well as a model one. Authority binding
+is a protocol boundary, not an authentication
 one: the emulation uses unauthenticated identifiers, so a node could assert
 another's identity, and semantic rejection of conflicting values remains
 outside the prototype. \textit{EpochAuthorityCoupling},

@@ -1,7 +1,10 @@
 \section{Problem Analysis}
 \label{sec:problem-analysis}
 
-Rescue-service incident response exposes a design tension between availability and authority. Responders must continue operating under intermittent connectivity, yet authority-bearing incident decisions must remain attributable to a single operational commander.
+Rescue-service incident response exposes a design tension between availability
+and authority. Responders must continue operating under intermittent
+connectivity, yet authority-bearing incident decisions must remain attributable
+to a single operational commander.
 
 The target setting is municipal rescue-service incident response: a regional core
 supports dispatch and reference data, vehicle edge nodes operate near the incident site,
@@ -37,16 +40,12 @@ outside the authority boundary, while R3 is a single-authority property satisfie
 it. The contribution is the state-class partition that lets the three be met by different
 contracts rather than forcing one contract on all incident data.
 
-R3 is not a claim that crisis governance is simple. Incident-command studies and
-emergency-management reviews describe hierarchies embedded in multi-actor
-response networks, where authority may be shared, delegated, contested, or
-legally bounded.
-Yet emergency-response decision provenance still requires a defined subset of
-command decisions to remain attributable to the authority that made
-them~\cite{naja2010provenance}; R3 abstracts that accountability property---
-authority-bearing writes have one current command authority, while other coordination need
-not be single-leader---yielding conservative transfer semantics: a new command edge is
-accepted only after operator-initiated promotion, never inferred from reachability.
+Authority in crisis governance may be shared, delegated, contested, or legally
+bounded. R3 abstracts only the accountability property that decision provenance
+requires~\cite{naja2010provenance}: authority-bearing writes have one current
+command authority, while other coordination need not be single-leader. Hence
+conservative transfer semantics---a new command edge is accepted only after
+operator-initiated promotion, never inferred from reachability.
 
 \subsection{Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}
 \label{sec:positioning}
@@ -133,22 +132,5 @@ Each family helps responders keep working or order writes, but none decides \emp
 actor} may issue an authority-bearing decision during a partition
 (Table~\ref{tab:related-work}). Primary/backup systems already use manual failover and
 fencing tokens~\cite{kleppmann2017ddia}; the distinction here is using operational command
-authority to set the linearization boundary while assigning weaker contracts to
+authority to set the authority boundary while assigning weaker contracts to
 non-authority incident data.
-
-\subsection{Assumptions and Design Choices}
-\label{sec:assumptions}
-
-The assumptions made in this paper are responses to the requirements, not the requirements
-themselves. R3 does not require a single-writer database for all incident state;
-it requires authority-bearing decisions to remain attributable to the current
-command authority. \systemname{} conservatively places the incident-journal
-linearization boundary at the command edge, while reference data, field
-submissions, and materialized views keep weaker local or eventual contracts.
-
-The deployment constraints identified in the introduction are separate. The mesh
-should act as routed transit rather than a stretched user network, and the system
-must reuse the rescue-service identity infrastructure. Their architectural
-consequences---edge cache and local services, tablet/edge outbox and retry, a
-single incident-journal writer, mesh-as-transit routing, and mTLS/CA identity
-integration---are developed in \S~\ref{sec:architecture}.
