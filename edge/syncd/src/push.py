@@ -63,7 +63,7 @@ async def _push_once(client: httpx.AsyncClient | None = None) -> int:
                     fresh.post(url, json=body, headers=headers),
                     timeout=12.0,
                 )
-            except asyncio.TimeoutError as e:
+            except TimeoutError as e:
                 raise httpx.ReadTimeout("asyncio wait_for fired") from e
         t1 = time.perf_counter_ns()
 
@@ -123,13 +123,15 @@ async def run() -> None:
             pushed = await asyncio.wait_for(
                 _push_once(), timeout=_ITERATION_DEADLINE_S
             )
-        except (asyncio.TimeoutError, TimeoutError):
+        except TimeoutError:
             logger.warning("push: iteration deadline exceeded, retrying")
             pushed = 0
         except httpx.RequestError as e:
             logger.warning("push: transport error: %s", e)
             pushed = 0
-        except Exception as e:
-            logger.exception("push: error during _push_once: %s", e)
+        except Exception:
+            # logger.exception already records the traceback; repeating the
+            # exception object in the message duplicates it (ruff TRY401).
+            logger.exception("push: unhandled error during _push_once")
             pushed = 0
         await asyncio.sleep(POLL_INTERVAL_S if pushed else POLL_INTERVAL_S * 4)
