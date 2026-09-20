@@ -130,28 +130,18 @@ refuting the weakened rule is not.
 \subsubsection{Raft leadership follows the reachable quorum}
 \label{sec:eval-raft}
 
-Each run hard-cuts the current leader $L_0$ of the three-voter
-\textit{hashicorp/raft} cluster in \textit{baseline-raft/} from the other two
-voters (Table~\ref{tab:raft-comparison}). This isolates the R3-relevant
-mismatch: correct Raft behavior moves authority to whichever node can form a
-quorum~\cite{ongaro2014raft}, and Raft offers no input by which an operator can
-pin the writer to an externally designated command edge.
+Each run hard-cuts the current leader $L_0$ of a three-voter
+\textit{hashicorp/raft} cluster from the other two voters, after a sanity check
+that its FSM assigns \textit{event\_seq} and enforces \textit{client\_event\_id}
+idempotency. All twelve runs elect an $L_1 \ne L_0$ and commit five writes there
+(median 3.08\,s, p95 4.43\,s). Isolated, $L_0$ stalls and fails with an apply
+timeout during the election (median 269.9\,ms) and refuses immediately once it
+has stepped down (0.4\,ms); reporting only the first would be cherry-picking its
+worst phase. Both are correct Raft behavior~\cite{ongaro2014raft} and both are
+the mismatch R3 names: authority follows the reachable quorum, and no input
+exists by which an operator can pin the writer to a designated command edge.
 
 
-\begin{table*}[t]
-\centering
-\caption{Raft consensus baseline. Authority follows the reachable quorum, not an
-operator-designated command edge.}
-\label{tab:raft-comparison}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{@{}p{0.16\textwidth}p{0.39\textwidth}X@{}}
-\toprule
-\textbf{Scenario} & \textbf{Measured result} & \textbf{Interpretation} \\
-\midrule
-\input{tables/tab_raft_comparison}
-\end{tabularx}
-\end{table*}
 
 \subsubsection{CRDT semantics fail for authority-bearing data}
 \label{sec:eval-crdt}
@@ -232,11 +222,13 @@ not by how long the outage lasted.
 
 Fleet sizes of 1, 3, 5 and 10 independent responder edges---each with its own
 database and outbox---submit simultaneously, five runs each, 20 events per
-responder (Table~\ref{tab:fleet-scaling}).
+responder (Figure~\ref{fig:fleet-scaling}).
 \S~\ref{sec:eval-m1} argues that a single-writer serializer is adequate because
 its saturation rate exceeds plausible incident demand; that argument is only as
-good as its behaviour when responders multiply. It holds: the linearization
-point absorbs a ten-edge fleet without becoming the bottleneck.
+good as its behaviour when responders multiply. It holds: throughput climbs with
+the fleet while arrival latency stays flat, and delivery is complete in every run
+at every size. The linearization point absorbs a ten-edge fleet without becoming
+the bottleneck.
 
 Two limits are worth stating. These throughput figures are not comparable to the
 saturation rate in Table~\ref{tab:evaluation}---a 200-event batch is dominated
@@ -246,21 +238,17 @@ memory, not where \systemname{} runs out of headroom: 73 containers share one
 kernel, one disk and one bridge. The sweep establishes the shape of the curve,
 not an absolute ceiling.
 
-\begin{table}[t]
+\begin{figure}[t]
 \centering
-\caption{Concurrent responder edges against the same command edge, five runs per
-size, 20 events per responder. Percentiles are arrival-curve percentiles: the
-time by which the journal held that share of the batch.}
-\label{tab:fleet-scaling}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}rrrrr@{}}
-\toprule
-\textbf{Edges} & \textbf{p50} & \textbf{p95} & \textbf{Events/s} & \textbf{Delivered} \\
-\midrule
-\input{tables/tab_fleet_scaling}
-\end{tabular}
-\end{table}
+\includegraphics[width=0.92\columnwidth]{figures/fig_fleet_scaling.pdf}
+\caption{Journal throughput and arrival latency against fleet size: 1, 3, 5 and
+10 concurrent responder edges, five runs per size, 20 events per responder.
+Percentiles are arrival-curve percentiles---the time by which the journal held
+that share of the batch---so resolution is one poll interval. Delivery was
+complete in every run at every size.}
+\label{fig:fleet-scaling}
+\end{figure}
+
 
 Neither experiment is a mobility model. No vehicle positions, path loss or RAN
 topology are simulated; the regime durations and impairment parameters are

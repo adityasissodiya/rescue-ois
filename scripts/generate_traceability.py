@@ -60,19 +60,19 @@ ROWS = [
     ("IV-C", "Responder-to-command propagation, qd 1/10/100: medians 710.1/639.4/931.5 ms",
      "NET-01 steady-state propagation", "eval_metrics.anon.jsonl",
      "field_edit_propagation", "end_to_end_propagation_ms", 90, "pilot",
-     "generate_tables.py", "Table III"),
+     "generate_tables.py", "Table II"),
     ("IV-E3", "Command-to-core WAN recovery, 1/10/60 s outages: medians 0.75/0.91/0.23 s",
      "WAN backhaul recovery", "eval_metrics.anon.jsonl",
      "wan_recovery", "recovery_to_core_ms", 90, "pilot",
-     "generate_tables.py", "Table III"),
+     "generate_tables.py", "Table II"),
     ("IV-B", "Saturation throughput at the linearization point: 356.3 events/s median",
      "Command journal serialization", "eval_metrics.anon.jsonl",
      "command_throughput", "events_per_sec", 30, "pilot",
-     "generate_tables.py + plot_promotion_cdf.py macros", "Table III, TputDirectMedian"),
+     "generate_tables.py + plot_promotion_cdf.py macros", "Table II, TputDirectMedian"),
     ("IV-B", "End-to-end via outbox: 159.4 events/s median",
      "Command journal serialization (end to end)", "eval_metrics.anon.jsonl",
      "command_throughput_endtoend", "events_per_sec", 30, "pilot",
-     "generate_tables.py", "Table III, TputEndToEndMedian"),
+     "generate_tables.py", "Table II, TputEndToEndMedian"),
     ("IV-C", "Duplicate replay: 50 unique client_event_id x5 leaves exactly 50 rows, n=30",
      "M3 idempotency", "eval_metrics.anon.jsonl",
      "duplicate_replay", "stored_events", 30, "pilot",
@@ -81,7 +81,7 @@ ROWS = [
      "M1--M2 responder-isolation independence", "eval_command_local_partition.anon.jsonl",
      "command_accept_path_during_responder_syncd_isolation",
      "command_local_commit_latency_ms", 20, "cmdpart",
-     "generate_tables.py", "Table III"),
+     "generate_tables.py", "Table II"),
     ("IV-C", "Outbox survives a responder-Postgres power cycle; journal consistent ~2.6 s after recovery",
      "R2 durability across restart", "eval_outbox_crash_restart.anon.jsonl",
      "outbox_durability_across_vehicle_restart", "post_restart_outbox_survived", 1,
@@ -98,33 +98,35 @@ ROWS = [
     ("IV-E1", "Leader-minority partition: 12/12 elect L1 != L0; new-leader median 3.08 s, p95 4.43 s",
      "scenario_leader_isolation (plan 7.2 Option A)", "eval_raft_baseline.anon.jsonl",
      "raft_leader_minority_partition", "run", 12, "raftauth",
-     "generate_raft_table.py", "Table IV"),
+     "generate_raft_table.py (orphan; tab_raft_comparison.tex is not \\input)",
+     "IV-E1 prose"),
     ("IV-E1", "Raft FSM assigns event_seq and enforces client_event_id idempotency",
      "Raft sanity check", "eval_raft_baseline.anon.jsonl",
      "raft_sanity_event_seq_dedup", "sanity_check", 1, "raftauth",
-     "generate_raft_table.py", "Table IV"),
+     "generate_raft_table.py (orphan; tab_raft_comparison.tex is not \\input)",
+     "IV-E1 prose"),
 
     # ---- Table V: CRDT ----------------------------------------------------
     ("IV-E2", "Concurrent status edit: 30/30 LWW runs converge, median 12.8 ms",
      "CRDT semantic falsification", "eval_crdt_baseline.anon.jsonl",
      "crdt_concurrent_authoritative_edit", "convergence_ms", 30, "crdt",
-     "generate_tables.py", "Table V"),
+     "generate_tables.py", "Table III"),
     ("IV-E2", "Delete/update race: 30/30 runs resurrect the element, median 12.7 ms",
      "CRDT delete-resurrection", "eval_crdt_baseline.anon.jsonl",
      "crdt_delete_resurrection", "convergence_ms", 30, "crdt",
-     "generate_tables.py", "Table V"),
+     "generate_tables.py", "Table III"),
     ("IV-E2", "CRDT impaired field-edit propagation: 814.1 ms / 2.54 s / 3.97 s",
      "CRDT propagation under netem", "eval_crdt_baseline.anon.jsonl",
      "crdt_field_edit_propagation", "anti_entropy_propagation_ms", 180, "crdt",
-     "generate_tables.py", "Table V"),
+     "generate_tables.py", "Table III"),
     ("IV-E2", "CRDT aggregate local accept rate: median 349.2 events/s",
      "CRDT no-partition throughput", "eval_crdt_baseline.anon.jsonl",
      "crdt_no_partition_throughput", "events_per_sec", 30, "crdt",
-     "generate_tables.py", "Table V"),
+     "generate_tables.py", "Table III"),
     ("IV-E2", "Post-quiescence convergence after a 60 s outage: median 45.4 ms, n=10",
      "CRDT partition convergence", "eval_crdt_partition_n10.anon.jsonl",
      "crdt_partition_convergence", "time_to_all_replicas_consistent_ms", 10, "crdtn10",
-     "generate_tables.py", "Table V"),
+     "generate_tables.py", "Table III"),
 
     # ---- Table VI: regime schedule ---------------------------------------
     ("IV-F1", "Delivery within phase vs eventually per regime; isolated row 0.00 / 1.00",
@@ -142,11 +144,11 @@ ROWS = [
     ("IV-F2", "Fleet sizes 1/3/5/10; throughput 19.5 -> 182.5 events/s; delivery 1.00 at every size",
      "NET-03 fleet-size sweep", "eval_fleet_scaling.anon.jsonl",
      "fleet_scaling", "size_summary", 4, "fleet",
-     "generate_network_tables.py", "Table VI"),
+     "plot_fleet_scaling.py", "Fig. 5"),
     ("IV-F2", "1900/1900 events across the sweep (20 runs)",
      "NET-03 fleet-size sweep", "eval_fleet_scaling.anon.jsonl",
      "fleet_scaling", "run", 20, "fleet",
-     "generate_network_tables.py", "Table VI, IV-F2 prose"),
+     "plot_fleet_scaling.py", "Fig. 5, IV-F2 prose"),
 
     # ---- Orphaned but regenerable ----------------------------------------
     ("(removed)", ("Steady-state netem propagation -- Table V in the NCA submission, "
@@ -206,20 +208,20 @@ def spot_checks(load_cached) -> list[tuple[str, str, str, bool]]:
          if x.get("scenario") == "field_edit_propagation"
          and x.get("scenario_params", {}).get("queue_depth") == 10
          and x.get("value_ms") is not None]
-    add("Table III: responder propagation, qd=10, median", round(_median(v), 1), 639.4, " ms")
+    add("Table II: responder propagation, qd=10, median", round(_median(v), 1), 639.4, " ms")
 
     r = load_cached("eval_raft_baseline.anon.jsonl")
     t = [x["scenario_params"]["time_to_new_leader_ms"] for x in r
          if x.get("scenario") == "raft_leader_minority_partition"
          and x.get("metric_name") == "run"
          and x.get("scenario_params", {}).get("time_to_new_leader_ms") is not None]
-    add("Table IV: new-leader election, median", round(_median(t) / 1000, 2), 3.08, " s")
+    add("IV-E1 prose: new-leader election, median", round(_median(t) / 1000, 2), 3.08, " s")
 
     c = load_cached("eval_crdt_baseline.anon.jsonl")
     cv = [x["value_ms"] for x in c
           if x.get("scenario") == "crdt_concurrent_authoritative_edit"
           and x.get("metric_name") == "convergence_ms" and x.get("value_ms") is not None]
-    add("Table V: concurrent status edit, median convergence", round(_median(cv), 1), 12.8, " ms")
+    add("Table III: concurrent status edit, median convergence", round(_median(cv), 1), 12.8, " ms")
 
     sch = [x["scenario_params"] for x in load_cached("eval_netem_schedule.anon.jsonl")
            if x.get("metric_name") == "summary"]
@@ -238,7 +240,7 @@ def spot_checks(load_cached) -> list[tuple[str, str, str, bool]]:
     fl = load_cached("eval_fleet_scaling.anon.jsonl")
     sizes = [x["scenario_params"] for x in fl if x.get("metric_name") == "size_summary"]
     ten = next(p for p in sizes if p["fleet_size"] == 10)
-    add("Table VI: N=10 journal throughput",
+    add("Fig. 5: N=10 journal throughput",
         round(ten["median_journal_throughput_eps"], 1), 182.5, " ev/s")
     runs = [x["scenario_params"] for x in fl if x.get("metric_name") == "run"]
     add("IV-F2 prose: events journaled across the sweep",

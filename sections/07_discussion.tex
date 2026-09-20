@@ -41,7 +41,11 @@ The emulation isolates the authority, outbox, and fencing mechanisms from deploy
 variables---physical mesh transport, security overlay cost, and Android client
 integration---that do not bear on the authority model's correctness. Accordingly, it
 does not claim physical Rajant mesh behavior, measured WireGuard or mTLS overhead, or
-end-to-end Android validation, and the workload is single-incident and limited-scale.
+end-to-end Android validation, and the workload is single-incident and
+limited-scale. Two narrower boundaries are worth naming: command-side writes
+are exercised through \textit{syncd}'s accept path rather than the command
+\textit{ops-api}, and core bootstrap and backfill are synthetic rather than
+measured.
 The safety properties are established by the TLA+ verification; the prototype shows the
 protocol can be implemented and operated under partition, and the Hypothesis
 state-machine tests check that its behavior agrees with the model on sampled traces.
