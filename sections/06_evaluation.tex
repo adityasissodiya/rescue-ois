@@ -1,19 +1,14 @@
-We evaluate the prototype on a single-host emulation, organized by the four
-mechanisms of \S~\ref{sec:architecture} (M1--M2, M3, and M4).
-Three
-further experiments delimit what \systemname{} does not promise rather than
-evaluate a mechanism--a Raft consensus baseline (\S~\ref{sec:eval-raft}), a
-CRDT-LWW semantic falsification (\S~\ref{sec:eval-crdt}), and command-to-core
-WAN backhaul recovery (\S~\ref{sec:eval-wan}). Finally,
-\S~\ref{sec:eval-network} varies the two axes the mechanism cells hold fixed:
-connectivity over time, and the number of responder edges.
+We evaluate the prototype on a single-host emulation, organized by the
+mechanisms of \S~\ref{sec:architecture}. Three further experiments delimit what
+\systemname{} does not promise: a Raft baseline (\S~\ref{sec:eval-raft}), a
+CRDT-LWW semantic falsification (\S~\ref{sec:eval-crdt}), and WAN backhaul
+recovery (\S~\ref{sec:eval-wan}). \S~\ref{sec:eval-network} then varies the two
+axes the other cells hold fixed: connectivity over time, and fleet size.
 
-The propagation, recovery, and
-throughput cells use a single responder path, so reported latencies are per-path,
-not aggregate. Each cell repeats $n=30$ unless noted, with median and p95
-reported. Partitions cut only the targeted path with \textit{tc}, so each cell
-isolates one effect.
-Impairment uses two \textit{tc-netem} profiles informed by published mesh
+Each cell repeats $n=30$ unless noted, reporting median and p95 over a single
+responder path, so latencies are per-path rather than aggregate. Partitions cut
+only the targeted path with \textit{tc}, so each cell isolates one effect, and
+impairment profiles follow published mesh
 measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}.
 Table~\ref{tab:evaluation} collects the primary service-path numbers.
 
@@ -38,17 +33,15 @@ Table~\ref{tab:evaluation} collects the primary service-path numbers.
 
 M1--M2 serve R3, and R1 for command-side writes.
 
-With one responder isolated for ten seconds, direct single-event POSTs to
-\textit{/accept/event-batch} all commit, assigning consecutive non-duplicate
-\textit{event\_seq} values at single-digit millisecond latency
-(Table~\ref{tab:evaluation}). Stale or absent \textit{X-Command-Epoch} values are
-rejected before journal work. Responder reachability is therefore not in the commit
-path.
+One responder is isolated for ten seconds while single-event POSTs go directly
+to \textit{/accept/event-batch}. Were responder reachability in the command
+commit path, these would stall; they do not (Table~\ref{tab:evaluation}), and
+stale or absent \textit{X-Command-Epoch} values are rejected before any journal
+work.
 
-Saturation throughput at the linearization point (Table~\ref{tab:evaluation})
-reflects a single-writer serializer. Even a generous 10 authority-bearing events
-per minute is 0.17 events/s, so the measured 356.3 events/s exceeds plausible
-incident demand by three orders of magnitude.
+Saturation throughput at the linearization point bounds what a single writer can
+absorb. A generous 10 authority-bearing events per minute is 0.17 events/s,
+three orders of magnitude below the measured rate (Table~\ref{tab:evaluation}).
 
 \subsection{Durable outbox and idempotent submission (M3)}
 \label{sec:eval-m3}
@@ -56,31 +49,32 @@ incident demand by three orders of magnitude.
 M3 (the durable responder outbox with \textit{client\_event\_id} idempotency)
 serves R1 and R2.
 
-Median propagation stays sub-second across queue depths 1--100; the p95 at
-depth 100 marginally exceeds 1~s (1045.5~ms, Table~\ref{tab:evaluation}).
+Propagation is measured across queue depths 1--100, the range a responder
+accumulates between contacts (Table~\ref{tab:evaluation}).
 
-Replaying 50 unique \textit{client\_event\_id} values five times each leaves exactly 50
-journal rows across $n=30$ runs: forwarding is at-least-once and deduplicated at the
-journal, so submission is effectively exactly-once at the linearization point. Across
-process restart, 50 outbox submissions survive a responder-Postgres power cycle, then
-forward with no duplicates and consecutive \textit{event\_seq}, reaching journal
-consistency about 2.6\,s after recovery---the runtime witness for R2.
+Two properties are not tabulated. Replaying 50 unique
+\textit{client\_event\_id} values five times each leaves exactly 50 journal rows
+across $n=30$ runs, so at-least-once forwarding is exactly-once at the
+linearization point. And 50 outbox submissions survive a responder-Postgres
+power cycle, forwarding afterwards with no duplicates and consecutive
+\textit{event\_seq}, journal-consistent about 2.6\,s after recovery---the
+runtime witness for R2.
 
 \subsection{Fenced promotion (M4)}
 \label{sec:eval-promotion}
 \label{sec:eval-m4}
 
-M4 (fenced promotion with stale-epoch rejection) serves R3 under command transfer and
-exercises C2: promotion preserves single authority across an epoch change and rejects
-stale-epoch traffic, on the service path, before any incident-journal work.
+M4 (fenced promotion with stale-epoch rejection) serves R3 under command
+transfer and exercises C2.
 
-Protocol cost is single-digit milliseconds across all three phases of a transition
-(Figure~\ref{fig:promotion-cost}). Commit phases~$A$ and~$C$ have medians
-\promotionMedianA{} and \promotionMedianC{}; the phase~B stale-rejection path is
-$2.5\times$ cheaper by construction, since the fence rejects stale traffic before the
-journal write. Operator confirmation sits in the critical path by design and dominates
-wall-clock; the protocol contribution is orders of magnitude smaller, an operator cost
-rather than a network cost.
+A promotion is driven end to end with every write attempt timed by phase:
+commits at epoch~$e$, stale-epoch rejections at the boundary, then commits at
+epoch~$e+1$ (Figure~\ref{fig:promotion-cost}). Fencing costs single-digit
+milliseconds on the service path, and the rejection path is cheaper than the
+commit path by construction, because the fence refuses stale traffic before the
+journal write. Operator confirmation sits in the critical
+path by design and dominates wall-clock, so the protocol contribution is an
+operator cost rather than a network cost.
 
 \begin{figure}[t]
 \centering
@@ -95,57 +89,53 @@ design.}
 \label{fig:promotion-cost}
 \end{figure}
 
-In five live service-path runs, phase~$A$ commits 20/20 events at epoch~1, phase~$B$
-returns 20/20 HTTP~409 rejections for the stale epoch and adds zero
-incident-journal rows, and phase~$C$ commits 20/20 events at epoch~2. The incident
-journal holds 200 rows total, split 100/100 between epochs, with no
-\textit{event\_seq} value appearing under both.
+Across five runs the fence holds exactly: 20/20 commits at epoch~1, 20/20
+HTTP~409 rejections adding zero journal rows, 20/20 commits at epoch~2, and a
+200-row journal split 100/100 between epochs with no \textit{event\_seq} value
+under both.
 
 \subsubsection{Two-edge fenced promotion}
 \label{sec:eval-two-edge}
 
-The results above hold at one acceptor. We additionally exercise promotion across two
-independent vehicle edges, each with its own database, with the incumbent partitioned
-from the network. The candidate bootstraps the journal prefix from core, verifies it is
-contiguous, obtains the next epoch, and only then takes the role; responders are
-repointed at the new command.
+The results above hold at one acceptor. Promotion is additionally exercised
+across two independent vehicle edges, each with its own database, with the
+incumbent partitioned from the network: the candidate bootstraps the journal
+prefix from core, verifies it is contiguous, obtains the next epoch, and only
+then takes the role. This is the case R3 actually has to survive, and both
+outcomes are measured rather than asserted.
 
-Two outcomes matter for R3, and both are measured rather than asserted. First, when the
-superseded edge reconnects and forwards the writes it buffered while isolated, core
-refuses them because another node holds the epoch; the edge demotes itself, and its own
-accept path then refuses authority-bearing writes. Its buffered rows are retained for
-reconciliation, and the authoritative journal is unchanged throughout---the fork
-is contained at the
-journal boundary and never admitted. Second, when the \emph{current} holder
-loses only its backhaul, it accepts writes while its lease is valid and refuses them
-once the lease lapses, recovering when the link returns. It is never informed that
-anything happened; it stops on a timeout it cannot renew, which is the honest form of
-the guarantee and the reason the availability cost falls where it does.
+When the superseded edge reconnects and forwards what it buffered while
+isolated, core refuses it because another node holds the epoch; the edge demotes
+itself, and its own accept path then refuses authority-bearing writes. Its
+buffered rows are retained for reconciliation and the authoritative journal is
+unchanged throughout---the fork is contained at the journal boundary and never
+admitted. When instead the \emph{current} holder loses only its backhaul, it
+accepts writes while its lease is valid and refuses them once the lease lapses,
+recovering when the link returns. It is never informed that anything happened;
+it stops on a timeout it cannot renew, which is the honest form of the guarantee
+and the reason the availability cost falls where it does.
 
-We do not report a fencing latency here. The transition is dominated by the
-lease window, an operator-chosen parameter rather than a property of the
-protocol, and the operator confirmation step already dominates wall-clock
-(\S~\ref{sec:eval-promotion}).
+We report no fencing latency: the transition is dominated by the lease window,
+an operator-chosen parameter rather than a property of the protocol.
 
-Verification and falsification costs are strongly asymmetric. The strict variant passes
-all six safety invariants over 38.56\,M distinct states in 13.0\,min, whereas each weak
-variant is refuted almost immediately: \textit{SingleAuthority} in 185 states (0.85\,s),
-\textit{EpochAuthorityCoupling} in 144 (0.77\,s), and \textit{NoForkedJournal} in 1.0\,k
-(0.83\,s). Establishing the property is expensive; refuting the weakened rule is not.
+Verification and falsification costs are strongly asymmetric. The strict
+variant passes all six safety invariants over 38.56\,M distinct states in
+13.0\,min, whereas each weak variant is refuted in under a second:
+\textit{SingleAuthority} in 185 states, \textit{EpochAuthorityCoupling} in 144,
+and \textit{NoForkedJournal} in 1.0\,k. Establishing the property is expensive;
+refuting the weakened rule is not.
 
 \subsection{Scope Boundaries}
 
 \subsubsection{Raft leadership follows the reachable quorum}
 \label{sec:eval-raft}
 
-This tests the R3-relevant mismatch between consensus leadership and operational
-command authority. The baseline is the three-voter \textit{hashicorp/raft} cluster in
-\textit{baseline-raft/}. Each run hard-cuts the current leader $L_0$ from the other
-two voters; the reachable majority elects $L_1$ and accepts writes there
-(Table~\ref{tab:raft-comparison}). This is correct Raft
-behavior---authority moves to a node that can form a quorum~\cite{ongaro2014raft}---and
-it is exactly the mechanism mismatch for R3: Raft has no input by which an operator
-can pin the writer to an externally designated command edge.
+Each run hard-cuts the current leader $L_0$ of the three-voter
+\textit{hashicorp/raft} cluster in \textit{baseline-raft/} from the other two
+voters (Table~\ref{tab:raft-comparison}). This isolates the R3-relevant
+mismatch: correct Raft behavior moves authority to whichever node can form a
+quorum~\cite{ongaro2014raft}, and Raft offers no input by which an operator can
+pin the writer to an externally designated command edge.
 
 
 \begin{table*}[t]
@@ -166,28 +156,21 @@ operator-designated command edge.}
 \subsubsection{CRDT semantics fail for authority-bearing data}
 \label{sec:eval-crdt}
 
-This tests C1: mergeable-by-default replication cannot encode authority for
-non-commutative incident decisions. It is a semantic falsification, not a speed
-comparison.
-
-The CRDT-LWW baseline is four FastAPI replicas using Hanssen's operation-based
-Last-Writer-Wins Element Set~\cite{hanssen2025emergency}. It preserves local
-acceptance but loses authority-bearing conflicts: concurrent status updates
-converge to the latest timestamp, and a later update resurrects a deleted
-element. LWW discards the losing status from materialized state, whereas AAL
-preserves both writes in an attributed total order. Ordering and attribution are
-R3's service-path scope; semantic rejection is an additional guard disclosed in
+Four FastAPI replicas run Hanssen's operation-based Last-Writer-Wins Element
+Set~\cite{hanssen2025emergency} against constructed authority-bearing conflicts
+(Table~\ref{tab:crdt-comparison}). This tests C1---whether mergeable-by-default
+replication can encode authority for non-commutative incident decisions---and is
+a semantic falsification, not a speed comparison: LWW discards the losing status
+from materialized state, whereas \systemname{} preserves both writes in an
+attributed total order. Ordering and attribution are R3's service-path scope;
+semantic rejection is an additional guard disclosed in
 \S~\ref{sec:non-claims}.
 
 The baseline is deliberately lightweight and in-memory, converging only through
-harness-triggered \textit{full\_sync()}: the test needs the merge rule exercised on
-concurrent authority-bearing writes, not storage parity. The asymmetry favors
-CRDT where it already performs better, which is the
-correct bias for a falsification: if mergeable-by-default semantics cannot encode
-authority even under favorable conditions, the semantic argument holds regardless
-of infrastructure differences.
-Table~\ref{tab:crdt-comparison} keeps measured AAL behavior, model-level AAL
-safety, and measured CRDT-LWW semantics separate.
+harness-triggered \textit{full\_sync()}. That asymmetry favors CRDT where it
+already performs better, which is the correct bias for a falsification: if
+mergeable-by-default semantics cannot encode authority even under favorable
+conditions, the argument holds regardless of infrastructure differences.
 
 \begin{table*}[t]
 \centering
@@ -206,42 +189,38 @@ safety, and measured CRDT-LWW semantics separate.
 \subsubsection{Backhaul recovers within about a second of WAN heal}
 \label{sec:eval-wan}
 
-This measures command-to-core forwarding after a WAN heal, with a narrowly
-targeted \textit{tc} cut of the command-to-core path only, so the measurement
-isolates backhaul flush time (Table~\ref{tab:evaluation}). Recovery is bounded
-by the forward poll loop and backlog, not outage length, so
-non-monotonic medians across 1, 10, and 60~s outages are expected poll-phase effects.
+A narrowly targeted \textit{tc} cut of the command-to-core path only isolates
+backhaul flush time after a WAN heal (Table~\ref{tab:evaluation}). Recovery is
+bounded by the forward poll loop and backlog rather than by outage length, so
+the non-monotonic medians across 1, 10 and 60~s outages are expected poll-phase
+effects.
 
 \subsection{Time-varying connectivity and fleet size}
 \label{sec:eval-network}
 
-The measurements above hold connectivity fixed for the duration of a cell and
-use a single responder. Neither matches a rescue deployment: vehicle
-connectivity alternates between regimes, and incidents involve several
-responders at once. This subsection varies each axis in turn.
+The cells above hold connectivity fixed and use a single responder. Neither
+matches a rescue deployment: vehicle connectivity alternates between regimes,
+and incidents involve several responders at once. Each axis is varied in turn.
 
 \subsubsection{Regime transitions, not steady state}
 \label{sec:eval-schedule}
 
 A single continuous submission stream runs while the responder-to-command path
 walks a schedule of regimes---clear, mesh-stressed, mesh-degraded, isolated,
-clear---and every event is attributed to the regime in force when it was
-submitted. Impairment is destination-filtered, so only the peer path is
-affected and each edge keeps full-speed access to its own database. Ten runs of
-the schedule submit 540 events in total.
+clear---with every event attributed to the regime in force when it was submitted
+(Table~\ref{tab:netem-schedule}). Impairment is destination-filtered, so only
+the peer path is affected and each edge keeps full-speed access to its own
+database. This observes the durable-outbox property \emph{across} a transition
+rather than inferring it from steady state, and delivery within the isolated
+phase is zero: that is what a single-writer boundary costs while the path to the
+writer is down.
 
-The result is the durable-outbox property observed \emph{across} a transition
-rather than inferred from steady state (Table~\ref{tab:netem-schedule}). Under
-every degraded-but-connected regime, delivery within the phase is complete.
-Under isolation it is zero: no event reaches the authoritative journal while the
-path is down, which is the honest statement of what a single-writer boundary
-costs. No event is lost. All 540 reach the journal, all ten runs drain fully,
-and the outbox backlog peaks at 13 events before collapsing once the link
-returns. Recovery---measured from the instant connectivity is restored until
-every event pending at that instant is journal-visible---is sub-second across
-all ten runs, with a measurement resolution of about 0.4~s set by the polling
-interval and query cost. It is bounded by the forwarder's poll cycle and the
-backlog depth, not by how long the outage lasted.
+No event is lost. All 540 reach the journal, all ten runs drain fully, and the
+outbox backlog peaks at 13 events. Recovery is sub-second in every run, measured
+from the instant connectivity is restored until every event pending at that
+instant is journal-visible. Measurement resolution is about 0.4~s, set by the
+polling interval and query cost. Recovery time is bounded by the forwarder's
+poll cycle and backlog depth, not by how long the outage lasted.
 
 \begin{table}[t]
 \centering
@@ -263,27 +242,20 @@ columns in the isolated row is the durable outbox doing its job.}
 \subsubsection{Fleet size}
 \label{sec:eval-fleet}
 
-The second axis is the number of responder edges submitting concurrently.
+Fleet sizes of 1, 3, 5 and 10 independent responder edges---each with its own
+database and outbox---submit simultaneously, five runs each, 20 events per
+responder (Table~\ref{tab:fleet-scaling}).
 \S~\ref{sec:eval-m1} argues that a single-writer serializer is adequate because
 its saturation rate exceeds plausible incident demand; that argument is only as
-good as its behaviour when responders multiply. Fleet sizes of 1, 3, 5 and 10
-independent responder edges---each with its own database and outbox---submit
-simultaneously, five runs each, 20 events per responder
-(Table~\ref{tab:fleet-scaling}).
+good as its behaviour when responders multiply. It holds: the linearization
+point absorbs a ten-edge fleet without becoming the bottleneck.
 
-Delivery is complete at every size: 1900 of 1900 events across the sweep. Journal
-throughput rises from 19.5 to 182.5 events/s, a factor of 9.4 for a tenfold
-increase in offered load, while propagation latency does not degrade---the p95
-at ten edges is below the value at five. The single-writer linearization point
-therefore absorbs a ten-edge fleet without becoming the bottleneck, which is the
-measured form of the claim \S~\ref{sec:eval-m1} makes.
-
-Two limits are worth stating. The throughput figures are not comparable to the
-saturation rate in Table~\ref{tab:evaluation}: a 200-event batch is dominated by
-fixed per-event latency, not by serializer capacity, so these numbers are a
-lower bound on both. And ten edges is where this single host runs out of memory,
-not where \systemname{} runs out of headroom---73 containers share one kernel,
-one disk and one bridge. What the sweep establishes is the shape of the curve,
+Two limits are worth stating. These throughput figures are not comparable to the
+saturation rate in Table~\ref{tab:evaluation}---a 200-event batch is dominated
+by fixed per-event latency rather than serializer capacity, so both are lower
+bounds on different axes. And ten edges is where this single host runs out of
+memory, not where \systemname{} runs out of headroom: 73 containers share one
+kernel, one disk and one bridge. The sweep establishes the shape of the curve,
 not an absolute ceiling.
 
 \begin{table}[t]
