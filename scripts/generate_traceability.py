@@ -130,21 +130,23 @@ ROWS = [
     ("IV-F1", "Delivery within phase vs eventually per regime; isolated row 0.00 / 1.00",
      "NET-02 time-varying connectivity", "eval_netem_schedule.anon.jsonl",
      "netem_schedule", "summary", 10, "schedule",
-     "generate_network_tables.py", "Table VI"),
+     "generate_network_tables.py (orphan; tab_netem_schedule.tex is not \\input)",
+     "IV-F1 prose"),
     ("IV-F1", "540/540 events journaled; outbox backlog peaks at 13; recovery sub-second",
      "NET-02 time-varying connectivity", "eval_netem_schedule.anon.jsonl",
      "netem_schedule", "outbox_backlog", 1300, "schedule",
-     "generate_network_tables.py", "IV-F1 prose"),
+     "generate_network_tables.py (orphan; tab_netem_schedule.tex is not \\input)",
+     "IV-F1 prose"),
 
     # ---- Table VII: fleet size -------------------------------------------
     ("IV-F2", "Fleet sizes 1/3/5/10; throughput 19.5 -> 182.5 events/s; delivery 1.00 at every size",
      "NET-03 fleet-size sweep", "eval_fleet_scaling.anon.jsonl",
      "fleet_scaling", "size_summary", 4, "fleet",
-     "generate_network_tables.py", "Table VII"),
+     "generate_network_tables.py", "Table VI"),
     ("IV-F2", "1900/1900 events across the sweep (20 runs)",
      "NET-03 fleet-size sweep", "eval_fleet_scaling.anon.jsonl",
      "fleet_scaling", "run", 20, "fleet",
-     "generate_network_tables.py", "Table VII, IV-F2 prose"),
+     "generate_network_tables.py", "Table VI, IV-F2 prose"),
 
     # ---- Orphaned but regenerable ----------------------------------------
     ("(removed)", ("Steady-state netem propagation -- Table V in the NCA submission, "
@@ -224,9 +226,9 @@ def spot_checks(load_cached) -> list[tuple[str, str, str, bool]]:
     within = [ph["delivered_within_phase_ratio"] for run in sch
               for ph in run["per_phase"] if ph["regime"] == "isolated"]
     iso = [run["per_regime"]["isolated"] for run in sch]
-    add("Table VI: isolated regime, delivered within phase",
+    add("IV-F1 prose: isolated regime, delivered within phase",
         round(st.mean(within), 2), 0.00)
-    add("Table VI: isolated regime, delivered eventually",
+    add("IV-F1 prose: isolated regime, delivered eventually",
         round(st.mean([d["reached_journal"] / d["submitted"] for d in iso]), 2), 1.00)
     add("IV-F1 prose: events journaled",
         sum(run["reached_journal_total"] for run in sch), 540)
@@ -236,7 +238,7 @@ def spot_checks(load_cached) -> list[tuple[str, str, str, bool]]:
     fl = load_cached("eval_fleet_scaling.anon.jsonl")
     sizes = [x["scenario_params"] for x in fl if x.get("metric_name") == "size_summary"]
     ten = next(p for p in sizes if p["fleet_size"] == 10)
-    add("Table VII: N=10 journal throughput",
+    add("Table VI: N=10 journal throughput",
         round(ten["median_journal_throughput_eps"], 1), 182.5, " ev/s")
     runs = [x["scenario_params"] for x in fl if x.get("metric_name") == "run"]
     add("IV-F2 prose: events journaled across the sweep",

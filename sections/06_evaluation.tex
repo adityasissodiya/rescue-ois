@@ -207,37 +207,25 @@ and incidents involve several responders at once. Each axis is varied in turn.
 
 A single continuous submission stream runs while the responder-to-command path
 walks a schedule of regimes---clear, mesh-stressed, mesh-degraded, isolated,
-clear---with every event attributed to the regime in force when it was submitted
-(Table~\ref{tab:netem-schedule}). Impairment is destination-filtered, so only
-the peer path is affected and each edge keeps full-speed access to its own
-database. This observes the durable-outbox property \emph{across} a transition
-rather than inferring it from steady state, and delivery within the isolated
-phase is zero: that is what a single-writer boundary costs while the path to the
-writer is down.
+clear---with every event attributed to the regime in force when it was
+submitted. Impairment is destination-filtered, so only the peer path is affected
+and each edge keeps full-speed access to its own database. This observes the
+durable-outbox property \emph{across} a transition rather than inferring it from
+steady state.
 
-No event is lost. All 540 reach the journal, all ten runs drain fully, and the
-outbox backlog peaks at 13 events. Recovery is sub-second in every run, measured
-from the instant connectivity is restored until every event pending at that
-instant is journal-visible. Measurement resolution is about 0.4~s, set by the
-polling interval and query cost. Recovery time is bounded by the forwarder's
-poll cycle and backlog depth, not by how long the outage lasted.
+Over ten runs and 540 events, every degraded-but-connected regime delivered all
+of its events to the authoritative journal before that phase ended; the isolated
+phase delivered none of them within the phase and all of them once the link
+returned. That gap is the durable outbox doing its job, and it is what a
+single-writer boundary costs while the path to the writer is down. No event is
+lost anywhere in the schedule: all ten runs drain fully and the outbox backlog
+peaks at 13 events.
 
-\begin{table}[t]
-\centering
-\caption{Delivery across a connectivity-regime schedule, $n=10$ runs, 540
-events. \emph{Within phase} counts events journaled before that phase ended;
-\emph{eventually} counts them after the link returns. The gap between the two
-columns in the isolated row is the durable outbox doing its job.}
-\label{tab:netem-schedule}
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-\textbf{Regime} & \textbf{Delivered within phase} & \textbf{Delivered eventually} \\
-\midrule
-\input{tables/tab_netem_schedule}
-\end{tabular}
-\end{table}
+Recovery is sub-second in every run, measured from the instant connectivity is
+restored until every event pending at that instant is journal-visible.
+Measurement resolution is about 0.4~s, set by the polling interval and query
+cost. Recovery time is bounded by the forwarder's poll cycle and backlog depth,
+not by how long the outage lasted.
 
 \subsubsection{Fleet size}
 \label{sec:eval-fleet}
