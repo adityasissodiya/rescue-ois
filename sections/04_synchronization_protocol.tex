@@ -8,8 +8,8 @@ numbered tenure; higher means newer authority).
 \label{sec:protocol-m2}
 
 At that boundary, M2 lets command keep writing during responder outages without
-weakening R3. The command edge linearizes authority-bearing operations into a
-totally ordered journal (Figure~\ref{fig:journal-sequencing}).
+weakening R3. Only the command edge assigns positions to authority-bearing
+operations, so the journal has one total order (Figure~\ref{fig:journal-sequencing}).
 
 \begin{figure}[t]
 \centering
@@ -61,8 +61,8 @@ continuing.
 
 Figure~\ref{fig:promotion-fencing} summarizes the rule. Each command tenure has
 a monotonically increasing epoch, issued per incident by the regional core
-rather than by the edge taking authority. Core issuance is what makes promotion
-serializable across independent vehicles: each edge owns its database, so an
+rather than by the edge taking authority. Core issuance is what gives promotions
+on independent vehicles a single order: each edge owns its database, so an
 edge-local counter cannot distinguish two edges that both believe they lead.
 Promotion is gated on three preconditions. The candidate must already hold the
 complete journal prefix, fetched from core and verified contiguous; the epoch

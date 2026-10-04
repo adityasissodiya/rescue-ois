@@ -120,7 +120,7 @@ def write_primary_table(records: list[dict]) -> None:
     rows.append(
         f"  \\hspace{{2mm}}direct \\texttt{{/accept}} ($n={len(tput)}$) & "
         f"median {statistics.median(tput):.1f} events/s; p95 {percentile(tput, 95):.1f} & "
-        r"linearization point: command accept + journal write only \\"
+        r"sequencer: command accept + journal write only \\"
     )
     if tput_e2e:
         rows.append(
@@ -232,7 +232,7 @@ def write_crdt_table(aal_records: list[dict]) -> None:
             f"Post-quiescence convergence (60\\,s outage, $n={len(conv_values)}$) & "
             f"Prototype command-to-core support-path recovery median {fmt_ms(aal_wan60)} after a real \\textit{{tc}} WAN cut ($n={len(aal_wan.get(60, []))}$) & "
             f"CRDT all-replica convergence median {fmt_ms(statistics.median(conv_values))} after anti-entropy resumes (no link impairment during the wait) & "
-            r"Comparable in outage duration, not transport mechanism; AAL keeps command-local ordering, CRDT converges once anti-entropy is exchanged. \\"
+            r"Comparable in outage duration, not transport mechanism; \systemname{} keeps command-local ordering, CRDT converges once anti-entropy is exchanged. \\"
         )
 
     with CRDT_OUT.open("w", encoding="utf-8") as handle:

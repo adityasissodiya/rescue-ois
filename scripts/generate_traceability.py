@@ -65,7 +65,7 @@ ROWS = [
      "WAN backhaul recovery", "eval_metrics.anon.jsonl",
      "wan_recovery", "recovery_to_core_ms", 90, "pilot",
      "generate_tables.py", "Table II"),
-    ("IV-B", "Saturation throughput at the linearization point: 356.3 events/s median",
+    ("IV-B", "Saturation throughput at the sequencer: 356.3 events/s median",
      "Command journal serialization", "eval_metrics.anon.jsonl",
      "command_throughput", "events_per_sec", 30, "pilot",
      "generate_tables.py + plot_promotion_cdf.py macros", "Table II, TputDirectMedian"),

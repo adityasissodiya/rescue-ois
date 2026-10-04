@@ -53,7 +53,7 @@ operator-initiated promotion, never inferred from reachability.
 \systemname{} recombines known mechanisms--single-leader replication,
 transactional outbox~\cite{richardson2018microservices}, idempotency keys, and
 manual fencing--under a domain rule (the command edge is the incident-journal
-linearization point). The incident-state entity owns its decision history;
+sequencing point). The incident-state entity owns its decision history;
 external actors submit forward-only events rather than mutate it
 directly.
 
@@ -84,7 +84,7 @@ and partition from the incident is the common case---vehicles operate hours from
 incident during total backhaul isolation. A backend-authoritative offline-first design
 has two bad options: block command decisions while isolated, violating R1 for the command
 stream, or let field nodes write provisionally and reconcile later, reintroducing the
-multi-writer merge problem R3 forbids. \systemname{} places the linearization point at
+multi-writer merge problem R3 forbids. \systemname{} places the sequencing point at
 the command edge precisely so the authoritative order survives backhaul partition; the
 regional core still owns reference data, which tolerates the weaker R1 and R2
 contracts.

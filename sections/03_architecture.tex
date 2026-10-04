@@ -22,7 +22,7 @@ decision stream, not the whole incident database.
 Outside the boundary, edges still work while links are intermittent; reference
 data are core-owned and cached, so partitions permit stale local reads, not local
 redefinition, and immutable artifacts, audit records, and command-to-core backhaul
-use validation or eventual forwarding rather than command-edge linearization.
+use validation or eventual forwarding rather than command-edge sequencing.
 Moving command authority requires the fenced-promotion rule of
 \S~\ref{sec:protocol-m4} so a stale command edge cannot keep appending.
 

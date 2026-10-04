@@ -38,7 +38,7 @@ commit path, these would stall; they do not (Table~\ref{tab:evaluation}), and
 stale or absent \textit{X-Command-Epoch} values are rejected before any journal
 work.
 
-Saturation throughput at the linearization point bounds what a single writer can
+Saturation throughput at the sequencer bounds what a single writer can
 absorb. A generous 10 authority-bearing events per minute is 0.17 events/s,
 three orders of magnitude below the measured rate (Table~\ref{tab:evaluation}).
 
@@ -54,7 +54,7 @@ accumulates between contacts (Table~\ref{tab:evaluation}).
 Two properties are not tabulated. Replaying 50 unique
 \textit{client\_event\_id} values five times each leaves exactly 50 journal rows
 across $n=30$ runs, so at-least-once forwarding is exactly-once at the
-linearization point. And 50 outbox submissions survive a responder-Postgres
+sequencer. And 50 outbox submissions survive a responder-Postgres
 power cycle, forwarding afterwards with no duplicates and consecutive
 \textit{event\_seq}, journal-consistent about 2.6\,s after recovery---the
 runtime witness for R2.
@@ -169,7 +169,7 @@ conditions, the argument holds regardless of infrastructure differences.
 \setlength{\tabcolsep}{3pt}
 \begin{tabularx}{\textwidth}{@{}p{0.16\textwidth}p{0.24\textwidth}p{0.25\textwidth}X@{}}
 \toprule
-\textbf{Scenario} & \textbf{AAL result} & \textbf{CRDT-LWW result} & \textbf{Interpretation} \\
+\textbf{Scenario} & \textbf{\systemname{} result} & \textbf{CRDT-LWW result} & \textbf{Interpretation} \\
 \midrule
 \input{tables/tab_crdt_comparison}
 \end{tabularx}
@@ -225,8 +225,8 @@ database and outbox---submit simultaneously, five runs each, 20 events per
 responder (Figure~\ref{fig:fleet-scaling}).
 \S~\ref{sec:eval-m1} argues that a single-writer serializer is adequate because
 its saturation rate exceeds plausible incident demand; that argument is only as
-good as its behaviour when responders multiply. It holds: the linearization
-point absorbs a ten-edge fleet without becoming the bottleneck.
+good as its behaviour when responders multiply. It holds: the sequencer
+absorbs a ten-edge fleet without becoming the bottleneck.
 
 Two limits are worth stating. These throughput figures are not comparable to the
 saturation rate in Table~\ref{tab:evaluation}---a 200-event batch is dominated

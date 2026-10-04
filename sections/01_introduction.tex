@@ -21,9 +21,9 @@ constraints are avoiding cross-vehicle broadcast hazards and reusing existing
 rescue-service certificate and identity infrastructure.
 
 The design question is: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?}
-The answer is \methodname{} (AAL), a consistency discipline that places the
-incident-journal linearization point at the command edge, the vehicle edge node currently
-holding operational command authority. We specify and verify AAL using
+The answer is \methodname{} (\systemname{}), a design discipline that places the
+incident-journal sequencing point at the command edge, the vehicle edge node currently
+holding operational command authority. We specify and verify \systemname{} using
 TLA+~\cite{tlaplus} and Hypothesis~\cite{maciver2019hypothesis} and implement it in a
 prototype built around responder outboxes, a single incident journal, and fenced
 promotion: the operator-initiated transfer of command authority between edges.

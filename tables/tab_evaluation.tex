@@ -11,7 +11,7 @@
   \hspace{2mm}partition = 60\,s ($n=30$) & median 0.23\,s; p95 1.05\,s & support-path backhaul, not command authority \\
 \addlinespace
 \textit{Command journal serialization} & & \\
-  \hspace{2mm}direct \texttt{/accept} ($n=29$) & median 356.3 events/s; p95 491.7 & linearization point: command accept + journal write only \\
+  \hspace{2mm}direct \texttt{/accept} ($n=29$) & median 356.3 events/s; p95 491.7 & sequencer: command accept + journal write only \\
   \hspace{2mm}end-to-end via outbox ($n=29$) & median 159.4 events/s; p95 163.9 & full responder outbox $\rightarrow$ push-batch $\rightarrow$ command path \\
 \addlinespace
 \textit{Command commit during responder isolation} & & \\
