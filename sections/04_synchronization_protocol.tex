@@ -1,63 +1,38 @@
-\subsection{Incident Journal Sequencing (M2)}
+\subsection{Journal and Replication (M2, M3)}
 \label{sec:protocol-m2}
-
-M2 provides sequencing, and it does not depend on responder reachability. Only the
-command edge assigns positions to decisions, so the journal has one total order. It
-accepts each \textit{client\_event\_id} once and assigns \textit{event\_seq} atomically
-with the journal insert; a duplicate folds onto its existing entry rather than taking a
-new number. Consumers replay the journal in \textit{event\_seq} order, so materialized
-state is rebuildable from it. A decision enters the incident record when the command
-edge sequences it; it survives a later promotion only if it reaches the core first
-(\S~\ref{sec:protocol-m4}).
-
-\subsection{Durable Outbox and Idempotent Submission (M3)}
 \label{sec:protocol-m3}
 
-For R1 and R2, M3 gives responders a safe local path before the command edge is
-reachable: field submissions are locally durable, idempotent, and eventually forwarded
-to the incident journal (Figure~\ref{fig:outbox-sequence}). The boundary is between
-local durability and the command edge's commit. A responder may acknowledge local
-acceptance after the outbox insert, but marks an item forwarded only after the command
-edge accepts it or recognizes a duplicate.
+Only the command edge assigns positions to decisions, so its journal has one total
+order. It accepts each \textit{client\_event\_id} once and assigns \textit{event\_seq}
+atomically with the journal insert; a duplicate folds onto its existing entry. Consumers
+replay the journal in \textit{event\_seq} order, so materialized state is rebuildable
+from it. Responder edges reach the journal through a transactional
+outbox~\cite{richardson2018microservices}: a field submission is accepted only once it is
+stored locally, and marked forwarded only once the command edge acknowledges it or
+recognizes a duplicate. Delivery is at least once and deduplicated at the command edge,
+with no order across responders before it. The command edge forwards its journal to the
+core the same way, so the core holds a prefix. These are standard mechanisms; any
+eventually consistent replication, a CRDT included, could replace them.
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig_outbox_sequence.drawio.pdf}
-\caption{Responder outbox protocol is the steady-state field-submission path from tablet to incident journal. The journal assigns the authoritative sequence number, and duplicate delivery is handled by \textit{client\_event\_id}.}
-\label{fig:outbox-sequence}
-\end{figure}
-
-The M3 contract has three parts:
-\begin{enumerate}
-  \item Each submission has a globally unique idempotency key, \textit{client\_event\_id}, scoped by the incident and originating client identity.
-  \item A responder accepts a submission only after the event is stored in its local outbox.
-  \item A responder may mark an outbox item forwarded only after the command edge acknowledges durable incident-journal acceptance or duplicate recognition.
-\end{enumerate}
-
-Outbox delivery is at least once and is deduplicated at the command edge; there is no
-claim of causal ordering across independent responder outboxes before the command edge
-orders them.
-
-\subsection{Fenced Promotion (M4)}
+\subsection{Fenced Promotion and the Lease (M4)}
 \label{sec:protocol-m4}
 
-M4 moves the command role and provides authority. There is no autonomous failover: an
+M4 is where the prototype implements policy S1. There is no autonomous failover: an
 operator decides that command moves, and M4 keeps the core's journal single-writer
 across the move.
 
 \textit{Epochs and the holder check.} The regional core issues each command tenure an
-epoch, per incident; the edge taking authority does not choose it. Core issuance gives
-promotions on independent vehicles a single order, since each edge owns its database and
-an edge-local counter cannot distinguish two edges that both believe they lead. The
-epoch is a fencing token in the usual sense~\cite{kleppmann2017ddia}. Every journal
-entry carries its epoch, and the core accepts forwarded entries only from the node
-recorded as holding the current epoch. Checking the node, not only the number, matters
-because a demoted edge that reconnects can read the current epoch from the core. The
-check is a protocol boundary, not authentication (\S~\ref{sec:non-claims}).
+epoch, per incident, which gives promotions on independent vehicles a single order. The
+epoch is a fencing token in the usual sense~\cite{kleppmann2017ddia}, as in view numbers
+and Zab epochs~\cite{oki1988viewstamped,junqueira2011zab}. Every journal entry carries
+its epoch, and the core accepts forwarded entries only from the node recorded as holding
+the current epoch. Checking the node, not only the number, matters because a demoted edge
+that reconnects can read the current epoch from the core. The check binds authority to a
+node, which is the conflation the model removes (\S~\ref{sec:model-gap}).
 
 \textit{Promotion.} The operator first confirms that the old command edge is
-unreachable. The candidate then copies the journal prefix held by the core and verifies
-that it is contiguous; the core issues the next epoch, and its insert orders concurrent
+unreachable. The candidate copies the journal prefix held by the core and verifies that
+it is contiguous; the core issues the next epoch, and its insert orders concurrent
 attempts; only then does the role change. Promotion therefore needs the candidate to
 reach the core, but it does not wait for the old command edge.
 
@@ -69,26 +44,28 @@ core for the lease length $L$ stops accepting decisions: on a timer, not on bein
 \begin{figure}[t]
 \centering
 \input{figures/fig_promotion_timeline}
-\caption{Promotion while the command edge A is cut off, with lease length $L$. A is cut
-off at $t_0$ and keeps accepting decisions, such as X, that it cannot forward. At $t_1$
-an operator promotes B: B copies the core's prefix $1..k$, receives epoch $e{+}1$, and
-accepts Y. Until A's lease lapses at $t_0{+}L$, both edges accept (shaded), and A
-accepts Z. When A reconnects at $t_2$, the core refuses X and Z with HTTP~409 and A
-demotes itself. The core's journal holds $1..k$ and Y; X and Z stay on A.}
+\caption{Policy S1 in the prototype, while the command edge A is cut off, with lease
+length $L$. A is cut off at $t_0$ and keeps accepting decisions, such as X, that it
+cannot forward. At $t_1$ an operator promotes B: B copies the core's prefix $1..k$,
+receives epoch $e{+}1$, and accepts Y. Until A's lease lapses at $t_0{+}L$, both edges
+accept (shaded), and A accepts Z. When A reconnects at $t_2$, the core refuses X and Z
+with HTTP~409 and A demotes itself. In the terms of the model, X is a completeness gap
+and Z a residual; the prototype keeps both on A but labels neither.}
 \label{fig:promotion-timeline}
 \end{figure}
 
-\textit{What M4 guarantees.} In Figure~\ref{fig:promotion-timeline}, B takes authority
-at once while A accepts until its lease lapses, so for up to $L$ both edges accept
-decisions. The core's journal still never takes entries from two holders, and the
+\textit{What S1 gives up.} In Figure~\ref{fig:promotion-timeline}, B takes authority at
+once while A accepts until its lease lapses, so for up to $L$ both edges accept
+decisions: S1 keeps (a) for $L$ and (b) as soon as B reaches the core, and gives up (c)
+at the edges. The core's journal still never takes entries from two holders, and the
 refused edge demotes itself and raises an operator alert. What A accepted but never
 forwarded stays on A: decisions from its legitimate tenure (X) as well as from the
-overlap (Z). Neither is merged, so the incident record is incomplete until an operator
-reviews them.
+overlap (Z). Neither is merged, so the record is incomplete until someone reviews them.
 
-\textit{Choosing $L$.} The same lease stops a legitimate command edge that has lost only
-its backhaul, so $L$ sets \systemname{}'s position in the trade-off of
+\textit{The lease as a policy parameter.} The same lease stops a legitimate command edge
+that has lost only its backhaul, so $L$ sets where S1 sits in the trade-off of
 \S~\ref{sec:tradeoff}. A longer lease keeps decisions flowing through longer outages; a
-shorter one narrows the window in which two edges accept. The prototype uses $L=90$\,s
-by default. Waiting out the old lease before promotion would close the window, at the
-cost of delaying each such promotion by up to $L$ (\S~\ref{sec:alternatives}).
+shorter one narrows the window in which two edges accept. The prototype uses $L=90$\,s by
+default, a value with no operational grounding. In the model, the corresponding
+parameters are $L$ under S2 and $T$, $T'$ under S4, and they are the organization's to
+choose (\S~\ref{sec:policies}).

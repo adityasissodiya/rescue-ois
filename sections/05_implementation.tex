@@ -1,4 +1,4 @@
-\section{Prototype and Evaluation}
+\section{Evaluation}
 \label{sec:implementation}
 
 \subsection{Prototype and Emulation Setup}
@@ -10,7 +10,7 @@ The artifact repository contains a prototype service path for the core and edge 
 plus deployment scaffolding for the target vehicle environment. Services target
 Python~3.12 with FastAPI and asyncpg; Docker Compose instantiates the emulated core,
 command edge, and responder edges used below, and a separate \textit{baseline/crdt}
-stack provides the CRDT-LWW comparison point.
+stack provides the CRDT-LWW comparison point. Every run so far is on a single host.
 
 Security controls are deployment design, not measured here: the emulation uses plain
 HTTP on a Docker bridge with synthetic identifiers.

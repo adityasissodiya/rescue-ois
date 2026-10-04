@@ -1,66 +1,62 @@
 \section{Discussion}
 \label{sec:discussion}
 
-The target deployment assumes an organizational CA with enrolled devices and users.
-Revocation of a stolen tablet or vehicle node is eventual under total disconnection, and
-a captured or malfunctioning command edge can poison the incident journal for as long as
-it holds authority; a quorum-inferred design fails differently, not better, by moving
-authority away from the designated commander. The architecture relies on operational
-fencing and audit, not Byzantine tolerance; the artifact repository records the full
-threat model.
+\subsection{Designated and Plural Authority}
+\label{sec:thesis}
 
-\subsection{Alternatives That Move the Trade-off}
-\label{sec:alternatives}
+This paper covers one class of decision: a command decision, which gets its legitimacy
+from one designated person's role, takes effect when it is issued, and is settled by
+authority, never by merge, when it conflicts with another. It binds when it is admitted to
+the authoritative journal under a valid grant. Decisions whose authority is shared or
+contested belong to the opposite pole, where legitimacy comes from agreement among
+several parties and a decision binds only at reconciliation; there, merge or consensus is
+the right tool. The class of decision, not the state of the network, chooses between the
+two. Our earlier design let reachability choose the commander; the model of
+\S~\ref{sec:system-model} removes that.
 
-Three changes would move \systemname{} within the trade-off of \S~\ref{sec:tradeoff},
-each at a stated cost.
+The boundary is also where this paper stops. \systemname{} defines residual decisions,
+attributes them and labels them; it does not resolve them. Deciding what happens to an
+order issued under a superseded grant---confirm it, reverse it, or let the new commander
+rule on it---is a reconciliation that acts on command decisions, and we leave it to
+future work that composes the two poles.
 
-\textit{Lease-wait promotion.} The core could withhold the next epoch until the old
-holder's lease has lapsed, plus a margin for clock drift. No two edges would then accept
-decisions at the same time, but every promotion around a cut-off edge would wait up to
-$L$, and the core would have to track each holder's last renewal.
+\subsection{Security Assumptions}
 
-\textit{Late entries ordered by epoch.} Ordering the journal by (epoch,
-\textit{event\_seq}) would let a superseded edge's entries join the journal when it
-reconnects, ahead of every entry of the next epoch and without conflict. Readers would
-then see history grow behind the tip, and the current commander should be alerted when
-that happens.
-
-\textit{Authority on the commander's credential.} Operational authority follows the
-commander, not the vehicle. If authority were bound to a credential the commander
-carries, such as a phone or smart card from the existing certificate infrastructure, a
-commander who moves from A to B would carry authority, and even A's unforwarded entries,
-across. That case would need neither a lease wait nor the core. The core would remain
-the fallback for replacing a commander who cannot be reached.
+The target deployment assumes an organizational CA with enrolled devices and users, and
+the model assumes credentials are not stolen. Revocation of a stolen tablet or vehicle
+node is eventual under total disconnection, and a captured command edge can poison the
+journal for as long as its holder's grant is valid; a quorum-inferred design fails
+differently, not better, by moving authority away from the designated commander. The
+design relies on signed grants, fencing and audit, not on Byzantine tolerance.
 
 \subsection{Evaluation Boundaries and Non-claims}
 \label{sec:non-claims}
+\label{sec:alternatives}
 
-Both models cover coordinated handover only. The TLA+ model has one shared journal and
-promotes only when the old command edge is reachable; the Hypothesis handoff model
-promotes only after the old command edge has forwarded its whole journal; neither has a
-lease. Model checking therefore establishes the six invariants for that case. The
+The paper does not claim that \systemname{} solves succession under partition: the
+trade-off rules that out, and the prototype realizes only S1. The claims about S0 and
+S2--S5 in Table~\ref{tab:policies} are hypotheses until the comparison of
+\S~\ref{sec:eval-policies} has been run.
+
+Both formal models cover coordinated handover only. The TLA+ model has one shared
+journal and promotes only when the old command edge is reachable; the Hypothesis handoff
+model promotes only after the old command edge has forwarded its whole journal; neither
+has a lease. Model checking therefore establishes the six invariants for that case. The
 cut-off case of Figure~\ref{fig:promotion-timeline} has a runtime witness only, and in it
 \textit{DurabilityAcrossPromotion} does not hold for entries the old command edge never
 forwarded.
 
-The prototype has four further limits. The lease also stops a legitimate command edge
-after $L$ without backhaul, and promotion needs the candidate to reach the core. Field
-submissions pass the same epoch check and lease as decisions. \systemname{} records
-decisions but does not yet deliver them to responder edges; any delivery acknowledgement
-must not block, since a two- or three-phase commit would stall every decision while a
-team is out of coverage (R1). Finally, authority binding is a protocol boundary, not
-authentication: the emulation uses unauthenticated identifiers, so a node could assert
-another's identity; promotion is authorized by access to the candidate vehicle, not by
-the operator's credential; and semantic rejection of conflicting values is not
-implemented.
+The prototype's gaps against the model are listed in \S~\ref{sec:model-gap}. In
+addition, \systemname{} records decisions but does not deliver them to responder edges;
+any delivery acknowledgement must not block, since a two- or three-phase commit would
+stall every decision while a team is out of coverage (R1). Semantic rejection of
+conflicting values is not implemented.
 
-The emulation isolates the authority, outbox, and fencing mechanisms from deployment
+The emulation isolates the authority and replication mechanisms from deployment
 variables: physical mesh transport, security overlay cost, and Android client
 integration. It does not claim physical Rajant mesh behavior, measured WireGuard or mTLS
 overhead, or end-to-end Android validation, and the workload is single-incident and
-limited-scale. Nor is the connectivity schedule a mobility model: no vehicle positions,
-path loss, or RAN topology are simulated, and its literature-informed transitions are
-synthetic, which makes them reproducible. Command-side writes are exercised through \textit{syncd}'s accept path
-rather than the command \textit{ops-api}, and core bootstrap and backfill are synthetic
-rather than measured.
+limited-scale. The connectivity schedule is not a mobility model: no vehicle positions,
+path loss, or RAN topology are simulated. Command-side writes are exercised through
+\textit{syncd}'s accept path rather than the command \textit{ops-api}, and core bootstrap
+and backfill are synthetic rather than measured.

@@ -23,9 +23,9 @@
 \makeatother
 \hypersetup{
   pdfauthor={Aditya Sissodiya, Eric Chiquito, Johan Kristiansson, Ulf Bodin},
-  pdftitle={Authority-Aligned Sequencing: Fenced Command Authority for Vehicle-Edge Networks under Intermittent Connectivity},
-  pdfsubject={WONS 2027 Submission},
-  pdfkeywords={authority-aligned sequencing; intermittent connectivity; distributed systems and platforms; incident response; prototypes and experiences},
+  pdftitle={Authority-Aligned Sequencing: Representing, Enforcing and Auditing Command Succession under Partition},
+  pdfsubject={Working draft, reframed per AAS\_PLAN.md (not for submission)},
+  pdfkeywords={command authority; succession of command; partition; leases and fencing; incident response; decision provenance},
   pdfproducer={},
   pdfcreator={}
 }
@@ -42,6 +42,11 @@
 \definecolor{accept}{HTML}{5B8DB8}
 \definecolor{fence}{HTML}{C47B2C}
 
+% Working-draft markers (reframe of 2026-10-04). \pending marks text that
+% depends on the system model the supervisors have not yet agreed, or on
+% results that have not yet been measured. Remove every one before submission.
+\newcommand{\pending}[1]{\textcolor{fence}{[\textit{#1}]}}
+
 \setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=2pt}
 \setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
 
@@ -51,7 +56,7 @@
 \input{data/throughput_summary}
 \input{data/schedule_summary}
 
-\title{Authority-Aligned Sequencing: Fenced Command Authority for Vehicle-Edge Networks under Intermittent Connectivity}
+\title{Authority-Aligned Sequencing: Representing, Enforcing and Auditing Command Succession under Partition}
 
 \author{
 \IEEEauthorblockN{Aditya Sissodiya, Eric Chiquito, Johan Kristiansson, and Ulf Bodin}
@@ -66,12 +71,14 @@ aditya.sissodiya@ltu.se, eric.chiquito@ltu.se, johan.kristiansson@ltu.se, ulf.bo
 
 \maketitle
 
+\noindent\pending{Working draft, 4 Oct 2026: reframed around command succession per AAS\_PLAN.md. The system model in \S~\ref{sec:system-model} is a proposal for the 5 Oct meeting and is not yet agreed. Bracketed text in this colour marks open points or planned work, not results.}
+
 \begin{abstract}
 \input{sections/00_abstract}
 \end{abstract}
 
 \begin{IEEEkeywords}
-authority-aligned sequencing, intermittent connectivity, distributed systems \& Platforms, incident response, prototypes \& experiences
+command authority, succession of command, network partition, leases and fencing, incident response, decision provenance
 \end{IEEEkeywords}
 
 \input{sections/01_introduction}

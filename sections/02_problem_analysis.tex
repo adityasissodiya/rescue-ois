@@ -1,4 +1,4 @@
-\section{Problem Analysis}
+\section{System Model and Problem}
 \label{sec:problem-analysis}
 
 Figure~\ref{fig:setting} shows the target setting, municipal rescue-service incident
@@ -17,113 +17,168 @@ guidance~\cite{naja2010provenance,rsg-rad201}:
   previously synchronized data without continuous connectivity.
   \item \textbf{\textit{R2 (Durable forward-only submission)}} Field submissions entered
   on tablets must survive vehicle restart and prolonged partition.
-  \item \textbf{\textit{R3 (Attributable command authority)}} Each decision must be
-  attributable to the one command authority in charge when it was made, and all
-  decisions must form one order.
+  \item \textbf{\textit{R3 (Attributable command under succession)}} Each decision must be
+  attributable to an authenticated person and to the grant under which that person made
+  it. For each decision, the system must determine whether the grant was valid under the
+  organization's succession rule when the decision was made, and it must keep every
+  decision for which it was not.
 \end{itemize}
 
-R3 needs authority and sequencing, but only for decisions. R1 and R2 need replication:
-each node works from its own copy, and field submissions are stored locally and
-forwarded later. Reference data, field submissions, and materialized views can therefore
-use weaker, eventual contracts (\S~\ref{sec:state-taxonomy}).
+R3 replaces an earlier, stronger requirement that all decisions fall into one order under
+one authority. That requirement cannot be met while the commander is cut off
+(\S~\ref{sec:tradeoff}), and our prototype did not meet it: it guaranteed only that the
+core admits decisions from one epoch at a time. The new R3 asks for what a system can
+always provide---attribution, a verdict on validity, and no silent loss---and leaves to the
+succession policy how often a decision ends up on the wrong side.
 
-Authority in crisis governance may be shared, delegated, contested, or legally bounded;
-R3 abstracts only the accountability that decision provenance
-requires~\cite{naja2010provenance}. We keep three things apart. \emph{Command authority}
-belongs to a person, the incident commander, designated by the rescue-service
-organization. The \emph{command role} is where the protocol exercises that authority:
-one vehicle edge node, the command edge, identified by its node identity and current
-epoch. \emph{Promotion} moves the role to another node. Only an authorized person, the
-\emph{operator}---the commander, or command staff acting for the commander---can request
-it, and the core then binds the next epoch to that node (\S~\ref{sec:protocol-m4}). The
-role is never inferred from reachability.
+R1 and R2 need replication only: each node works from its own copy, and field
+submissions are stored locally and forwarded later. Reference data, field submissions,
+and materialized views can therefore use weaker, eventual contracts
+(\S~\ref{sec:state-taxonomy}). R3 concerns decisions alone.
+
+\subsection{System Model}
+\label{sec:system-model}
+
+\pending{Proposed for agreement at the 5 Oct meeting. The role of the superior officer C
+in Swedish practice, and whether pre-authorized succession exists, are still to be checked
+with the rescue service.}
+
+\textit{People and roles.} A primary commander A, a deputy B, and a superior officer C who
+appoints commanders and may take over command. The organization has one commander at a
+time. Shared or contested authority, where several people must agree, is out of scope:
+it needs agreement rather than designation (\S~\ref{sec:thesis}).
+
+\textit{Grants.} C issues A a signed role grant. A succession rule, such as ``B may assume
+command if A has been silent for $T$'', is signed by C in advance. An explicit handover
+from A to B, and a takeover by C, are signed events. Every grant and succession event is
+itself recorded.
+
+\textit{Decisions.} A decision is signed by the person who makes it and carries the grant
+it is made under, a per-person sequence number, and GNSS time.
+
+\textit{Nodes.} Vehicle edges (command or responder), a regional core, and responder
+tablets. A node exercises the authority of the person using it. It holds none of its own,
+so a commander who changes vehicles takes their authority along.
+
+\textit{Channels.} Data backhaul from vehicles to the core (cellular), a local mesh
+between vehicles at the scene, and voice radio (Rakel). Voice is outside the system, but
+it is how succession is usually agreed; the system records the outcome.
+
+\textit{Partition cases.} \emph{P-A}: only A's edge is cut off. \emph{P-B}: every edge
+loses backhaul at once, while the local mesh still works. \emph{P-C}: the local mesh also
+splits, so A and B are in different parts.
+
+\textit{Journal and residuals.} The \emph{authoritative journal} holds the decisions
+admitted under a grant that was valid, according to the succession rule, when they were
+made. A decision binds when it is admitted. A \emph{residual} decision was accepted at an
+edge under a grant that had already been superseded. Residuals are kept, attributed and
+labelled; they are never merged into the journal and never dropped. Deciding what to do
+about a residual is an organizational act outside this paper (\S~\ref{sec:thesis}).
+
+\textit{Assumptions.} Messages may be delayed, duplicated and reordered, and are
+eventually resent. Clock drift is bounded by GNSS when it is available. Nodes are not
+Byzantine, and credentials are not stolen.
 
 \subsection{The Authority Trade-off under Partition}
 \label{sec:tradeoff}
 
-Consider a command edge A that loses contact with every other node. A can receive no
-message, including one saying that command has moved. While A is cut off, a design can
-provide at most two of the following:
+Let A's edge lose contact with every other node. It can receive no message, including one
+saying that command has passed to someone else. While A is cut off, a design can provide
+at most two of the following:
 \begin{enumerate}[label=(\alph*)]
   \item A keeps recording decisions;
-  \item command moves to another vehicle, B, without A's participation;
-  \item at most one vehicle records decisions at any moment.
+  \item command moves to B without A's participation;
+  \item at most one disconnected edge accepts decisions at any moment.
 \end{enumerate}
 With (a) and (b), A and B both record. With (b) and (c), A must stop before B starts;
 since A cannot be told, it must stop on a local timer, which bounds (a). With (a) and
 (c), B must wait for A. This is the availability--consistency tension of partitioned
-networks~\cite{davidson1985consistency}, applied to the authority role rather than to
-the data. Table~\ref{tab:related-work} places each system family. Primary/backup systems
-escape the trade-off with an out-of-band fence that powers the old primary
-off~\cite{kleppmann2017ddia}; a vehicle out of radio range offers no such channel.
-\systemname{} therefore has to choose, and it states its choice
-(\S~\ref{sec:protocol-m4}): (a) for one lease window, (b) as soon as B reaches the core,
-and (c) at the core but not at the edges.
+networks~\cite{davidson1985consistency,gilbert2002cap}, applied to the authority role rather
+than to the data. ``No two commanders at once'' is the organization's rule, and we assume
+it; at disconnected edges a system can guarantee it only by giving up (a) or (b).
+Primary/backup systems escape the trade-off with an out-of-band fence that powers the old
+primary off~\cite{kleppmann2017ddia}; a vehicle out of radio range offers no such channel.
 
-\subsection{Positioning Relative to Consensus, CRDTs, Local-first, and Emergency Networking}
+Two distinctions keep the consequences apart. A \emph{legitimacy} gap is a decision
+accepted under a superseded grant: a residual. A \emph{completeness} gap is a valid
+decision that the journal does not yet hold, because A made it before the cut and has not
+reconnected. A policy that stops A early avoids residuals but not completeness gaps.
+
+\pending{Open with the supervisors: present the trade-off as an argument, as here, or as a
+result model-checked for each policy.}
+
+\subsection{Related Work}
 \label{sec:positioning}
 
-\systemname{} recombines known mechanisms---single-leader replication, a transactional
-outbox~\cite{richardson2018microservices}, idempotency keys, and fencing---around one
-domain rule: the command edge is the only sequencer of decisions.
+The machinery is established; what this paper adds is who may confer authority and what
+happens to decisions on the wrong side of a succession.
 
-\textit{Consensus and replicated state machines.} These provide totally ordered logs
-under their stated failure
-models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,vanrenesse2004chain},
-but elections select the writer by reachability, whereas R3 fixes it by operational
-command (\S~\ref{sec:eval-raft}). A commander on the minority side cannot commit.
+\textit{Leases, locks and fencing.} Leases bound how long a holder may act without
+contact~\cite{gray1989leases}. Lock services such as Chubby~\cite{burrows2006chubby} and
+ZooKeeper~\cite{hunt2010zookeeper} grant leases from a replicated coordinator, and fencing
+tokens let a resource refuse a holder whose lease has lapsed~\cite{kleppmann2017ddia}.
+All of them assume the coordinator, not the organization, decides who holds the lease, and
+that the resource can reach the coordinator. Our lease is the same mechanism, but its
+length is an organizational choice: how long a cut-off commander may go on recording.
 
-\textit{CRDTs.} Mergeable replicated
+\textit{Leaders, views and reconfiguration.} Consensus and replicated state machines
+provide totally ordered logs under their failure
+models~\cite{lamport1998parttime,ongaro2014raft,balakrishnan2013tango,vanrenesse2004chain}.
+Viewstamped Replication~\cite{oki1988viewstamped} and Zab~\cite{junqueira2011zab} order
+the commands of successive leaders by view or epoch, which is the role epochs play here.
+In all of them the reachable quorum chooses the leader, so a commander on the minority
+side cannot commit (\S~\ref{sec:eval-raft}). Vertical Paxos~\cite{lamport2009vertical} is
+closer: an external master reconfigures the replicas. Our superior officer C plays that
+role, except that C is a person who is often unreachable, and the configuration change is
+a signed grant rather than a protocol message.
+
+\textit{Delegation and credentials.} Signed authorization certificates and delegation
+chains, such as SPKI~\cite{rfc2693spki}, can be checked offline. That is what lets a
+deputy's edge verify a succession rule without the core in case P-B. We use them as
+given; the question here is what the grant should say and when it takes effect.
+
+\textit{CRDTs and local-first systems.} Mergeable replicated
 state~\cite{almeida2014delta,hanssen2025emergency,almeida2024crdtsurvey,mao2024reliablecrdt}
-serves R1 and R2 well. As an authority mechanism, however, a multi-writer CRDT lets every
-replica decide. When two responders set the same status to conflicting values, its merge
-rule picks a winner, and no merge rule is defensible for such decisions. This rules
-out merge as the source of authority, not CRDTs as replication. Once the command edge has
-authorized and numbered its decisions, any eventually consistent mechanism can replicate
-the log without conflicts: a grow-only set keyed by (epoch, \textit{event\_seq}) is a
-CRDT in which each key has exactly one writer.
+and local-first software~\cite{kleppmann2019localfirst} serve R1 and R2 well, but as an
+authority mechanism a multi-writer CRDT lets every replica decide, and its merge rule
+picks a winner between conflicting decisions. This rules out merge as the source of
+authority, not CRDTs as replication: once decisions are signed and attributed, a
+grow-only set keyed by person and sequence number replicates them without conflict.
 
-\textit{Offline-first and local-first systems.} These prioritize local
-availability~\cite{kleppmann2019localfirst,richardson2018microservices} and suit
-reference data, field submissions, and materialized views, but their goal is replica
-\emph{autonomy}, which the command hierarchy rejects for decisions (R3).
-
-\textit{Why not a centralized backend?} No server can order writes it cannot reach, and
-partition from the incident is common. A
-backend-authoritative design must either block decisions while the backhaul is down or
-let field nodes write provisionally and merge later, which R3 forbids. \systemname{}
-places the sequencer at the scene, so decisions continue through backhaul loss---for one
-lease window, whose length sets how long (\S~\ref{sec:protocol-m4}).
-
-\textit{Emergency and edge networking.} Closest in setting,
-CoNICE~\cite{jahanian2022conice} reaches consensus among infrastructure-less peers using
-One-Third-Rule agreement over epidemic replication; its no-privileged-peer assumption is
-exactly the one R3 removes. Public-safety and edge/fog research places resilient
+\textit{Emergency and edge networking.} CoNICE~\cite{jahanian2022conice} reaches
+consensus among infrastructure-less peers; its no-privileged-peer assumption is exactly
+the one incident command removes. Public-safety and edge research places resilient
 transport and storage near
-responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng}, which serves
-R1 but not the question of who may issue a decision.
+responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng}, which serves R1
+but not the question of who may issue a decision.
+
+\pending{Still to cover: incident-command succession practice, and command and control in
+disconnected, intermittent and limited (DIL) networks.}
 
 \begin{table*}[t]
 \centering
-\caption{Where each system family sits in the authority trade-off of
-\S~\ref{sec:tradeoff}, while the node that orders writes is cut off. At most two of
-(a)--(c) can hold; only \systemname{} takes the writer from the command hierarchy.}
+\caption{Who may decide, and where each system family sits in the trade-off of
+\S~\ref{sec:tradeoff} while the node that orders writes is cut off. At most two of (a)--(c)
+can hold. Only the \systemname{} model takes authority from the organization; the
+\systemname{} prototype still takes it from the core.}
 \label{tab:related-work}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.15\textwidth}>{\raggedright\arraybackslash}p{0.21\textwidth}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}X@{}}
 \toprule
-\textbf{System} & \textbf{Writer chosen by} & \textbf{(a) Cut-off writer keeps recording} & \textbf{(b) Command moves without it} & \textbf{(c) One writer at a time} \\
+\textbf{System} & \textbf{Who may decide} & \textbf{(a) Cut-off writer keeps recording} & \textbf{(b) Command moves without it} & \textbf{(c) One writer at a time} \\
 \midrule
-\textbf{\systemname{} (this paper)} & The command hierarchy: operator promotion, core-issued epoch & For one lease window & At once, if the new edge reaches the core & At the core; edges may overlap for one lease window \\
+\textbf{\systemname{} model (this paper)} & A person holding a valid grant; succession by the organization's signed rule & \multicolumn{3}{l}{Chosen by the succession policy (Table~\ref{tab:policies})} \\
+\addlinespace
+\textbf{\systemname{} prototype (S1)} & The node holding the core-issued epoch, after operator promotion & For one lease window & At once, if the new edge reaches the core & At the core; edges may overlap for one lease window \\
 \addlinespace
 Primary/backup with fencing~\cite{kleppmann2017ddia} & Configuration; manual failover & Until fenced & After an out-of-band fence & Yes \\
 \addlinespace
-Raft / shared log~\cite{ongaro2014raft,balakrishnan2013tango} & Election by the reachable quorum & Not on the minority side & Yes, by election & Yes \\
+Lock service with leases~\cite{burrows2006chubby,hunt2010zookeeper} & The coordinator's quorum & Until its lease lapses & After the lease lapses & Yes, if drift is bounded \\
+\addlinespace
+Raft, VR, Zab~\cite{ongaro2014raft,oki1988viewstamped,junqueira2011zab} & Election by the reachable quorum & Not on the minority side & Yes, by election & Yes \\
 \addlinespace
 CoNICE~\cite{jahanian2022conice} & Agreement among reachable peers & Only with peers that agree & Yes, by peer agreement & Yes \\
-\addlinespace
-RedBlue~\cite{li2012redblue} & Red: one global order; blue: any site & Blue operations only & No authority concept & For red operations \\
 \addlinespace
 Emergency CRDT-LWW~\cite{hanssen2025emergency} & Any replica & Yes & Yes & No: the merge picks the winner \\
 \addlinespace
@@ -131,3 +186,59 @@ Local-first~\cite{kleppmann2019localfirst} & Any replica & Yes & Yes & No: repli
 \bottomrule
 \end{tabularx}
 \end{table*}
+
+\section{Succession Policies}
+\label{sec:policies}
+
+Since no design escapes the trade-off, succession is a policy choice.
+Table~\ref{tab:policies} lists six policies. The entries are hypotheses derived from the
+model, not measurements; the evaluation is meant to test them (\S~\ref{sec:eval-policies}).
+
+\begin{table*}[t]
+\centering
+\caption{Succession policies while the primary commander A is cut off. $L$ is a lease
+length, $T$ the silence after which a pre-authorized deputy may activate, and $T'$ A's own
+timeout. Entries are hypotheses to test, not results.
+$^\ast$If clock drift is bounded.}
+\label{tab:policies}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.03\textwidth}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}p{0.15\textwidth}>{\raggedright\arraybackslash}p{0.14\textwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+& \textbf{Policy} & \textbf{(a) A keeps recording} & \textbf{(b) Command moves without A} & \textbf{(c) One edge accepts} & \textbf{Main cost} \\
+\midrule
+S0 & No succession during a partition & Yes, without limit & Never & Yes & No command at all if A is incapacitated \\
+\addlinespace
+S1 & Immediate promotion through the core (the \systemname{} prototype) & For one lease window $L$ & As soon as B reaches the core & No: overlap of up to $L$ & Residual decisions; needs the core \\
+\addlinespace
+S2 & Promotion after the old lease expires & For $L$ & After $L$ plus a drift margin & Yes$^\ast$ & Takeover delayed by $L$ \\
+\addlinespace
+S3 & Explicit handover, or takeover signed by C & Until A learns of it & When C is reachable & Only with a lease on A's side & Depends on C and on the channel to A \\
+\addlinespace
+S4 & Pre-authorized deputy activation after A is silent for $T$ & Until A's own timeout $T' < T$ & Automatically, after $T$ & Yes, if $T' < T$$^\ast$ & Short $T$ risks needless takeovers; long $T$ delays command \\
+\addlinespace
+S5 & Both record, reconcile later & Yes & Yes & No & The plural pole; included only as the boundary case \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Three observations follow from the model. First, under S2 and S4, the decisions A made
+legitimately before the cut are missing from the journal until A reconnects: a
+completeness gap, not a legitimacy gap, and the metrics must keep the two apart. Second,
+in case P-B no edge reaches the core, so S1 and S2, which promote through the core,
+cannot move command at all. S3 and S4 can, provided B's edge can verify the signed
+succession event or rule locally; the place where decisions are admitted then moves from
+the core to whoever holds the grant. \pending{How the model represents that move is open.}
+Third, the lease stops being an arbitrary timer. Under S2 it is how long A may record
+before command can move; under S4, $T$ and $T'$ are the organization's choice of how long
+to wait for a silent commander, which is why we ask the rescue service what $T$ should be.
+
+\textit{Where each policy fails.} Every policy fails in a stated case. Under S4 in P-C,
+an A that ignores its own timeout keeps recording beside B, and all its later decisions
+become residuals. Any policy fails with stolen credentials, which the model excludes. And
+none applies to shared or contested authority, which needs agreement rather than
+designation.
+
+\pending{Anchor scenario to be agreed: deputy activation (S4), takeover by a superior
+(S3), or both. If pre-authorized succession does not exist in Swedish rescue services, S4
+becomes a proposal and S3 is the anchor.}

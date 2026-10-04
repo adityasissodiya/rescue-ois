@@ -1,17 +1,19 @@
-\section{Authority-Aligned Architecture and Protocol}
+\section{The \systemname{} Prototype: Policy S1}
 \label{sec:architecture}
 
-\systemname{} assigns each property of \S~\ref{sec:problem-analysis} to a mechanism
-(Table~\ref{tab:mechanisms}). M1 decides which data needs a designated writer, M2 orders
-decisions at the command edge, M3 carries field submissions to it, and M4 moves the
-command role. The identifiers are \textit{incident\_id}, a client-supplied
-\textit{client\_event\_id}, a command-assigned \textit{event\_seq}, and a command epoch:
-a numbered tenure, where a higher number means newer authority.
+The \systemname{} prototype was built before the model of \S~\ref{sec:system-model}, and it
+realizes one policy, S1: an operator promotes another vehicle, the regional core issues
+it a new epoch, and a lease stops the old vehicle. This section states what each
+mechanism provides and where the prototype falls short of the model. Several mechanisms
+are standard and serve replication only (Table~\ref{tab:mechanisms}); we describe them as
+implementation, not contribution. The identifiers are \textit{incident\_id}, a
+client-supplied \textit{client\_event\_id}, a command-assigned \textit{event\_seq}, and a
+command epoch: a numbered tenure, where a higher number means newer authority.
 
 \begin{table}[t]
 \centering
-\caption{What each \systemname{} mechanism provides, and its limit in the prototype;
-$L$ is the lease length.}
+\caption{What each prototype mechanism provides, and its limit; $L$ is the lease length.
+Only M1 and M4 concern authority; the rest is replication.}
 \label{tab:mechanisms}
 \scriptsize
 \setlength{\tabcolsep}{2.5pt}
@@ -19,13 +21,15 @@ $L$ is the lease length.}
 \toprule
 \textbf{Mechanism} & \textbf{Provides} & \textbf{Limit} \\
 \midrule
+Decision boundary (M1) & Which data needs a designated author: decisions only & Enforced at entry, not at ordering \\
+\addlinespace
 Command-edge journal (M2) & Sequencing: the only node that assigns \textit{event\_seq} & Also orders field submissions \\
 \addlinespace
 Outbox and \textit{client\_event\_id} (M3) & Replication, responder to command edge: durable, at least once, deduplicated & No order across responders before the command edge \\
 \addlinespace
-Forwarding to the core & Replication, command edge to core: a durable copy, at least once, deduplicated & The core holds a prefix of the command edge's journal \\
+Forwarding to the core & Replication, command edge to core & The core holds a prefix of the command edge's journal \\
 \addlinespace
-Core-issued epoch and holder check (M4) & Authority: one number per tenure; the core accepts entries only from the epoch holder & Cannot reach a cut-off former command edge; checks node identity, not credentials \\
+Core-issued epoch and holder check (M4) & Authority, bound to a node: the core accepts entries only from the epoch holder & Cannot reach a cut-off former command edge; checks node identity, not a person's grant \\
 \addlinespace
 Lease renewed at the core (M4) & Authority: a command edge that has not reached the core for $L$ stops accepting & Two edges may accept for up to $L$; also stops a legitimate command edge \\
 \addlinespace
@@ -34,25 +38,47 @@ Prefix bootstrap (M4) & Replication, core to a new command edge, before it write
 \end{tabularx}
 \end{table}
 
-\subsection{State Classes and Consistency Contracts (M1)}
+\subsection{The Decision Boundary (M1)}
 \label{sec:state-taxonomy}
 
-M1 draws the authority boundary. An operation needs a designated writer only when
-accepting two concurrent versions would create an authority conflict: resource
+M1 draws the authority boundary by class of data. An operation needs a designated author
+only when accepting two concurrent versions would create an authority conflict: resource
 assignments, incident status transitions, and command hazard annotations. Only the
-command edge accepts these decisions, each with a command-assigned \textit{event\_seq}.
-This is a RedBlue-style partition~\cite{li2012redblue} whose ``red'' set is the decision
-stream, not the whole incident database. Outside the boundary, reference data are owned
-by the core and cached, so partitions permit stale local reads but not local
-redefinition; immutable artifacts, audit records, and command-to-core forwarding use
-validation or eventual delivery.
+command edge accepts these decisions. This is a RedBlue-style
+partition~\cite{li2012redblue} whose ``red'' set is the decision stream, not the whole
+incident database. Outside the boundary, reference data are owned by the core and cached,
+so partitions permit stale local reads but not local redefinition; immutable artifacts,
+audit records, and forwarding use validation or eventual delivery. The mesh between
+vehicles is routed transit, not a consistency mechanism.
 
 The prototype enforces the boundary where data enters, not where it is ordered. Field
-submissions reach the command edge through their own durable path (M3), but the command
-edge then sequences them into the same journal as decisions. The journal thus records
-what the command edge knew when each decision was made, which serves decision
-provenance~\cite{naja2010provenance}. Field submissions also pass the same epoch check
-and lease as decisions, although they do not need to (\S~\ref{sec:non-claims}).
+submissions reach the command edge through their own durable path (M3), and the command
+edge then sequences them into the same journal as decisions. They also pass the same
+epoch check and lease, although they do not need to (\S~\ref{sec:non-claims}).
 
-The mesh between vehicles is routed transit, not a consistency mechanism, and user
-VLANs are not extended across vehicles.
+\subsection{Where the Prototype Falls Short of the Model}
+\label{sec:model-gap}
+
+The prototype binds authority to a node, not to a person. Measured against
+\S~\ref{sec:system-model}, it has six gaps:
+\begin{enumerate}
+  \item \emph{No persons.} A \textit{user\_id} is carried with each decision but never
+  authenticated or checked against a role. There are no grants, no signed decisions, and
+  no per-person sequence numbers.
+  \item \emph{No succession events or policies.} Promotion is the only way command moves,
+  it is authorized by access to the candidate vehicle rather than by a person's
+  credential, and only S1 exists.
+  \item \emph{Promotion needs the core.} In case P-B no command can move.
+  \item \emph{Residuals are not kept in a defined way.} A superseded edge's unforwarded
+  decisions stay on that edge, and the new command edge reuses the same
+  \textit{event\_seq} values, so the two cannot be told apart by number.
+  \item \emph{The lease stops a legitimate commander.} It is renewed only at the core,
+  so a commander who loses only the backhaul stops recording after $L$.
+  \item \emph{No decision-class split at the accept path.} Decisions and field
+  submissions take the same path (\S~\ref{sec:state-taxonomy}).
+\end{enumerate}
+
+\pending{Planned prototype changes (AAS\_PLAN.md Phase~3): person-bound grants and signed
+decisions with per-person sequence numbers; signed succession events; policies S0--S4 as
+configuration, with the lease as each policy's timeout; residual labelling with
+\textit{event\_seq} no longer reused across grants; and a multi-host testbed.}

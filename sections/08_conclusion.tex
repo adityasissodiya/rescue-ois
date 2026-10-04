@@ -1,17 +1,18 @@
 \section{Conclusion}
 
-Incident command needs one attributable record of the commander's decisions, written at
-the scene by the vehicle that the command hierarchy designates. \systemname{} separates
-what that record needs: authority from the command hierarchy, enforced by core-issued
-epochs, a holder check, and a lease; sequencing at the command edge; and replication by
-outboxes and forwarding, where any eventually consistent mechanism, a CRDT included,
-would do. Without an out-of-band channel, a designated writer cannot escape the
-trade-off of \S~\ref{sec:tradeoff}, so \systemname{} states its position: recording
-continues for one lease window, command moves as soon as the new edge reaches the core,
-and the core's journal stays single-writer while two edges may overlap for up to $L$.
-Raft instead moves authority to the reachable quorum, and a last-writer-wins CRDT lets
-the merge decide; R3 rules out both.
+Command at an incident belongs to a person, and the organization, not the network,
+decides who that person is. We separated a person's right to command from a node's right
+to write: authority comes from signed grants and a succession rule fixed in advance,
+nodes exercise it, a decision binds when it is admitted under a valid grant, and
+decisions made under a superseded grant are kept as labelled residuals. While the
+commander is cut off, no design can keep the commander recording, move command without
+them, and keep one disconnected edge accepting, all at once. Succession is therefore a
+choice of policy, and we laid out six policies by what each gives up. The \systemname{}
+prototype realizes one of them, immediate promotion through the core with a lease, and we
+reported both what it guarantees and where it falls short of the model. Raft moves
+authority to the reachable quorum and a last-writer-wins CRDT lets the merge decide;
+neither can carry the organization's decision.
 
-Future work is lease-wait promotion, admitting late entries by epoch, binding authority
-to the commander's credential, non-blocking delivery of decisions to responders, adding
-the lease to the TLA+ model, and deployment on a vehicle-mounted mesh.
+\pending{Next: check succession practice with the rescue service, extend the prototype
+with persons, grants and policies S0--S4, run the policy comparison across partition cases
+P-A to P-C on a multi-host testbed, and model-check each policy with the lease in TLA+.}

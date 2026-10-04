@@ -4,69 +4,85 @@
 Public-safety information systems must remain operational when commercial connectivity fails.
 Rescue-service vehicles operate up to several hours away from regional dispatch centres. In that terrain, wireless connectivity alternates between full wide-area coverage, mesh-only operation, and total isolation~\cite{zimbelman2022mesh, wang2023overview}.
 Disasters routinely degrade or destroy commercial telecom infrastructure precisely when
-coordination demand is highest. Vehicles must continue acting on stale or partial
-information, and field submissions entered on tablets must survive hours without
-connectivity. In command-hierarchical environments the consequences of information loss
-are wrong assignments, missed hazards, and conflicting orders.
+coordination demand is highest. In command-hierarchical environments the consequences of
+information loss are wrong assignments, missed hazards, and conflicting orders.
 
 The operational constraints are grounded in public Swedish rescue-service
 guidance~\cite{rsg-rad201, rsg-kommunalplan}, which treats incident-planning information
 as an ongoing, secrecy-restricted process rather than a static artifact; independent
 studies of Swedish rescue-service information systems confirm these requirements and the
 gaps in information flow~\cite{pilemalm2014enabling, westman2021mobilisation}.
-From these public sources we derive three requirements and two deployment
-constraints. The requirements are \textit{R1:} offline operation, \textit{R2:} durable forward-only
-field submission, and \textit{R3:} attributable command authority. The deployment
-constraints are avoiding cross-vehicle broadcast hazards and reusing existing
-rescue-service certificate and identity infrastructure.
 
-R3 is the demanding requirement. Every resource assignment, status transition, and
-command hazard annotation---a \emph{decision}---must be attributable to the one
-commander in charge when it was made, and all decisions must fall into one order. The
-command post is a vehicle edge node, the \emph{command edge}, which is often cut off
-from the regional core, and command can move to another vehicle
-(Figure~\ref{fig:setting}). Meeting R3 involves
-three properties that this paper keeps apart: \emph{authority}, which node may add a
-decision; \emph{sequencing}, the order of accepted decisions; and \emph{replication},
-how copies reach other nodes.
+Command at an incident belongs to a \emph{person}, the incident commander, appointed by
+the organization. Every resource assignment, status transition, and command hazard
+annotation---a \emph{decision}---carries that person's authority. The commander works
+from a vehicle (Figure~\ref{fig:setting}), and that vehicle is often cut off from the
+regional core. While it is cut off, the organization may decide that command passes to a
+deputy or to a superior officer, usually agreed over voice radio. The information system
+then holds decisions from two people, and it must say which of them are authoritative.
+
+Ordering is not the hard part. One person cannot be in two vehicles at once, so a
+per-person sequence number and GNSS time order that person's decisions, even across a
+change of vehicle; epochs and leases are not needed for that case. The hard part is the
+cut-over between two people's authority. Clocks give an order, not legitimacy: sorting by
+time yields a tidy record of conflicting orders, such as ``engine~3 north'' from the cut-off
+commander and ``engine~3 south'' from the deputy, without saying which one was valid.
 
 \begin{figure}[t]
 \centering
 \input{figures/fig_setting}
-\caption{Where \systemname{} operates. The command edge alone sequences the incident
-journal, from the commander's decisions and the responders' field submissions; the
-regional core, hours away, holds a prefix of it. Dashed links are intermittent; the
-responder on the right is cut off but keeps working locally. The command role moves to
-another vehicle only by an authorized promotion.}
+\caption{The setting. The commander's decisions enter the incident journal at the command
+vehicle; the regional core, hours away, holds a prefix of it. Dashed links are
+intermittent; the responder on the right is cut off but keeps working locally. The
+vehicle exercises the commander's authority but holds none of its own. Command passes to
+another person only by an organizational decision, and the journal then moves with
+them.}
 \label{fig:setting}
 \end{figure}
 
-Existing designs choose the writer by other means. Consensus elects it from whichever
-quorum is reachable~\cite{ongaro2014raft}, and a multi-writer conflict-free replicated
-data type (CRDT) lets every replica write and lets its merge rule choose between
-conflicting decisions~\cite{hanssen2025emergency}. In incident command, the command hierarchy
-\emph{designates} the writer. Designation has a price under partition: while the command
-edge is cut off, a design can give at most two of three things---the command edge keeps
-recording, command moves to another vehicle without it, and one writer at a time
-(\S~\ref{sec:tradeoff}).
+Existing designs let something other than the organization choose who may decide.
+Consensus elects a leader from whichever quorum is reachable~\cite{ongaro2014raft}, and a
+multi-writer conflict-free replicated data type (CRDT) lets every replica write and lets
+its merge rule choose between conflicting decisions~\cite{hanssen2025emergency}. Our own
+earlier design, \methodname{} (\systemname{}), had the same flaw in a milder form: the
+vehicle that obtained an epoch from the core held authority, so reachability still chose
+the commander. This paper removes that. The network never decides who is in command; the
+system represents the organization's decision, enforces it where it can, and audits it
+where it cannot.
 
-We present \methodname{} (\systemname{}), a design discipline rather than a new
-primitive: single-writer sequencing, transactional outboxes, idempotency keys, epochs,
-and leases are all established~\cite{kleppmann2017ddia}. In database terms, the command
-edge is the primary of a single-leader journal. What is specific is who chooses that
-primary, where it runs, and how it moves: the command hierarchy designates it, it runs on
-a vehicle that is often cut off, and only a fenced promotion moves it. Core-issued
-epochs, a holder check at the core, and a renewable lease enforce the designation.
-Outboxes and idempotent forwarding replicate, and any eventually consistent mechanism,
-a CRDT included, could replace them. \systemname{} keeps recording for one lease window,
-moves command as soon as the new vehicle reaches the core, and keeps the core's journal
-single-writer; it does not stop two vehicles from accepting decisions during that
-window. We make three contributions:
+Designated authority has a price under partition. While the commander is cut off, a
+design can give at most two of three things: the commander keeps recording, command moves
+without the commander, and only one disconnected edge accepts decisions
+(\S~\ref{sec:tradeoff}). No mechanism escapes this, so succession is a choice of policy,
+and each policy has consequences that the organization should be able to see. This leads
+to our research question:
+
+\begin{quote}
+\textit{How can an intermittently connected incident information system represent,
+enforce where possible, and audit succession of command authority from a primary incident
+commander to a designated deputy, and what does each succession policy cost when the
+commander is cut off?}
+\end{quote}
+
+The machinery we use---single-writer journals, outboxes, idempotency keys, epochs, fencing
+tokens and leases---is established~\cite{kleppmann2017ddia,gray1989leases}. The
+contribution is the authority model and what it exposes:
 
 \begin{enumerate}
-  \item (C1) a problem analysis that separates authority, sequencing, and replication for incident command, states the trade-off a designated writer faces under partition, and draws the boundary between decisions and data that needs only weaker contracts;
+  \item (C1) an authority and succession model for incident command in which authority
+  belongs to people through signed grants, nodes hold none, a decision binds when it is
+  admitted under a valid grant, and decisions made under a superseded grant are kept as
+  labelled residuals (\S~\ref{sec:system-model});
 
-  \item (C2) a realization on two independent vehicle edges---core-issued per-incident epochs, a holder check at the journal boundary, journal-prefix bootstrap, and a renewable authority lease---that states the role and the limit of each mechanism, including the window in which two vehicles can accept decisions;
+  \item (C2) the partition trade-off this model exposes, and a space of six succession
+  policies placed in it, each with what it gives up and what it costs
+  (\S~\ref{sec:tradeoff}--\S~\ref{sec:policies});
 
-  \item (C3) a partition-based evaluation on an executable prototype\footnote{The prototype repository is provided as an artifact with this submission.} (Docker Compose, \textit{tc-netem}) against Raft and a Hanssen-style last-writer-wins CRDT, extended to transitions between connectivity regimes and to fleets of up to ten responder edges, with TLA+~\cite{tlaplus} and Hypothesis~\cite{maciver2019hypothesis} models that check authority and sequencing for handover from a reachable commander.
+  \item (C3) an evaluation of \systemname{}, the prototype that realizes one of these
+  policies, on two independent vehicle edges under a real partition, with TLA+~\cite{tlaplus}
+  model checking and baselines against Raft and a last-writer-wins CRDT, together with an
+  honest account of where the prototype falls short of the model
+  (\S~\ref{sec:architecture}--\S~\ref{sec:evaluation})\footnote{The prototype repository
+  is provided as an artifact.}. \pending{Planned: the same scenarios run under each
+  policy, on a multi-host testbed.}
 \end{enumerate}
