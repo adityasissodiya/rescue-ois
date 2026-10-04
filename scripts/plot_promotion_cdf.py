@@ -85,7 +85,7 @@ def main():
         "ytick.labelsize": 8,
         "legend.fontsize": 7,
     })
-    fig, ax = plt.subplots(figsize=(3.45, 2.4))
+    fig, ax = plt.subplots(figsize=(3.5, 2.07))
 
     all_values = []
     for phase in PHASE_ORDER:

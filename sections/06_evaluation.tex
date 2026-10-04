@@ -1,9 +1,8 @@
 We evaluate the prototype on a single-host emulation, organized by the
-mechanisms of \S~\ref{sec:architecture}. Three further experiments delimit what
-\systemname{} does not promise: a Raft baseline (\S~\ref{sec:eval-raft}), a
-CRDT-LWW semantic falsification (\S~\ref{sec:eval-crdt}), and WAN backhaul
-recovery (\S~\ref{sec:eval-wan}). \S~\ref{sec:eval-network} then varies the two
-axes the other cells hold fixed: connectivity over time, and fleet size.
+mechanisms of \S~\ref{sec:architecture}. Three further experiments then delimit
+what \systemname{} does not promise (\S~\ref{sec:eval-raft}--\ref{sec:eval-wan}),
+and \S~\ref{sec:eval-network} varies the two axes the other cells hold fixed:
+connectivity over time, and fleet size.
 
 Each cell repeats $n=30$ unless noted, reporting median and p95 over a single
 responder path, so latencies are per-path rather than aggregate. Partitions cut
@@ -67,25 +66,22 @@ runtime witness for R2.
 M4 (fenced promotion with stale-epoch rejection) serves R3 under command
 transfer and exercises C2.
 
-A promotion is driven end to end with every write attempt timed by phase:
-commits at epoch~$e$, stale-epoch rejections at the boundary, then commits at
-epoch~$e+1$ (Figure~\ref{fig:promotion-cost}). Fencing costs single-digit
-milliseconds on the service path, and the rejection path is cheaper than the
-commit path by construction, because the fence refuses stale traffic before the
-journal write. Operator confirmation sits in the critical
-path by design and dominates wall-clock, so the protocol contribution is an
-operator cost rather than a network cost.
+A promotion is driven end to end with every write attempt timed by phase
+(Figure~\ref{fig:promotion-cost}). Fencing costs single-digit milliseconds on
+the service path, and the rejection path is cheaper than the commit path by
+construction, because the fence refuses stale traffic before the journal write.
+Operator confirmation sits in the critical path by design and dominates
+wall-clock, so the protocol contribution is an operator cost rather than a
+network cost.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\columnwidth]{figures/fig_promotion_cost.pdf}
-\caption{Fenced-promotion protocol cost by phase. Phase~A is pre-transition
-commits at epoch~$e$, phase~B is stale-epoch rejections at the journal boundary,
-phase~C is post-transition commits at epoch~$e+1$. $n=\promotionN$ events
-($\promotionNPerPhase$ per phase). Vertical markers are pooled across phases:
-median \promotionMedianCombined{}, p95 \promotionPNinetyFiveCombined{}. The
-cost shown is the protocol path only; the operator-confirm step is excluded by
-design.}
+\includegraphics[width=\columnwidth]{figures/fig_promotion_cost.pdf}
+\caption{Fenced-promotion protocol cost by phase, across $n=\promotionN$ events
+($\promotionNPerPhase$ per phase). Phase~B rejections are refused at the journal
+boundary, before the write. Vertical markers are pooled across phases: median
+\promotionMedianCombined{}, p95 \promotionPNinetyFiveCombined{}. The cost shown
+is the protocol path only; the operator-confirm step is excluded by design.}
 \label{fig:promotion-cost}
 \end{figure}
 
@@ -99,21 +95,24 @@ under both.
 
 The results above hold at one acceptor. Promotion is additionally exercised
 across two independent vehicle edges, each with its own database, with the
-incumbent partitioned from the network: the candidate bootstraps the journal
-prefix from core, verifies it is contiguous, obtains the next epoch, and only
-then takes the role. This is the case R3 actually has to survive, and both
-outcomes are measured rather than asserted.
+incumbent partitioned from the network under the preconditions of
+\S~\ref{sec:protocol-m4}---the case R3 actually has to survive. Both outcomes
+are measured rather than asserted (Figure~\ref{fig:two-edge-promotion}).
 
-When the superseded edge reconnects and forwards what it buffered while
-isolated, core refuses it because another node holds the epoch; the edge demotes
-itself, and its own accept path then refuses authority-bearing writes. Its
-buffered rows are retained for reconciliation and the authoritative journal is
-unchanged throughout---the fork is contained at the journal boundary and never
-admitted. When instead the \emph{current} holder loses only its backhaul, it
-accepts writes while its lease is valid and refuses them once the lease lapses,
-recovering when the link returns. It is never informed that anything happened;
-it stops on a timeout it cannot renew, which is the honest form of the guarantee
-and the reason the availability cost falls where it does.
+The two differ in where the fence sits. A superseded edge is \emph{told}, by a
+rejection. An edge that has lost only its backhaul is told nothing and stops on
+a lease it cannot renew---the honest form of the guarantee, and the reason the
+availability cost falls on the isolated edge rather than on the journal.
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_two_edge_promotion}
+\caption{The two measured two-edge promotion outcomes. In (a) the superseded
+incumbent is fenced at the journal boundary, by a rejection it receives; in (b)
+it is fenced at its own boundary, by a lease it cannot renew, having received
+nothing. Blue marks the accepting path, orange the refusing one.}
+\label{fig:two-edge-promotion}
+\end{figure}
 
 We report no fencing latency: the transition is dominated by the lease window,
 an operator-chosen parameter rather than a property of the protocol.
@@ -188,34 +187,35 @@ effects.
 \subsection{Time-varying connectivity and fleet size}
 \label{sec:eval-network}
 
-The cells above hold connectivity fixed and use a single responder. Neither
-matches a rescue deployment: vehicle connectivity alternates between regimes,
-and incidents involve several responders at once. Each axis is varied in turn.
+The cells above hold connectivity fixed and use a single responder; a rescue
+deployment does neither. Each axis is varied in turn.
 
 \subsubsection{Regime transitions, not steady state}
 \label{sec:eval-schedule}
 
 A single continuous submission stream runs while the responder-to-command path
-walks a schedule of regimes---clear, mesh-stressed, mesh-degraded, isolated,
-clear---with every event attributed to the regime in force when it was
-submitted. Impairment is destination-filtered, so only the peer path is affected
-and each edge keeps full-speed access to its own database. This observes the
-durable-outbox property \emph{across} a transition rather than inferring it from
-steady state.
+walks a schedule of connectivity regimes, each edge keeping full-speed access to
+its own database throughout. Figure~\ref{fig:netem-schedule} tracks the outbox
+backlog across that schedule, observing the durable-outbox property \emph{across}
+transitions rather than inferring it from steady state.
 
-Over ten runs and 540 events, every degraded-but-connected regime delivered all
-of its events to the authoritative journal before that phase ended; the isolated
-phase delivered none of them within the phase and all of them once the link
-returned. That gap is the durable outbox doing its job, and it is what a
-single-writer boundary costs while the path to the writer is down. No event is
-lost anywhere in the schedule: all ten runs drain fully and the outbox backlog
-peaks at 13 events.
+The rise is exactly what a single-writer boundary costs while the path to the
+writer is down: local acceptance continues, authoritative ordering waits.
+Nothing is lost anywhere in the schedule.
 
-Recovery is sub-second in every run, measured from the instant connectivity is
-restored until every event pending at that instant is journal-visible.
-Measurement resolution is about 0.4~s, set by the polling interval and query
-cost. Recovery time is bounded by the forwarder's poll cycle and backlog depth,
-not by how long the outage lasted.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_netem_schedule.pdf}
+\caption{Outbox backlog through the connectivity-regime schedule---clear,
+mesh-stressed, mesh-degraded, isolated, clear---over \scheduleRuns{} runs and
+\scheduleEvents{} events, all of which reach the journal. Line is the median,
+band the run-to-run min--max; shading darkens with impairment. Backlog rises
+only while the path is gone, peaking at \schedulePeakBacklog{} events, and
+drains after restore in \scheduleDrainMedian{} (median; \scheduleDrainMax{}
+worst run)---bounded by the forwarder's poll cycle and backlog depth, not by
+outage length. Polling sets a resolution of about 0.4\,s.}
+\label{fig:netem-schedule}
+\end{figure}
 
 \subsubsection{Fleet size}
 \label{sec:eval-fleet}
@@ -225,10 +225,8 @@ database and outbox---submit simultaneously, five runs each, 20 events per
 responder (Figure~\ref{fig:fleet-scaling}).
 \S~\ref{sec:eval-m1} argues that a single-writer serializer is adequate because
 its saturation rate exceeds plausible incident demand; that argument is only as
-good as its behaviour when responders multiply. It holds: throughput climbs with
-the fleet while arrival latency stays flat, and delivery is complete in every run
-at every size. The linearization point absorbs a ten-edge fleet without becoming
-the bottleneck.
+good as its behaviour when responders multiply. It holds: the linearization
+point absorbs a ten-edge fleet without becoming the bottleneck.
 
 Two limits are worth stating. These throughput figures are not comparable to the
 saturation rate in Table~\ref{tab:evaluation}---a 200-event batch is dominated
@@ -240,7 +238,7 @@ not an absolute ceiling.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\columnwidth]{figures/fig_fleet_scaling.pdf}
+\includegraphics[width=\columnwidth]{figures/fig_fleet_scaling.pdf}
 \caption{Journal throughput and arrival latency against fleet size: 1, 3, 5 and
 10 concurrent responder edges, five runs per size, 20 events per responder.
 Percentiles are arrival-curve percentiles---the time by which the journal held

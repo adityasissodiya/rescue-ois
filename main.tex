@@ -37,6 +37,10 @@
 \usepackage[nameinlink,noabbrev]{cleveref}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds}
+% Figure accents, shared with the matplotlib plots so one entity keeps one
+% colour across the paper: accepted/normal path blue, fence/refusal orange.
+\definecolor{accept}{HTML}{5B8DB8}
+\definecolor{fence}{HTML}{C47B2C}
 
 \setlist[itemize]{leftmargin=*,topsep=2pt,itemsep=2pt}
 \setlist[enumerate]{leftmargin=*,topsep=2pt,itemsep=2pt}
@@ -45,6 +49,7 @@
 \newcommand{\methodname}{authority-aligned linearization}
 \input{data/promotion_summary}
 \input{data/throughput_summary}
+\input{data/schedule_summary}
 
 \title{Authority-Aligned Linearization: Fenced Command Authority for Vehicle-Edge Networks under Intermittent Connectivity}
 

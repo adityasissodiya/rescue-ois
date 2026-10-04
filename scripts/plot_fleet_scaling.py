@@ -67,7 +67,7 @@ def main() -> int:
         "ytick.labelsize": 8,
         "legend.fontsize": 7,
     })
-    fig, ax = plt.subplots(figsize=(3.45, 2.2))
+    fig, ax = plt.subplots(figsize=(3.5, 2.05))
 
     ax.plot(n, tput, marker="o", markersize=4, linewidth=1.4, color=C_TPUT,
             label="Journal throughput")
