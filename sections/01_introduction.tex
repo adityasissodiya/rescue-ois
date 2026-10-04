@@ -20,24 +20,53 @@ field submission, and \textit{R3:} attributable command authority. The deploymen
 constraints are avoiding cross-vehicle broadcast hazards and reusing existing
 rescue-service certificate and identity infrastructure.
 
-The design question is: \emph{how should authority-bearing data be synchronized across intermittently connected edge tiers, when the operational model designates a single principal as authoritative?}
-The answer is \methodname{} (\systemname{}), a design discipline that places the
-incident-journal sequencing point at the command edge, the vehicle edge node currently
-holding operational command authority. We specify and verify \systemname{} using
-TLA+~\cite{tlaplus} and Hypothesis~\cite{maciver2019hypothesis} and implement it in a
-prototype built around responder outboxes, a single incident journal, and fenced
-promotion: the operator-initiated transfer of command authority between edges.
+R3 is the demanding requirement. Every resource assignment, status transition, and
+command hazard annotation---a \emph{decision}---must be attributable to the one
+commander in charge when it was made, and all decisions must fall into one order. The
+command post is a vehicle edge node, the \emph{command edge}, which is often cut off
+from the regional core, and command can move to another vehicle
+(Figure~\ref{fig:setting}). Meeting R3 involves
+three properties that this paper keeps apart: \emph{authority}, which node may add a
+decision; \emph{sequencing}, the order of accepted decisions; and \emph{replication},
+how copies reach other nodes.
 
-\systemname{} is a newly named design discipline, not a newly invented
-primitive. Single-writer replication, transactional outboxes, idempotency keys,
-epochs, and fencing are all established; what is new is the domain-derived
-authority boundary that decides which mechanism governs which incident data.
-We make three contributions:
+\begin{figure}[t]
+\centering
+\input{figures/fig_setting}
+\caption{Where \systemname{} operates. The command edge alone sequences the incident
+journal, from the commander's decisions and the responders' field submissions; the
+regional core, hours away, holds a prefix of it. Dashed links are intermittent; the
+responder on the right is cut off but keeps working locally. The command role moves to
+another vehicle only by an authorized promotion.}
+\label{fig:setting}
+\end{figure}
+
+Existing designs choose the writer by other means. Consensus elects it from whichever
+quorum is reachable~\cite{ongaro2014raft}, and a multi-writer conflict-free replicated
+data type (CRDT) lets every replica write and lets its merge rule choose between
+conflicting decisions~\cite{hanssen2025emergency}. In incident command, the command hierarchy
+\emph{designates} the writer. Designation has a price under partition: while the command
+edge is cut off, a design can give at most two of three things---the command edge keeps
+recording, command moves to another vehicle without it, and one writer at a time
+(\S~\ref{sec:tradeoff}).
+
+We present \methodname{} (\systemname{}), a design discipline rather than a new
+primitive: single-writer sequencing, transactional outboxes, idempotency keys, epochs,
+and leases are all established~\cite{kleppmann2017ddia}. In database terms, the command
+edge is the primary of a single-leader journal. What is specific is who chooses that
+primary, where it runs, and how it moves: the command hierarchy designates it, it runs on
+a vehicle that is often cut off, and only a fenced promotion moves it. Core-issued
+epochs, a holder check at the core, and a renewable lease enforce the designation.
+Outboxes and idempotent forwarding replicate, and any eventually consistent mechanism,
+a CRDT included, could replace them. \systemname{} keeps recording for one lease window,
+moves command as soon as the new vehicle reaches the core, and keeps the core's journal
+single-writer; it does not stop two vehicles from accepting decisions during that
+window. We make three contributions:
 
 \begin{enumerate}
-  \item (C1) a problem analysis of authority-bearing incident coordination under intermittent vehicle-edge connectivity, and an authority/state-class boundary that neither local-first, CRDT-based, nor consensus-based designs directly satisfy, formalized in TLA+ and mirrored by two independent Hypothesis state machines;
+  \item (C1) a problem analysis that separates authority, sequencing, and replication for incident command, states the trade-off a designated writer faces under partition, and draws the boundary between decisions and data that needs only weaker contracts;
 
-  \item (C2) a two-edge realization of fenced promotion---core-issued per-incident command epochs, journal-prefix bootstrap as a promotion precondition, epoch-holder binding at the journal boundary, and a renewable authority lease---implemented and measured across two independent vehicle-edge instances under a real network partition, including the case where the superseded edge cannot be informed at all;
+  \item (C2) a realization on two independent vehicle edges---core-issued per-incident epochs, a holder check at the journal boundary, journal-prefix bootstrap, and a renewable authority lease---that states the role and the limit of each mechanism, including the window in which two vehicles can accept decisions;
 
-  \item (C3) a partition-based evaluation on an executable prototype\footnote{The prototype repository is provided as an artifact with this submission.} (Docker Compose, \textit{tc-netem}) against Hanssen-style CRDT-LWW and Raft baselines, separating safety and authority claims from availability and latency trade-offs, and extending beyond static impairment to transitions between connectivity regimes and to fleets of up to ten concurrent responder edges.
+  \item (C3) a partition-based evaluation on an executable prototype\footnote{The prototype repository is provided as an artifact with this submission.} (Docker Compose, \textit{tc-netem}) against Raft and a Hanssen-style last-writer-wins CRDT, extended to transitions between connectivity regimes and to fleets of up to ten responder edges, with TLA+~\cite{tlaplus} and Hypothesis~\cite{maciver2019hypothesis} models that check authority and sequencing for handover from a reachable commander.
 \end{enumerate}

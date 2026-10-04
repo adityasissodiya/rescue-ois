@@ -1,0 +1,78 @@
+% The setting AAS operates in: incident site, regional core, intermittent links,
+% who writes into the journal, and the command role that can move.
+% Hand-drawn TikZ so it shares fonts and colours with Fig. 3: accepting path and
+% messages blue (accept), refusal orange (fence). Link state is encoded by line
+% style as well as by label: solid = local link, dashed = intermittent radio,
+% dotted with a cross = link down.
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  font=\scriptsize,
+  box/.style={draw=black!55, rounded corners=1.2pt, fill=white, line width=0.5pt,
+              align=center, inner sep=2pt},
+  cmd/.style={draw=accept, rounded corners=1.2pt, fill=accept!10, line width=1.1pt},
+  dim/.style={draw=black!30, rounded corners=1.2pt, fill=white, line width=0.5pt,
+              align=center, inner sep=2pt, text=black!50},
+  cell/.style={draw=black!55, fill=white, minimum width=0.3cm, minimum height=0.24cm,
+               inner sep=0pt, font=\tiny},
+  msg/.style={-{Latex[length=1.5mm,width=1.2mm]}, draw=accept, line width=0.6pt},
+  local/.style={draw=black!45, line width=0.5pt},
+  radio/.style={draw=black!45, line width=0.6pt, dash pattern=on 2.2pt off 1.6pt},
+  down/.style={draw=black!25, line width=0.6pt, densely dotted},
+  move/.style={-{Latex[length=1.8mm,width=1.5mm]}, draw=black!70, line width=0.8pt},
+]
+% Incident site: everything a rescue operation brings to the scene.
+\draw[rounded corners=3pt, fill=black!4, draw=black!20] (0,0) rectangle (8.6,3.0);
+\node[anchor=south west, font=\scriptsize\itshape, text=black!55] at (1.72,0.05) {incident site};
+
+% Regional core, hours away, holding a copy of the journal: a prefix of it.
+\draw[rounded corners=1.2pt, fill=white, draw=black!55, line width=0.5pt] (2.4,3.4) rectangle (6.2,4.22);
+\node at (4.3,4.03) {\textbf{regional core}, hours away};
+\node[anchor=east] at (4.02,3.66) {journal copy};
+\foreach \i/\x in {1/4.25, 2/4.55, 3/4.85} {
+  \node[cell] at (\x,3.66) {\i};
+}
+
+% Command edge: the only sequencer of the incident journal.
+\draw[cmd] (3.0,1.35) rectangle (5.6,2.25);
+\node at (4.3,2.05) {\textbf{command edge}};
+\node[anchor=east] at (4.02,1.62) {journal};
+\foreach \i/\x in {1/4.25, 2/4.55, 3/4.85, 4/5.15} {
+  \node[cell] at (\x,1.62) {\i};
+}
+
+% Backhaul between command edge and core: journal up, epoch and lease down.
+\draw[radio] (4.3,2.25) -- (4.3,3.4);
+\draw[msg] (4.15,2.3) -- (4.15,3.35);
+\draw[msg] (4.45,3.35) -- (4.45,2.3);
+\node[anchor=west, text=black!60] at (4.55,2.62) {backhaul};
+\node[anchor=east] at (4.08,3.2) {journal};
+\node[anchor=west] at (4.52,3.2) {epoch, lease};
+
+% The commander issues decisions at the command vehicle.
+\node[box] (commander) at (4.3,0.42) {commander};
+\draw[msg] (commander.north) -- (4.3,1.35);
+\node[anchor=west] at (4.36,0.98) {decisions};
+
+% Responder edge that is reachable over the mesh.
+\node[box, minimum width=1.55cm, minimum height=0.9cm] (r1) at (0.88,1.8) {responder edge\\outbox};
+\draw[radio] (r1.east) -- (3.0,1.8);
+\draw[msg] (2.55,1.8) -- (2.97,1.8);
+\node[anchor=south, text=black!60] at (2.33,1.84) {mesh};
+\node[anchor=north] at (2.33,1.76) {submissions};
+\node[box] (t1) at (0.88,0.42) {tablet};
+\draw[local] (t1.north) -- (r1.south);
+\node[anchor=west, text=black!60] at (0.94,0.98) {local};
+
+% Responder edge that is cut off: it keeps working locally, its outbox grows.
+\node[dim, minimum width=1.65cm, minimum height=0.9cm] (r2) at (7.65,1.8) {responder edge\\outbox grows};
+\draw[down] (5.6,1.8) -- (r2.west);
+\node[text=black!60, font=\small] at (6.21,1.8) {$\times$};
+\node[anchor=north, text=black!55] at (6.21,1.68) {cut off};
+\node[dim] (t2) at (7.65,0.42) {tablet};
+\draw[local] (t2.north) -- (r2.south);
+\node[anchor=west, text=black!45] at (7.71,0.98) {local};
+
+% The command role can move to another vehicle, by authorized promotion only.
+\draw[move] (3.2,2.27) to[out=140, in=40] (1.03,2.27);
+\node[anchor=south] at (2.15,2.62) {command role moves};
+\end{tikzpicture}

@@ -12,6 +12,5 @@ Python~3.12 with FastAPI and asyncpg; Docker Compose instantiates the emulated c
 command edge, and responder edges used below, and a separate \textit{baseline/crdt}
 stack provides the CRDT-LWW comparison point.
 
-Security controls (VPN overlay, mTLS termination, certificate-derived identity)
-are deployment design, not measured here; the emulation uses plain HTTP on a
-Docker bridge with synthetic device and user identifiers.
+Security controls are deployment design, not measured here: the emulation uses plain
+HTTP on a Docker bridge with synthetic identifiers.

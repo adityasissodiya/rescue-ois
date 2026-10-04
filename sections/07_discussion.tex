@@ -1,52 +1,66 @@
 \section{Discussion}
 \label{sec:discussion}
 
-The target deployment assumes an organizational CA with enrolled devices and users;
-the backend trusts certificate-derived identity only when the reverse proxy and service
-boundary are correctly configured. Replayed field submissions are handled through
-\textit{client\_event\_id} idempotency.
-
-Several threats remain outside the prototype evaluation. Revocation of a stolen
-tablet or vehicle node is eventual, not immediate, under total
-disconnection, and because authority is designated rather than emergent, a
-captured or malfunctioning command edge can poison the incident journal for as
-long as it holds authority. That is the central trade-off of making command
-authority explicit: a quorum-inferred design fails differently, not better, by
-moving authority away from the designated commander. The architecture relies on
-operational fencing and audit, not Byzantine
-tolerance, and does not address a compromised CA, physical tamper resistance, or
-audit-log integrity against a fully compromised node. These are deployment questions,
-not properties established by the emulation; the artifact repository records the full
+The target deployment assumes an organizational CA with enrolled devices and users.
+Revocation of a stolen tablet or vehicle node is eventual under total disconnection, and
+a captured or malfunctioning command edge can poison the incident journal for as long as
+it holds authority; a quorum-inferred design fails differently, not better, by moving
+authority away from the designated commander. The architecture relies on operational
+fencing and audit, not Byzantine tolerance; the artifact repository records the full
 threat model.
 
+\subsection{Alternatives That Move the Trade-off}
+\label{sec:alternatives}
+
+Three changes would move \systemname{} within the trade-off of \S~\ref{sec:tradeoff},
+each at a stated cost.
+
+\textit{Lease-wait promotion.} The core could withhold the next epoch until the old
+holder's lease has lapsed, plus a margin for clock drift. No two edges would then accept
+decisions at the same time, but every promotion around a cut-off edge would wait up to
+$L$, and the core would have to track each holder's last renewal.
+
+\textit{Late entries ordered by epoch.} Ordering the journal by (epoch,
+\textit{event\_seq}) would let a superseded edge's entries join the journal when it
+reconnects, ahead of every entry of the next epoch and without conflict. Readers would
+then see history grow behind the tip, and the current commander should be alerted when
+that happens.
+
+\textit{Authority on the commander's credential.} Operational authority follows the
+commander, not the vehicle. If authority were bound to a credential the commander
+carries, such as a phone or smart card from the existing certificate infrastructure, a
+commander who moves from A to B would carry authority, and even A's unforwarded entries,
+across. That case would need neither a lease wait nor the core. The core would remain
+the fallback for replacing a commander who cannot be reached.
 
 \subsection{Evaluation Boundaries and Non-claims}
 \label{sec:non-claims}
 
-The evidence for each invariant matches the appropriate verification method.
-\textit{SingleAuthority} and \textit{SingleCommand} quantify over all interleavings of
-concurrent authority claims---properties model checking establishes exhaustively over
-38.56\,M states but a service-path test can only sample. The service path now exercises
-promotion across two independent edges (\S~\ref{sec:eval-two-edge}), so multi-edge
-single authority has a runtime witness as well as a model one. Authority binding
-is a protocol boundary, not an authentication
-one: the emulation uses unauthenticated identifiers, so a node could assert
-another's identity, and semantic rejection of conflicting values remains
-outside the prototype. \textit{EpochAuthorityCoupling},
-\textit{NoForkedJournal}, \textit{DurabilityAcrossPromotion}, and
-\textit{LocalIdempotency} have both model verification and live service-path
-witnesses.
+Both models cover coordinated handover only. The TLA+ model has one shared journal and
+promotes only when the old command edge is reachable; the Hypothesis handoff model
+promotes only after the old command edge has forwarded its whole journal; neither has a
+lease. Model checking therefore establishes the six invariants for that case. The
+cut-off case of Figure~\ref{fig:promotion-timeline} has a runtime witness only, and in it
+\textit{DurabilityAcrossPromotion} does not hold for entries the old command edge never
+forwarded.
+
+The prototype has four further limits. The lease also stops a legitimate command edge
+after $L$ without backhaul, and promotion needs the candidate to reach the core. Field
+submissions pass the same epoch check and lease as decisions. \systemname{} records
+decisions but does not yet deliver them to responder edges; any delivery acknowledgement
+must not block, since a two- or three-phase commit would stall every decision while a
+team is out of coverage (R1). Finally, authority binding is a protocol boundary, not
+authentication: the emulation uses unauthenticated identifiers, so a node could assert
+another's identity; promotion is authorized by access to the candidate vehicle, not by
+the operator's credential; and semantic rejection of conflicting values is not
+implemented.
 
 The emulation isolates the authority, outbox, and fencing mechanisms from deployment
-variables---physical mesh transport, security overlay cost, and Android client
-integration---that do not bear on the authority model's correctness. Accordingly, it
-does not claim physical Rajant mesh behavior, measured WireGuard or mTLS overhead, or
-end-to-end Android validation, and the workload is single-incident and
-limited-scale. Two narrower boundaries are worth naming: command-side writes
-are exercised through \textit{syncd}'s accept path rather than the command
-\textit{ops-api}, and core bootstrap and backfill are synthetic rather than
-measured.
-The safety properties are established by the TLA+ verification; the prototype shows the
-protocol can be implemented and operated under partition, and the Hypothesis
-state-machine tests check that its behavior agrees with the model on sampled traces.
-
+variables: physical mesh transport, security overlay cost, and Android client
+integration. It does not claim physical Rajant mesh behavior, measured WireGuard or mTLS
+overhead, or end-to-end Android validation, and the workload is single-incident and
+limited-scale. Nor is the connectivity schedule a mobility model: no vehicle positions,
+path loss, or RAN topology are simulated, and its literature-informed transitions are
+synthetic, which makes them reproducible. Command-side writes are exercised through \textit{syncd}'s accept path
+rather than the command \textit{ops-api}, and core bootstrap and backfill are synthetic
+rather than measured.

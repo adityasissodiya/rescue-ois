@@ -1,26 +1,17 @@
 \section{Conclusion}
 
-Authority-aligned sequencing rests on an operational fact consensus and CRDT designs
-do not directly address: at every moment, one principal is designated as authoritative.
-The incident-journal sequencing point is the command edge, the vehicle edge node
-holding that authority; reference data, field submissions, materialized state, and audit
-forwarding sit outside that boundary on weaker contracts, and command transfer uses
-fenced promotion rather than leader election. A backend-authoritative design cannot hold
-the command-decision order under backhaul partition, the regime in which rescue-service
-incidents operate.
+Incident command needs one attributable record of the commander's decisions, written at
+the scene by the vehicle that the command hierarchy designates. \systemname{} separates
+what that record needs: authority from the command hierarchy, enforced by core-issued
+epochs, a holder check, and a lease; sequencing at the command edge; and replication by
+outboxes and forwarding, where any eventually consistent mechanism, a CRDT included,
+would do. Without an out-of-band channel, a designated writer cannot escape the
+trade-off of \S~\ref{sec:tradeoff}, so \systemname{} states its position: recording
+continues for one lease window, command moves as soon as the new edge reaches the core,
+and the core's journal stays single-writer while two edges may overlap for up to $L$.
+Raft instead moves authority to the reachable quorum, and a last-writer-wins CRDT lets
+the merge decide; R3 rules out both.
 
-The TLA+ model establishes the safety boundary and the prototype its operational
-realization: under strict fencing the model verifies single authority and no forked
-journal, the weak variant produces the expected split-brain witness, and the prototype
-shows command-edge writes proceed independently of responder reachability. The CRDT-LWW
-comparison shows the trade-off---CRDT replicas accept local writes at multiple nodes and
-converge quickly after anti-entropy, whereas \systemname{} preserves one incident journal and
-treats semantic conflict rejection as a model-level boundary property. The cost is no
-automatic failover and lower write availability for authority-bearing operations.
-
-Future work is to deploy the prototype on a vehicle-mounted mesh, exercise fenced
-promotion across multiple command edges, implement service-path semantic
-rejection for authoritative conflicts, and add crash-boundary and Android
-end-to-end tests. The harder comparison is empirical, not architectural i.e. measuring
-the design against CoNICE-class consensus and CRDT-based emergency systems on
-workloads where command authority is contested rather than designated.
+Future work is lease-wait promotion, admitting late entries by epoch, binding authority
+to the commander's credential, non-blocking delivery of decisions to responders, adding
+the lease to the TLA+ model, and deployment on a vehicle-mounted mesh.

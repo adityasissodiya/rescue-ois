@@ -1,0 +1,65 @@
+% Promotion while the command edge is cut off: the case M4 has to handle.
+% Hand-drawn TikZ rather than a plot -- the message is the order of events and
+% where each entry ends up, which is a layout property, not a data property.
+% Colours follow main.tex: accepting path blue (accept), refusal orange (fence).
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  font=\scriptsize,
+  lane/.style={draw=black!60, line width=0.6pt},
+  idle/.style={draw=black!25, line width=0.6pt},
+  cutlane/.style={draw=black!45, line width=0.6pt, dash pattern=on 2pt off 1.5pt},
+  fenced/.style={draw=fence, line width=1.6pt},
+  entry/.style={circle, fill=accept, inner sep=1.2pt},
+  msg/.style={-{Latex[length=1.5mm,width=1.2mm]}, draw=accept, line width=0.6pt},
+  nak/.style={-{Latex[length=1.5mm,width=1.2mm]}, draw=fence, line width=0.6pt},
+  tmark/.style={draw=black!30, densely dotted},
+]
+% Overlap window: after B is promoted and before A's lease lapses.
+\fill[fence!12] (3.1,-0.18) rectangle (5.3,1.95);
+\node[color=fence!85!black] at (4.2,2.17) {A and B both accept};
+
+% Time marks.
+\foreach \x/\t in {1.3/{$t_0$}, 3.1/{$t_1$}, 5.3/{$t_0{+}L$}, 6.9/{$t_2$}} {
+  \draw[tmark] (\x,-0.3) -- (\x,1.95);
+  \node[anchor=north] at (\x,-0.3) {\t};
+}
+
+% Lane labels.
+\node[anchor=east, font=\scriptsize\bfseries] at (0.5,1.7) {A};
+\node[anchor=east, font=\scriptsize\bfseries] at (0.5,0.85) {core};
+\node[anchor=east, font=\scriptsize\bfseries] at (0.5,0.0) {B};
+
+% Lane A: connected, cut off but accepting, lease lapsed, demoted.
+\draw[lane]    (0.6,1.7) -- (1.3,1.7);
+\draw[cutlane] (1.3,1.7) -- (5.3,1.7);
+\draw[fenced]  (5.3,1.7) -- (8.5,1.7);
+\node[color=black!55] at (1.95,1.5) {cut off};
+\node[entry] (x) at (2.5,1.7) {};
+\node[above=0.5pt] at (x.north) {X};
+\node[entry] (z) at (4.6,1.7) {};
+\node[below=0.5pt] at (z.south) {Z};
+\node[color=fence!85!black] at (6.1,1.93) {lease lapsed};
+\node[color=fence!85!black] at (7.75,1.93) {demoted};
+
+% Core lane.
+\draw[lane] (0.6,0.85) -- (8.5,0.85);
+\node[anchor=north] at (8.05,0.78) {$1..k$, Y};
+
+% Lane B: responder until promoted at t1, then command edge.
+\draw[idle] (0.6,0.0) -- (3.1,0.0);
+\draw[lane] (3.1,0.0) -- (8.5,0.0);
+\node[entry] (y) at (3.8,0.0) {};
+\node[above=0.5pt] at (y.north) {Y};
+
+% Promotion at t1: B copies the core's prefix and receives epoch e+1.
+\draw[msg] (3.17,0.78) -- (3.17,0.08);
+\node[anchor=east] at (3.07,0.43) {prefix $1..k$, epoch $e{+}1$};
+% B forwards Y.
+\draw[msg] (3.95,0.07) -- (4.35,0.78);
+
+% Reconnection at t2: A forwards X, the core refuses, A demotes itself.
+\draw[msg] (6.97,1.62) -- (7.17,0.93);
+\node[anchor=east] at (7.02,1.22) {X, Z};
+\draw[nak] (7.45,0.93) -- (7.65,1.62);
+\node[anchor=west, color=fence!85!black] at (7.62,1.22) {409};
+\end{tikzpicture}

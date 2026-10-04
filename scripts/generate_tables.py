@@ -116,7 +116,7 @@ def write_primary_table(records: list[dict]) -> None:
             r"support-path backhaul, not command authority \\"
         )
     rows.append(r"\addlinespace")
-    rows.append(r"\textit{Command journal serialization} & & \\")
+    rows.append(r"\textit{Command journal sequencing} & & \\")
     rows.append(
         f"  \\hspace{{2mm}}direct \\texttt{{/accept}} ($n={len(tput)}$) & "
         f"median {statistics.median(tput):.1f} events/s; p95 {percentile(tput, 95):.1f} & "
