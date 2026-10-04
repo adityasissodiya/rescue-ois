@@ -18,21 +18,25 @@ the name should be settled before 2 October.
 
 WONS 2027 is dropped (decided 2026-10-04). Ulf and Johan rejected the 30 Sept framing: R3
 is not met, and "authority" mixed a person's right to command with a node's right to
-write. The paper is frozen until the research problem and the system model are agreed.
-The working plan is now `D:/work/aal/AAS_PLAN.md`; meeting notes for Monday 5 Oct are
-in `D:/work/aal/meeting-2026-10-05.md`, with Beamer slides in
+write. Johan asked that the paper stay frozen until the research problem and the system
+model are agreed. The working plan is now `D:/work/aal/AAS_PLAN.md`; meeting notes for
+Monday 5 Oct are in `D:/work/aal/meeting-2026-10-05.md`, with Beamer slides in
 `D:/work/aal/slides-2026-10-05/slides.pdf`.
 
+The 30 Sept state is committed on `master` (21 Sept baseline `564e789`, rename `3fc8ca8`,
+revision `8a9564d`). A reframe draft that follows `AAS_PLAN.md` is on branch
+`reframe-aas-plan` (`0e9104c`). It is a working draft that goes beyond the freeze, so don't
+send it as a paper. Text that depends on the unagreed model, or on results not yet
+measured, is marked `\pending{}`.
+
 1. **Hold the 5 Oct meeting**: agree the use case, research question and system model;
-   fill in the Notes, Decisions and Action items in the meeting file.
+   fill in the Notes, Decisions and Action items in the meeting file. Then bring the
+   `reframe-aas-plan` draft into line with what was agreed and resolve the `\pending{}`
+   markers that the meeting settles.
 2. **Draw the clip book**: storyboard frames 1 to 8 from the meeting notes, iterated with
    the supervisors.
 3. **Check succession practice with the rescue service** (questions in `AAS_PLAN.md`
    Phase 1).
-4. **Commit the 30 Sept state** in the paper repo as a baseline before any reframe (back
-   out the revision patch, then the rename patch; commit the 21 Sept work, then re-apply
-   and commit each patch with `figures/fig_setting.tex` and
-   `figures/fig_promotion_timeline.tex`).
 <!-- next-steps:end -->
 
 ---
