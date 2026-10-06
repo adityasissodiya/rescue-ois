@@ -1,5 +1,6 @@
-# LaTeX build output (regenerable via build.ps1)
+# LaTeX build output (regenerable via build.ps1 and model/build.ps1)
 /build/
+/model/build/
 
 # Scratch render directories used for page measurement / previews
 /tmp/
