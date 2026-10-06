@@ -1,13 +1,30 @@
-# Rescue OIS Reference Material
+# Rescue OIS
 
-This repository backs the NCA 2026 paper **Authority-Aligned Linearization
-(AAL) for Rescue-Service Incident Response over Intermittent Edge Networks**. It
-contains the prototype services, Docker Compose emulation, evaluation harnesses,
-CRDT baseline, formal models, architecture notes, deployment notes, and tablet
-scaffold. The manuscript source and PDF are submitted separately and are not part
-of this reference-material repository.
+Rescue OIS is a research prototype of an incident information system for rescue
+services whose vehicles and responders keep losing their network links. It keeps
+one authoritative, attributable incident journal of command decisions while
+vehicles are cut off from the regional core. It is the artifact behind the paper on
+Authority-Aligned Sequencing (AAS), which earlier drafts called AAL.
 
-The core protocol rule is:
+## Branches
+
+| Branch | Contents |
+| --- | --- |
+| `main` | The prototype: services, Docker Compose emulation, evaluation harnesses, CRDT and Raft baselines, formal models, and documentation. |
+| [`paper`](https://github.com/adityasissodiya/rescue-ois/tree/paper) | The paper's LaTeX source, with its datasets and its table and figure generators (`BUILDING.md` on that branch says how to build it). It is a working draft, not a published paper. |
+
+## Where the Work Is Going
+
+The paper is being rebuilt around succession of command. Authority belongs to
+people in roles: an incident commander, a deputy, and the officer who appoints
+them. Vehicles and handhelds only carry that authority. The paper asks how an
+organization's command rules become the rules of a journal shared over
+intermittent links, which of those rules need consensus between devices, and what
+each succession policy costs when the commander is cut off. The prototype on
+`main` predates this framing and has no notion of a person yet; see
+[What the Prototype Does Not Do](#what-the-prototype-does-not-do).
+
+## The Prototype's Rule
 
 > Core owns master data. The current command edge owns authority-bearing
 > incident-journal writes. Responders accept field submissions into a durable
@@ -36,7 +53,7 @@ To inspect the artifact without rerunning long measurements:
 | --- | --- |
 | `core/` | Regional core services and database migrations. |
 | `edge/` | Vehicle-edge services: `ops-api`, `syncd`, local Postgres, outbox, journal, WireGuard/Nginx scaffolding. |
-| `scripts/` | Docker stack helpers and AAL evaluation harnesses. |
+| `scripts/` | Docker stack helpers and evaluation harnesses. |
 | `baseline/crdt/` | Hanssen-style operation-based CRDT-LWW baseline service. |
 | `baseline/scripts/` | CRDT baseline evaluation harness. |
 | `baseline-raft/` | Three-voter Raft baseline (Go `raftd`). Drives the leader-isolation comparison via `scripts/evaluate-raft-authority.py`. |
@@ -66,7 +83,7 @@ python3 -m venv .venv
 python3 -m pip install httpx matplotlib pytest hypothesis
 ```
 
-## Start the AAL Emulation Stack
+## Start the Emulation Stack
 
 The evaluation setup uses one core, one command edge, and three responder edges
 on the shared Docker network `rescue-ois-net`.
@@ -96,7 +113,7 @@ Stop and remove the emulation stack:
 The evaluation scripts reset tables and may stop/restart containers. Do not run
 them against a stack that contains data you want to keep.
 
-## Re-run the AAL Evaluation Harnesses
+## Re-run the Evaluation Harnesses
 
 Run from the repository root after starting the stack and applying migrations.
 These commands write generated JSONL files under `artifacts/data/` by default.
@@ -113,7 +130,7 @@ python3 scripts/evaluate-fleet-scaling.py
 ```
 
 `evaluate-raft-authority.py` is listed with the Raft baseline below, because it
-drives `baseline-raft/` rather than the AAL stack.
+drives `baseline-raft/` rather than the prototype stack.
 
 What each harness drives:
 
@@ -324,6 +341,11 @@ Expected behavior: strict configs verify; weak configs fail by design and expose
 counterexamples. Recorded run notes live in `formal/tla/RUNS.md` and
 `formal/tla/weak_counterexample.md`.
 
+Scope: the TLA+ model has no lease, and strict promotion is enabled only while the
+incumbent command is reachable, so it does not cover a command vehicle that is cut
+off. The Hypothesis model likewise promotes only after the incumbent has forwarded
+its whole journal. The cut-off case has a runtime witness only.
+
 Run the Python Hypothesis mirrors:
 
 ```bash
@@ -333,7 +355,7 @@ pytest
 cd ../..
 ```
 
-Opt-in real-stack tests require a running AAL Docker stack:
+Opt-in real-stack tests require a running Docker stack:
 
 ```bash
 cd formal/python
@@ -341,16 +363,32 @@ RESCUE_OIS_REAL_STACK=1 pytest tests/test_against_real.py
 cd ../..
 ```
 
-## Current Evidence Boundaries
+## What the Prototype Does Not Do
 
-The manuscript and repository intentionally separate implemented evidence from
-non-claims:
+The paper keeps implemented evidence apart from non-claims. In the prototype as it
+stands:
 
-- The service path sequences and fences incident-journal writes, but semantic
-  rejection for application-level status/delete conflicts is not implemented in
-  the measured service path.
-- Promotion is operator-initiated and single-edge in the service-path harness;
-  multi-edge operator races are model-level or future work.
+- **No people.** Authority sits with a vehicle (the command edge and its epoch),
+  not with a person. `user_id` is carried on every event but never authenticated
+  or checked against a role.
+- **Promotion needs core and an operator.** `scripts/promote-responder.sh` takes
+  the new epoch from the regional core and requires the candidate to hold the
+  journal prefix. It cannot detect whether the previous command is still alive;
+  the operator confirms that.
+- **Two vehicles can accept decisions at once.** A cut-off former command edge
+  keeps accepting until its lease (90 s by default) lapses, so only core's journal
+  is single-writer.
+- **A superseded command's unforwarded decisions never reach the journal.** The
+  new command continues numbering from core's prefix, so those decisions collide
+  on `event_seq` and stay on the old edge, with no reconciliation procedure.
+- **A legitimate command edge without backhaul stops.** The lease renews only
+  against core, so a command vehicle cut off from core stops accepting after one
+  lease window.
+- **Decisions and field observations are not told apart.** The accept path never
+  branches on `event_type`, and the command's own write path in `ops-api` is a
+  stub.
+- Semantic rejection for application-level status/delete conflicts is not
+  implemented in the measured service path.
 - The Android tablet directory is a scaffold; the evaluation uses Python/tablet
   stubs and service APIs.
 - The Docker evaluation is single-host emulation with `tc-netem`, not a physical
@@ -360,7 +398,7 @@ non-claims:
   regime durations are literature-informed; the transitions are synthetic, which
   is the point -- a reviewer can re-run exactly them.
 - The fleet sweep stops at ten responder edges because that is where a 16 GB
-  host runs out of memory, not where AAL runs out of headroom. It is a measured
+  host runs out of memory, not where the design runs out of headroom. It is a measured
   limit of the test bed, not a scaling result.
 
 ## Troubleshooting
