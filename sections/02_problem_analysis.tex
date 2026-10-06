@@ -114,7 +114,9 @@ The machinery is established; what this paper adds is who may confer authority a
 happens to decisions on the wrong side of a succession.
 
 \textit{Leases, locks and fencing.} Leases bound how long a holder may act without
-contact~\cite{gray1989leases}. Lock services such as Chubby~\cite{burrows2006chubby} and
+contact~\cite{gray1989leases}, and Paxos-based services lease mastership so that the
+elected master can serve reads alone for a bounded time~\cite{chandra2007paxoslive}. Lock
+services such as Chubby~\cite{burrows2006chubby} and
 ZooKeeper~\cite{hunt2010zookeeper} grant leases from a replicated coordinator, and fencing
 tokens let a resource refuse a holder whose lease has lapsed~\cite{kleppmann2017ddia}.
 All of them assume the coordinator, not the organization, decides who holds the lease, and
@@ -132,10 +134,35 @@ closer: an external master reconfigures the replicas. Our superior officer C pla
 role, except that C is a person who is often unreachable, and the configuration change is
 a signed grant rather than a protocol message.
 
-\textit{Delegation and credentials.} Signed authorization certificates and delegation
-chains, such as SPKI~\cite{rfc2693spki}, can be checked offline. That is what lets a
-deputy's edge verify a succession rule without the core in case P-B. We use them as
-given; the question here is what the grant should say and when it takes effect.
+\textit{When agreement is needed.} Brewer recasts the partition trade-off as managing
+partitions explicitly: detect them, limit what runs during them, and recover
+afterwards~\cite{brewer2012cap}. Invariant confluence identifies the operations that can
+run without coordination while preserving an application's
+invariants~\cite{bailis2014coordination}, the CALM theorem ties coordination-free
+consistency to monotone programs~\cite{hellerstein2020calm}, and RedBlue consistency
+coordinates only the operations that need it~\cite{li2012redblue}. \pending{Depends on the
+system model under review: judging a decision by the grant it was made under is not
+monotone, because a succession record that arrives late can turn a valid decision
+residual. The model therefore keeps such a decision provisional until the appointing
+authority confirms that the records are complete, instead of having devices agree.}
+
+\textit{Delegation and access control under weak consistency.} Signed authorization
+certificates and delegation chains, such as SPKI~\cite{rfc2693spki}, can be checked
+offline, and Sudarsan et al.\ survey delegated and self-contained authorization for
+cyber-physical systems and the IoT~\cite{sudarsan2021survey}. That is what lets a deputy's
+edge verify a succession rule without the core in case P-B. Closer to our problem is
+access control over weakly consistent replicas. Wobber et al.\ keep replicated data
+eventually consistent even though policy, and with it the verdict on an operation, can
+differ between nodes for a while~\cite{wobber2010policy}. Yanakieva et al.\ show that
+confidentiality, integrity and accessibility cannot all hold in a highly available,
+partition-tolerant file system~\cite{yanakieva2021access}, a trade-off of the same shape
+as ours. Jacob and Hartenstein separate a partial order of storage, in which the past is
+final, from a total order of execution, in which the past is a belief that can
+change~\cite{jacob2025eventually}. Tamper-evident logs keep such a record trustworthy
+afterwards~\cite{schneier1999audit}. We use these mechanisms as given; the question here
+is what the grant should say and when it takes effect. \pending{Depends on the system
+model under review: provisional and residual decisions are Jacob and Hartenstein's
+distinction applied to command authority.}
 
 \textit{CRDTs and local-first systems.} Mergeable replicated
 state~\cite{almeida2014delta,hanssen2025emergency,almeida2024crdtsurvey,mao2024reliablecrdt}
@@ -152,8 +179,16 @@ transport and storage near
 responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng}, which serves R1
 but not the question of who may issue a decision.
 
-\pending{Still to cover: incident-command succession practice, and command and control in
-disconnected, intermittent and limited (DIL) networks.}
+\textit{Incident command and tactical networks.} Incident command systems combine
+hierarchical and network forms~\cite{moynihan2008combining}: they coordinate many response
+organizations under a temporary hierarchy, and the network character of a response shapes
+coordination, authority and trust within it~\cite{moynihan2009network}. We model only the
+designated part, one commander at a time changed by explicit or pre-agreed acts, and
+leave shared authority to the plural pole. Military command and control faces the same
+disconnected, intermittent and limited links, and communications middleware for tactical
+networks is built to tolerate them~\cite{suri2009tactical}; it does not decide who may
+issue an order. \pending{Still to cover: how Swedish rescue services transfer command in
+practice, once the rescue service has been asked.}
 
 \begin{table*}[t]
 \centering
