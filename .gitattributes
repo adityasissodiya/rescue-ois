@@ -1,5 +1,6 @@
 # Keep LF in the working tree on every platform. Matches rescue-ois/.gitattributes;
-# see WONS_2027_ACTION_PLAN.md 0.47 defect 1 for what CRLF cost there.
+# see D:/work/aal/archive/wons/WONS_2027_ACTION_PLAN.md section 0.47, defect 1,
+# for what CRLF cost there.
 * text=auto eol=lf
 
 # Binary: never touch line endings, never diff as text.
