@@ -55,7 +55,7 @@ the same parameters; a row of `search.csv` with
 | `aas_testbed/report.py` | `REPORT.md`, including the Table II hypothesis check |
 | `FINDINGS.md` | What the results mean for the paper |
 | `tests/` | Rule unit tests, the model document's storyboard replayed, invariants |
-| `results/` | The CSVs and `REPORT.md` of the committed run |
+| `results/` | The CSVs (gzipped above 400 KB, for the pre-commit size check) and `REPORT.md` of the committed run |
 
 ## The model
 

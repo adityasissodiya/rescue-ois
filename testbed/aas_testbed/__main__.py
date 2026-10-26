@@ -119,8 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         t0 = time.time()
         rows = run_experiment(args.cmd, args.out, args.seeds, args.jobs, args.quick)
-        print(f"{args.cmd}: {len(rows)} runs in {time.time() - t0:.1f} s -> "
-              f"{args.out / (args.cmd + '.csv')}")
+        print(f"{args.cmd}: {len(rows)} runs in {time.time() - t0:.1f} s -> {args.out}")
     return 0
 
 

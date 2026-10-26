@@ -8,6 +8,8 @@ interprets the numbers.
 from __future__ import annotations
 
 import csv
+import gzip
+import io
 import statistics
 import subprocess
 from collections.abc import Callable, Iterable
@@ -34,10 +36,13 @@ def _parse(v: str) -> object:
 
 def load(out: Path, name: str) -> list[Row]:
     path = out / f"{name}.csv"
-    if not path.exists():
+    if path.exists():
+        text = path.read_text()
+    elif path.with_name(path.name + ".gz").exists():
+        text = gzip.decompress(path.with_name(path.name + ".gz").read_bytes()).decode()
+    else:
         return []
-    with path.open() as f:
-        return [{k: _parse(v) for k, v in row.items()} for row in csv.DictReader(f)]
+    return [{k: _parse(v) for k, v in row.items()} for row in csv.DictReader(io.StringIO(text))]
 
 
 def where(rows: Iterable[Row], **eq) -> list[Row]:

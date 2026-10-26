@@ -7,6 +7,8 @@ are written to ``<out>/<experiment>.csv``, one per run.
 from __future__ import annotations
 
 import csv
+import gzip
+import io
 import multiprocessing as mp
 import random
 from collections.abc import Callable, Iterable
@@ -260,15 +262,33 @@ def run_specs(specs: Iterable[Spec], jobs: int = 0) -> list[dict]:
         return pool.map(_run, specs, chunksize=4)
 
 
-def write_csv(rows: list[dict], path: Path) -> None:
+# The repository's pre-commit hook refuses files over 500 KB; larger CSVs are gzipped.
+GZIP_ABOVE = 400_000
+
+
+def write_csv(rows: list[dict], path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     keys: list[str] = []
     for row in rows:
         keys += [k for k in row if k not in keys]
-    with path.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=keys, lineterminator="\n")
-        w.writeheader()
-        w.writerows(rows)
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=keys, lineterminator="\n")
+    w.writeheader()
+    w.writerows(rows)
+    return write_text(buf.getvalue(), path)
+
+
+def write_text(text: str, path: Path) -> Path:
+    """Write ``path``, or ``path.gz`` (deterministic: no timestamp) if the text is large."""
+    gz = path.with_name(path.name + ".gz")
+    data = text.encode()
+    if len(data) > GZIP_ABOVE:
+        gz.write_bytes(gzip.compress(data, mtime=0))
+        path.unlink(missing_ok=True)
+        return gz
+    path.write_bytes(data)
+    gz.unlink(missing_ok=True)
+    return path
 
 
 def run_experiment(name: str, out: Path, seeds: int | None = None, jobs: int = 0,
