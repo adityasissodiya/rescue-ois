@@ -29,6 +29,8 @@ Python 3.12 or newer; no runtime dependencies. `pytest` for the tests.
 cd testbed
 python -m aas_testbed list                              # the experiments and their questions
 python -m aas_testbed run --policy S3 --case P-A --no-voice --decisions   # one incident, traced
+python -m aas_testbed run --policy S4 --relay-fault          # the stale-heartbeat counterexample
+python -m aas_testbed run --policy S4 --relay-fault --acked  # ... and the proposed fix
 python -m aas_testbed all                               # every experiment (~7,000 runs, ~10 min on 4 cores)
 python -m aas_testbed all --quick                       # a fifth of the seeds (~1.5 min)
 python -m aas_testbed matrix --seeds 50                 # one experiment
@@ -51,6 +53,7 @@ the same parameters; a row of `search.csv` with
 | `aas_testbed/metrics.py` | The truth oracle and the per-run metrics |
 | `aas_testbed/experiments.py` | The experiments and a parallel runner |
 | `aas_testbed/report.py` | `REPORT.md`, including the Table II hypothesis check |
+| `FINDINGS.md` | What the results mean for the paper |
 | `tests/` | Rule unit tests, the model document's storyboard replayed, invariants |
 | `results/` | The CSVs and `REPORT.md` of the committed run |
 
@@ -113,6 +116,14 @@ exactly the points the model document needs to settle.
 10. **`acked`** (off by default) is a proposed fix, not part of the document: a lease or T'
     runs from the last of the device's own heartbeats that the other side is known to
     have received, instead of from the last time it heard the other side.
+11. **`effect="acceptance"`** (off by default) is a proposed fix: a takeover or promotion
+    takes effect when the appointee's device accepts it, not when it is signed. The
+    appointee accepts as soon as it holds the appointment; an appointment older than the
+    one in force can no longer be accepted; and settlement also waits for anyone named in
+    an appointment not yet accepted.
+12. **Citing is causal.** An acceptance or activation is not checked against the
+    timestamp of the appointment or rule it cites: a device can only cite a record it
+    holds, and comparing two devices' clocks would misjudge the order by up to eps.
 
 ### Policies
 
