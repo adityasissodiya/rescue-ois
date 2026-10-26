@@ -23,13 +23,17 @@ def test_invariants_under_flapping(policy, mode):
         assert not m["tradeoff_violated"], seed
 
 
-@pytest.mark.parametrize("policy", ["S1", "S3"])
-def test_invariants_with_acceptance_effect(policy):
-    for seed in range(20_000, 20_004):
-        _, cfg = search_config(policy, seed, "closing")
-        m = measure(simulate(replace(cfg, effect="acceptance")))
-        assert m["converged"] and m["lost"] == 0, seed
-        assert m["auth_regressions"] == 0 and m["misclassified"] == 0, seed
+# Seeds 10020 and 10095 once revoked authoritative verdicts (settlement ignored a pending
+# appointee); 10046 and 10069 once misclassified (acceptance checked across two clocks).
+@pytest.mark.parametrize("policy,seed", [
+    ("S1", 20_000), ("S3", 20_001), ("S3", 10_020), ("S3", 10_095), ("S1", 10_046),
+    ("S2", 10_069),
+])
+def test_invariants_with_acceptance_effect(policy, seed):
+    _, cfg = search_config(policy, seed, "closing")
+    m = measure(simulate(replace(cfg, effect="acceptance")))
+    assert m["converged"] and m["lost"] == 0
+    assert m["auth_regressions"] == 0 and m["misclassified"] == 0
 
 
 def test_takeover_on_acceptance_removes_retroactive_residuals():

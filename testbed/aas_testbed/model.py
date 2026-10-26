@@ -20,6 +20,7 @@ can be argued with.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -148,10 +149,21 @@ def timeline(records: Iterable[Record], org: Org, *, truth: bool = False) -> lis
 
     segments: list[Segment] = []
     holder: str | None = None
+    appointed_at = -math.inf  # when the act behind the latest appointment was signed
     for act in acts:
+        if act.kind is Kind.ACCEPTANCE:
+            appt = appointments.get(act.accepts or "")
+            # MODEL CHOICE: an appointment older than the one in force can no longer be
+            # accepted; otherwise a stale takeover could override a newer one.
+            if appt is None or _key(appt, truth) < appointed_at:
+                continue
         new = _apply(act, holder, rules, appointments, org, truth)
         if new is None:
             continue
+        if act.kind is Kind.ACCEPTANCE:
+            appointed_at = _key(appointments[act.accepts or ""], truth)
+        elif act.kind in UNCONDITIONAL_KINDS:
+            appointed_at = _key(act, truth)
         segments.append(Segment(_key(act, truth), new, holder, act.rid, act.kind))
         holder = new
     return segments
@@ -166,11 +178,14 @@ def _apply(
     truth: bool,
 ) -> str | None:
     """The new holder if ``act`` is valid given the current holder, else None."""
+    # Acceptances and activations are not checked against the timestamp of the
+    # appointment or rule they cite: a device can only cite a record it holds, so the
+    # order is causal, and comparing two devices' clocks would misjudge it by up to eps.
     if act.kind is Kind.ACCEPTANCE:
         appt = appointments.get(act.accepts or "")
         if appt is None or appt.signer not in org.appointing or appt.subject != act.signer:
             return None
-        return act.signer if _key(appt, truth) <= _key(act, truth) else None
+        return act.signer
     if act.kind in UNCONDITIONAL_KINDS:
         return act.subject if act.signer in org.appointing else None
     if act.kind is Kind.HANDOVER:
@@ -178,8 +193,6 @@ def _apply(
     if act.kind is Kind.ACTIVATION:
         rule = rules.get(act.rule or "")
         if rule is None or rule.signer not in org.appointing:
-            return None
-        if _key(rule, truth) > _key(act, truth):
             return None
         if rule.subject != act.signer or holder != rule.primary:
             return None
@@ -259,7 +272,7 @@ def classify(
 def required_signers(
     t: float,
     segments: list[Segment],
-    rules: Iterable[Record],
+    authority: Iterable[Record],
     all_persons: Iterable[str],
     org: Org,
     eps: float,
@@ -271,10 +284,19 @@ def required_signers(
     named in, any authority record. ``closing`` is our refinement: an unconditional act
     (grant, takeover, promotion) overrides everything before it, so only the appointing
     authority, the holders since the latest such act, and the deputies of those holders
-    can still change who held command at ``t``.
+    can still change who held command at ``t``. Under the acceptance effect, anyone named
+    in an appointment not yet accepted can still change it too, by accepting.
     """
+    authority = list(authority)
+    rules = [r for r in authority if r.kind is Kind.RULE]
+    accepted = {r.accepts for r in authority if r.kind is Kind.ACCEPTANCE}
+    pending = {
+        r.subject for r in authority
+        if r.kind in APPOINTMENTS and r.rid not in accepted and r.ts <= t + eps
+        and r.subject is not None
+    } if org.effect == "acceptance" else set()
     if mode == "strict":
-        return frozenset(all_persons) | org.appointing
+        return frozenset(all_persons) | org.appointing | pending
     if mode != "closing":
         raise ValueError(f"unknown settlement mode {mode!r}")
     horizon = t + eps
@@ -292,4 +314,4 @@ def required_signers(
         if seg.start <= horizon and seg.holder is not None
     }
     deputies = {r.subject for r in rules if r.primary in chain and r.subject is not None}
-    return frozenset(org.appointing | chain | deputies)
+    return frozenset(org.appointing | chain | deputies | pending)

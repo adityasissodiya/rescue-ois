@@ -82,6 +82,7 @@ class Claim:
     holds: Callable[[Row], bool]
     test: str  # the predicate, in words
     only: Callable[[Row], bool] | None = None  # a further filter on the runs
+    exists: bool = False  # the claim says something can happen, not that it always does
 
     def rows(self, data: dict[str, list[Row]]) -> list[Row]:
         rs = where(data.get(self.experiment, []), **self.select)
@@ -150,26 +151,28 @@ CLAIMS = [
     Claim("H17", "Table II, S5", "(c) fails: both record", "matrix",
           {"policy": "S5", "case": "P-A", "a_state": "alive"},
           lambda r: r["overlap_s"] > 0, "overlap > 0"),
-    Claim("H18", "§II-C", "Stopping A early avoids residuals but not completeness gaps",
-          "matrix", {"case": "P-A", "a_state": "alive"},
-          lambda r: r["residual"] == 0 and r["missing_at_heal"] > 0,
-          "no residuals, and valid decisions missing at the core at heal",
-          only=lambda r: r["policy"] in ("S2", "S4")),
+    Claim("H18a", "§II-C", "Stopping A early (S2, S4) avoids residuals", "matrix",
+          {"case": "P-A", "a_state": "alive"}, lambda r: r["residual"] == 0,
+          "no residuals", only=lambda r: r["policy"] in ("S2", "S4")),
+    Claim("H18b", "§II-C", "... but not completeness gaps", "matrix",
+          {"case": "P-A", "a_state": "alive"}, lambda r: r["missing_at_heal"] > 0,
+          "valid decisions missing at the core at heal",
+          only=lambda r: r["policy"] in ("S2", "S4"), exists=True),
     Claim("H19", "Model doc §9", "One-way link under S4: A and B both accept", "faults",
           {"policy": "S4"}, lambda r: r["overlap_s"] > 60, "overlap > 60 s",
           only=lambda r: "mute" in r["fault"] or "deaf" in r["fault"]),
     Claim("H19'", "Proposed fix", "S3 in P-B, A fit but silent: no retroactive residuals "
           "when a takeover takes effect on acceptance", "faults", {"policy": "S3"},
-          lambda r: r["residual"] == 0, "no residuals",
-          only=lambda r: "effective when" in r["fault"]),
+          lambda r: r["residual_in_outage"] == 0, "no residual made during the outage",
+          only=lambda r: "effective when accepted" in r["fault"]),
     Claim("H20", "Model doc §7", "Every valid decision is eventually settled",
           "settlement", {}, lambda r: r["never_settled"] == 0, "never_settled == 0"),
     Claim("H21", "Model doc §9", "Within the clock bound, in-doubt contains the damage",
           "clock", {"variant": "bounded"}, lambda r: r["misclassified"] == 0,
           "no misclassified decision"),
-    Claim("H22", "Model doc §9", "Beyond the clock bound, decisions are misclassified",
+    Claim("H22", "Model doc §9", "Beyond the clock bound, decisions can be misclassified",
           "clock", {"variant": "A beyond bound"}, lambda r: r["misclassified"] > 0,
-          "misclassified > 0"),
+          "misclassified > 0", exists=True),
 ]
 
 
@@ -181,9 +184,15 @@ def _claims_section(data: dict[str, list[Row]]) -> str:
             rows.append([c.cid, c.source, c.text, c.test, "-", "not run"])
             continue
         k = sum(1 for r in rs if c.holds(r))
-        verdict = "holds" if k == len(rs) else "fails" if k == 0 else "partly"
+        if c.exists:
+            verdict = "holds" if k else "never observed"
+        else:
+            verdict = "holds" if k == len(rs) else f"fails in {len(rs) - k} runs"
         rows.append([c.cid, c.source, c.text, c.test, f"{k}/{len(rs)}", verdict])
-    return table(["#", "Source", "Claim", "Tested as", "Runs", "Verdict"], rows)
+    return ("A universal claim holds only if its test holds in every run; an existential "
+            "claim (\"can happen\") holds if it happens in at least one.\n\n"
+            + table(["#", "Source", "Claim", "Tested as", "Runs where the test holds",
+                     "Verdict"], rows))
 
 
 # -- sections ---------------------------------------------------------------------------

@@ -622,8 +622,8 @@ class Sim:
             v = classify(d, segs, cfg.eps, held=srv.records, settled=False)
             if v.reason != "unsettled":
                 continue
-            need = required_signers(d.ts, segs, rules, named, self.org, cfg.eps,
-                                    cfg.settlement)
+            need = required_signers(d.ts, segs, srv.authority.values(), named, self.org,
+                                    cfg.eps, cfg.settlement)
             for p in need:
                 if p not in horizons:
                     horizons[p] = self._horizon(srv, p)

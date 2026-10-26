@@ -73,6 +73,11 @@ def measure(sim: Sim) -> dict:
         by_status[v.status] += 1
         if v.status is Status.RESIDUAL:
             reasons[v.reason] = reasons.get(v.reason, 0) + 1
+    residual_in_outage = sum(
+        1 for d in sim.decisions
+        if d.true_ts < t_heal and final.get(d.rid) is not None
+        and final[d.rid].status is Status.RESIDUAL
+    )
     misclassified = sum(
         1 for rid, v in final.items()
         if v.status is not Status.IN_DOUBT
@@ -189,6 +194,7 @@ def measure(sim: Sim) -> dict:
         "residual": by_status[Status.RESIDUAL],
         "residual_superseded": reasons.get("superseded", 0),
         "residual_no_valid_grant": reasons.get("no_valid_grant", 0),
+        "residual_in_outage": residual_in_outage,
         "in_doubt": by_status[Status.IN_DOUBT],
         "authoritative_end": by_status[Status.AUTHORITATIVE],
         "provisional_end": by_status[Status.PROVISIONAL],
