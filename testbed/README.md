@@ -34,7 +34,7 @@ python -m aas_testbed list                              # the experiments and th
 python -m aas_testbed run --policy S3 --case P-A --no-voice --decisions   # one incident, traced
 python -m aas_testbed run --policy S4 --relay-fault          # the stale-heartbeat counterexample
 python -m aas_testbed run --policy S4 --relay-fault --acked  # ... and the proposed fix
-python -m aas_testbed all                               # every experiment, then the report (8,950 runs)
+python -m aas_testbed all                               # every experiment, then the report (8,950 runs, ~10 min on 4 cores)
 python -m aas_testbed all --quick                       # a fifth of the seeds
 python -m aas_testbed matrix --seeds 50                 # one experiment
 python -m aas_testbed report                            # results/REPORT.md from the CSVs

@@ -86,8 +86,9 @@ The work has been renamed as its framing changed, and older files keep older nam
 
 - **Testbed:** Python 3.12, no runtime dependencies. From `testbed/`, `python -m pytest`
   runs the tests and `ruff check .` the lint that CI runs. After a change to the model or
-  the simulator, re-run the experiments (`python -m aas_testbed all`), commit the new
-  `results/`, and refresh the manuscript's numbers (below). `FINDINGS.md` interprets the
+  the simulator, re-run the experiments (`python -m aas_testbed all`, about 10 minutes on
+  four cores; runs are deterministic, so unchanged code reproduces `results/` byte for
+  byte), commit the new `results/`, and refresh the manuscript's numbers (below). `FINDINGS.md` interprets the
   committed results; re-read it when they change.
 - **Prototype services:** each of the eight Python services under `core/` and `edge/` is
   a package with its own tests; CI runs `ruff check .` and `pytest` in each. The
