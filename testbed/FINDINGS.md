@@ -83,8 +83,9 @@ The policy cost map then becomes the evaluation, not the contribution.
 - **[model]** Under S3 in P-B or P-C, with A fit but not answering C, C signs a takeover
   at the centre that cannot reach the scene. A keeps commanding over the mesh, and crews
   see A's orders as valid. At heal the takeover arrives with its earlier timestamp, and
-  every order A gave since becomes residual after the fact: 17 residuals and 51 orders
-  that crews saw as valid and later saw become residual (REPORT §9).
+  every order A gave since becomes residual after the fact: 17 residual orders, each of
+  which all three crew devices had shown as valid (51 flips, counted per crew device;
+  REPORT §9).
 - **[model]** Fix: a takeover or promotion takes effect when the appointee's device
   accepts it, as the document already says of handovers ("signed by A and accepted by
   B"). Result: no residual made during the outage, and an overlap of 1 to 3 s at heal
@@ -149,7 +150,7 @@ The policy cost map then becomes the evaluation, not the contribution.
 - **[model]** A handover inside a P-C partition (A to S, while B activates in the other
   part): the precedence rule makes A's handover win, so B's whole tenure is residual
   under a grant that was never valid. That is 16 decisions, 903 s of S and B both
-  recording, and 16 orders that crews later saw become residual. Two successions in two
+  recording, and 16 flips on the crew device in B's part of the mesh. Two successions in two
   partitions are the plural case in disguise; any deterministic precedence makes one
   side's orders residual. The document's statuses have no name for "never valid".
 - **[model]** A's device ignoring T' gives 902 s of overlap and 16 residuals, as the
