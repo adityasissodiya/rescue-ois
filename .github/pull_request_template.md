@@ -19,9 +19,9 @@
 
 ## Checklist
 
-- [ ] Tests pass locally (`pytest` for affected Python services, `./gradlew test` for tablet)
+- [ ] Tests pass locally (`pytest` in each affected Python service and in `testbed/`)
 - [ ] `ruff check` clean for affected services
-- [ ] Documentation updated where relevant (README, ADR, runbook)
+- [ ] Testbed model or simulator changed: experiments re-run, `testbed/results/` committed, `FINDINGS.md` re-read
+- [ ] Documentation updated where relevant (README, ADR, runbook; the status in `docs/README.md`)
 - [ ] Any new SQL migrations are forward-only and numbered
 - [ ] No secrets, keys, or `.env` files committed
-- [ ] CODEOWNERS reviewed if touching shared infrastructure

@@ -1,5 +1,10 @@
 # Tablet UI Kit
 
+> **Status.** A design mock-up from the project's first framing, when the architecture
+> was called Tiered Sync. Not maintained: its screens predate the move from vehicles to
+> people as the holders of command authority. The Android app scaffold is in
+> [`../../tablet/`](../../tablet/README.md).
+
 Conceptual hi-fidelity UI kit for the **field tablet** (Tier 3) described in the Tiered Sync paper. This is a **proposed design** — no production tablet UI codebase was provided.
 
 ## Screens

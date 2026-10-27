@@ -1,5 +1,11 @@
 # Rescue OIS Tablet App
 
+> **Status.** A scaffold, not part of any evaluation; the prototype's evaluation uses
+> Python stubs and the service APIs instead. There is no Gradle wrapper yet, so the
+> commands below need one first (`gradle wrapper`), and CI skips the build. The package
+> namespace `org.review.rescueois` is left over from anonymizing the code for
+> double-blind review.
+
 Android tablet client for Rescue OIS. Talks only to the local vehicle K430 over HTTPS (mTLS). All map data is rendered offline from PMTiles served by the local edge.
 
 ## Build
