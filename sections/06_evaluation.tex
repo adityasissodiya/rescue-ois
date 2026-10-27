@@ -1,176 +1,240 @@
-% Blank first line: 05_implementation.tex ends mid-paragraph, and without it the
-% two files join into one paragraph.
+\section{Evaluation}
+\label{sec:eval}
 
-The evaluation asks what each succession policy costs, not how fast the prototype is.
-\S~\ref{sec:eval-policies} sets out the planned policy comparison.
-\S~\ref{sec:eval-m4} reports the evidence available today, which covers S1 only;
-\S~\ref{sec:eval-scope} gives the baselines that bound the design space; and
-\S~\ref{sec:eval-m1} keeps the implementation checks as supporting evidence.
+The evaluation asks what each policy costs the people involved, and whether the mechanisms
+of \cref{sec:enforcement} do what they claim. It runs on an executable model of the
+scenario, which lets us cover policies the prototype does not yet implement, and thousands
+of incidents per question. \Cref{sec:eval-prototype} reports what the prototype shows today
+and what it must still show.
 
-\subsection{Planned: Succession Policy Comparison}
-\label{sec:eval-policies}
+\subsection{Method}
+\label{sec:eval-method}
 
-\pending{Not yet run. Design for agreement; AAS\_PLAN.md, work step~6.}
+\textit{The model.} A discrete-event simulation of \cref{fig:scenario}: eight devices,
+eleven links, and the people of \cref{sec:system-model}. Devices hold signed records and
+exchange them by gossip over every link that is up; heartbeats carry each device's view of
+the others. Every device computes who held command when and classifies every decision with
+the same deterministic rule (\cref{sec:statuses}); the regional server settles decisions
+(\cref{sec:settlement}). Each policy is a device-side condition and a trigger for moving
+command (\cref{tab:policies}). Commanders issue decisions to random crews as a Poisson
+process while their own devices say they hold command; a refused attempt is an order given
+by voice only. \Cref{tab:params} lists the defaults.
 
-\textit{Scenarios.} Partition cases P-A, P-B and P-C (\S~\ref{sec:system-model}), each
-under policies S0--S4, with sweeps of $L$ and $T$. S5 enters only as the boundary case.
+\textit{Truth and metrics.} A truth oracle applies the same rule to every record ever
+signed, ordered by real time. From it and from one-second probes of which devices would
+accept their user's decisions, we measure: how long A keeps recording after the cut; the
+takeover delay; \emph{overlap}, the time during which two people can record; \emph{no
+command}, the time during which nobody can; residual decisions; valid orders refused by
+their own issuer's device; how many of the predecessor's valid decisions the successor
+lacked when taking over; settlement latency and decisions never settled; and
+\emph{flips}, orders that a crew's device first showed as valid and later as residual,
+counted once per crew device that showed them.
 
-\textit{Metrics.} How long A can keep recording; takeover delay; overlap duration; the
-number and status of residual decisions; journal completeness over time; dependence on
-core reachability; and how many decisions need manual review. Residuals (legitimacy) and
-missing valid decisions (completeness) are counted separately.
-
-\textit{Testbed and models.} At least three physical hosts with real link cuts. The TLA+
-model gains persons, grants, the lease and the succession policies, and is checked once
-per policy to show which of (a)--(c) each gives up; this also covers the isolated
-commander, which the current model does not.
-
-The expected result is a map of costs, not a winner.
-
-\subsection{Evidence for S1 Today}
-\label{sec:eval-promotion}
-\label{sec:eval-m4}
-
-Each cell repeats $n=30$ unless noted, reporting median and p95 over a single path.
-Partitions cut only the targeted path with \textit{tc}, and impairment profiles follow
-published mesh measurements~\cite{zimbelman2022mesh,kumbhar2015legacy}.
-
-\subsubsection{Two-edge promotion under partition}
-\label{sec:eval-two-edge}
-
-Promotion is run across two independent vehicle edges, each with its own database, with
-the incumbent partitioned from the network as in Figure~\ref{fig:promotion-timeline}. Two
-outcomes were measured.
-
-\emph{A superseded edge is told.} When A reconnects, the core refuses its batch with
-HTTP~409 (\textit{not\_epoch\_holder}); A demotes itself, and its own accept path then
-refuses writes. The core's journal is unchanged, and the rows A accepted while cut off
-stay on A, unlabelled (\S~\ref{sec:model-gap}).
-
-\emph{A holder that loses only its backhaul is told nothing.} B, the legitimate holder,
-accepts decisions while its lease is valid (here $L=15$\,s), refuses them once the lease
-lapses, and accepts again after the link returns and it renews. This is the lease's
-cost: the fence cannot tell a superseded edge from a disconnected one, which is why the
-model separates the lease from the grant.
-
-We report no takeover latency, because the transition is dominated by $L$, a deployment
-parameter rather than a property of the protocol.
-
-\subsubsection{Fencing cost at one acceptor}
-
-A promotion is driven end to end with every write attempt timed,
-\promotionNPerPhase{} attempts per phase. Commits before and after the transition take a
-median of \promotionMedianA{} and \promotionMedianC{}, and stale-epoch attempts are
-refused in a median of \promotionMedianB{}, before any journal write. Across five runs
-the fence holds exactly: 20/20 commits at epoch~1, 20/20 HTTP~409 rejections adding zero
-journal rows, 20/20 commits at epoch~2, and a 200-row journal split 100/100 between
-epochs with no \textit{event\_seq} value under both. Operator confirmation dominates
-wall-clock time, so a promotion costs operator time, not network time.
-
-\subsubsection{Model checking}
-
-The strict TLA+ variant passes all six safety invariants over 38.56\,M distinct states
-in 13.0\,min, whereas each weak variant is refuted in under a second:
-\textit{SingleAuthority} in 185 states, \textit{EpochAuthorityCoupling} in 144, and
-\textit{NoForkedJournal} in 1.0\,k. Both this model and the Hypothesis handoff model
-cover handover from a reachable command edge and have no lease, so the cut-off case above
-has a runtime witness only (\S~\ref{sec:non-claims}).
-
-\subsection{Boundaries of the Design Space}
-\label{sec:eval-scope}
-
-\subsubsection{Raft leadership follows the reachable quorum}
-\label{sec:eval-raft}
-
-Each run hard-cuts the current leader $L_0$ of a three-voter
-\textit{hashicorp/raft} cluster from the other two voters, after a sanity check
-that its FSM assigns \textit{event\_seq} and enforces \textit{client\_event\_id}
-idempotency. All twelve runs elect an $L_1 \ne L_0$ and commit five writes there
-(median 3.08\,s, p95 4.43\,s). Isolated, $L_0$ stalls and fails with an apply
-timeout during the election (median 269.9\,ms) and refuses immediately once it
-has stepped down (0.4\,ms); reporting only the first would be cherry-picking its
-worst phase. Both are correct Raft behavior~\cite{ongaro2014raft}, and both show why
-consensus cannot carry the organization's decision: authority follows the reachable
-quorum, and no input exists by which the organization can name the commander.
-
-\subsubsection{CRDT merge cannot designate the author}
-\label{sec:eval-crdt}
-
-Four FastAPI replicas run Hanssen's operation-based Last-Writer-Wins (LWW) Element
-Set~\cite{hanssen2025emergency} against constructed conflicting decisions
-(Table~\ref{tab:crdt-comparison}). This tests merge as the authority mechanism, not
-CRDTs as replication (\S~\ref{sec:positioning}), and it is a semantic falsification,
-not a speed comparison. LWW discards the losing status from materialized state, whereas
-\systemname{} keeps both writes in an attributed total order. Semantic rejection of
-conflicting values is an additional guard that is not implemented
-(\S~\ref{sec:non-claims}).
-
-The baseline is deliberately lightweight and in-memory and converges only through
-harness-triggered \textit{full\_sync()}. This favors CRDT, the correct bias for a
-falsification: if merge cannot designate the author under favorable conditions, it
-cannot under realistic ones.
-
-\begin{table*}[t]
-\centering
-\caption{Semantic comparison with a Hanssen-style CRDT-LWW baseline. The concurrent-edit and delete/update rows use \emph{constructed} conflicts, so their 30/30 outcomes are deterministic by design, not sampled.}
-\label{tab:crdt-comparison}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.25\textwidth}>{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Scenario} & \textbf{\systemname{} result} & \textbf{CRDT-LWW result} & \textbf{Interpretation} \\
-\midrule
-\input{tables/tab_crdt_comparison}
-\end{tabularx}
-\end{table*}
-
-\subsection{Implementation Checks}
-\label{sec:eval-independence}
-\label{sec:eval-m1}
-\label{sec:eval-m2}
-\label{sec:eval-m3}
-\label{sec:eval-fleet}
-\label{sec:eval-schedule}
-\label{sec:eval-wan}
-
-The replication path is implementation, but it has to work for any policy to be
-evaluated on it. Table~\ref{tab:evaluation} collects the measurements.
+\textit{Cases and runs.} Seven policies, four connectivity cases (none, P-A, P-B, P-C) and
+three states of A (fit and answering voice, fit but unreachable by voice, unfit), with
+\tbSeedsPerCell{} seeds per cell; sweeps of $T$, $L$, the operator's reaction time, the
+margin $T - T'$ and clock error; named faults; and \tbSearchRuns{} incidents with every link
+flapping at random and parameters drawn at random. \tbTotalRuns{} incidents in all. Every
+run is deterministic in its seed; every number quoted is a median over seeds unless stated
+otherwise, and is traced to its dataset and filter. \pending{Artifact: the
+\texttt{testbed/} directory of the rescue-ois repository.}
 
 \begin{table}[t]
-\centering
-\caption{Implementation checks: responder propagation, WAN recovery, command sequencing, and responder isolation.}
-\label{tab:evaluation}
-\scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.34\columnwidth}>{\raggedright\arraybackslash}p{0.25\columnwidth}>{\raggedright\arraybackslash}X@{}}
+\caption{Defaults of the executable model. Results that depend on a parameter are reported
+as sweeps.}
+\label{tab:params}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
 \toprule
-\textbf{Path / cell} & \textbf{Result} & \textbf{Interpretation} \\
-\midrule
-\input{tables/tab_evaluation}
-\end{tabularx}
+Outage & 1{,}200\,s, starting 600\,s into the incident; then 900\,s with every link up \\
+Lease $L$; timeouts $T$, $T'$ & 90\,s (the prototype's); 300\,s; $T - 60$\,s \\
+Decisions & one per minute per commander, to a random crew \\
+Gossip and heartbeats & every 2\,s on every link that is up \\
+One-way latency & cellular 150\,ms, mesh 50\,ms, Wi-Fi 10\,ms \\
+Clock error $\epsilon$ & 0.2\,s between any two devices \\
+Operator and C & react after 120\,s of silence at the server; a voice call takes 60\,s \\
+Unfit commander & reported to the centre by voice 300\,s after becoming unfit \\
+\bottomrule
+\end{tabular}
 \end{table}
 
-\textit{Responder isolation.} One responder is isolated for ten seconds while
-single-event POSTs go directly to \textit{/accept/event-batch}; they do not stall, and
-stale or absent \textit{X-Command-Epoch} values are rejected before any journal work.
+\subsection{What Each Policy Costs}
+\label{sec:eval-costs}
 
-\textit{Headroom.} Saturation throughput at the sequencer is three orders of magnitude
-above a generous demand of 10 decisions per minute, 0.17 events/s
-(Table~\ref{tab:evaluation}). Fleets of 1, 3, 5 and 10 independent responder edges, each
-with its own database and outbox, submitting simultaneously (five runs each, 20 events per
-responder) delivered every event at every size; ten edges is where this single host runs
-out of memory, not where the sequencer runs out of headroom. Throughput is therefore not
-a concern for this workload.
+\Cref{tab:costs} gives the main costs. Four results stand out.
 
-\textit{Outbox.} Replaying 50 unique \textit{client\_event\_id} values five times each
-leaves exactly 50 journal rows across $n=30$ runs, and 50 outbox submissions survive a
-responder-Postgres power cycle, forwarding afterwards with no duplicates and consecutive
-\textit{event\_seq}, journal-consistent about 2.6\,s after recovery. Through a schedule
-of connectivity regimes (clear, mesh-stressed, mesh-degraded, isolated, clear) over
-\scheduleRuns{} runs and \scheduleEvents{} events, the backlog rises only while the path to
-the command edge is down, peaking at \schedulePeakBacklog{} events, and drains in
-\scheduleDrainMedian{} (median) after restore; nothing is lost.
+\textit{A lease renewed at the server costs most when nothing is wrong with the commander.}
+In P-B, A is fit and reachable over the mesh, and no succession is needed. Yet S1, S2 and
+S3+L stop A after $L$ and nobody else can record: \tbPBNoCommand{} without command in a
+1{,}200\,s outage, with \tbPBRefused{} valid orders refused by A's own device and given by
+voice only. Under S0, S3 and S4 the same case costs nothing. The lease is the command
+analogue of an emergency stop on connection loss, which is not a safe default
+either~\cite{brettin2025blindspot}. This is the dominant cost of our earlier prototype's
+policy, not the residual orders the conference draft expected.
 
-\textit{Backhaul.} A \textit{tc} cut of the command-to-core path recovers within about a
-second of WAN heal for 1, 10 and 60~s outages (Table~\ref{tab:evaluation}), bounded by the
-forward poll loop and backlog rather than by outage length.
+\textit{S1 and S2 differ only if the operator reacts faster than $L$.} With a 120\,s
+reaction and $L = 90$\,s, A has stopped before the operator promotes B, and S1 never
+overlaps. It overlaps only when the operator acts within $L$ (\tbSOneOverlapFast{} with a
+15\,s reaction) or $L$ exceeds the reaction time.
+
+\textit{Without the commander's answer, takeover by C overlaps for the whole outage.} Under
+S3, a fit commander who answers C's call keeps command and nothing moves; one who does not
+answer is taken over after 180\,s, keeps recording for \tbSThreeSilentOverlap{} beside B, and
+leaves \tbSThreeSilentResidual{} residual orders. A lease on A's side (S3+L) prevents this
+only while $L$ is shorter than C's reaction: with $L = 300$\,s it overlaps for
+\tbSThreeLOverlapLong{}. And when A does answer, the lease stops A while C, having heard A,
+does nothing: nobody records for \tbSThreeLNoCommand{}.
+
+\textit{Silence detects a lost device, not an unfit commander.} When A is unfit but A's
+device stays connected, S4 never moves command, and nobody records for
+\tbUnfitSFourNoCommand{}. S1 and S2 act on the voice report (\tbUnfitSOne{}), S3 on the report
+and a failed call (\tbUnfitSThree{}). A dead-man switch that beats only while the commander
+is fit lets S4 take over at $T$ (\tbUnfitSFourPerson{}), at a cost we do not measure:
+takeovers when the commander is merely idle.
+
+Under S4, with A fit and cut off, A records for \tbSFourAWindow{} and B takes over at
+\tbSFourTakeover{}; nobody records for \tbSFourGap{} in between, by design. S5 overlaps for
+\tbSFiveOverlap{} and leaves \tbSFiveResidual{} residual orders. In P-B with A unfit, no
+policy moves command during the outage: C's takeover cannot reach the scene, and under S4
+A's device is still heard over the mesh.
+
+\begin{table}[t]
+\caption{Costs of each policy (medians over \tbSeedsPerCell{} seeds; times in seconds after
+the cut; ``--'': never happened). A is cut off in P-A and only the backhaul is lost in P-B;
+the outage lasts 1{,}200\,s. ``Unfit, connected'': A is incapacitated and A's device stays
+connected, with no partition.}
+\label{tab:costs}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+& \multicolumn{3}{c}{P-A, A fit} & \multicolumn{2}{c}{P-A, A fit, silent} & P-B, A fit & P-A, A unfit & Unfit, connected \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){7-7}\cmidrule(lr){8-8}\cmidrule(l){9-9}
+Policy & A records & takeover & overlap & overlap & residual & no command & takeover & takeover \\
+\midrule
+\inputrows{tables/tab_policy_costs.tex}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Enforcement and Reconnection Faults}
+\label{sec:eval-faults}
+
+\Cref{tab:faults} tests the mechanisms of \cref{sec:enforcement} against faults.
+
+\textit{Stale heartbeats.} In the relay witness of \cref{fig:relay}, the timeout of the
+system model lets A record beside B for \tbRelayOverlap{}; the acknowledged timeout,
+\tbRelayOverlapAcked{}. Across the random search, S4 overlapped in \tbFlapOverlapRuns{} of
+\tbFlapRuns{} incidents with $T - T' \geq 5$\,s and no handover, and in
+\tbFlapOverlapRunsAcked{} of \tbFlapRunsAcked{} with acknowledgment. In a sweep of the margin $T - T'$
+with adversarial clocks, the unacknowledged rule still overlapped at \tbMarginPlainLast{}
+with 5\,s heartbeats and $\epsilon = 2$\,s; the acknowledged rule showed no overlap from
+\tbMarginAckedFirst{} up, for every heartbeat period and clock error tried.
+\Cref{prop:single-acceptor} guarantees none once the margin exceeds $\epsilon$, whatever
+the heartbeat period.
+
+\textit{Takeovers from afar.} With A fit but silent in P-B, a takeover effective when
+signed turns \tbSignedResidual{} orders residual, each of which all three crew devices had
+already shown as valid (\tbSignedFlips{} flips). Effective on acceptance, \tbAcceptedResidual{} orders made during the outage
+turn residual, with \tbAcceptedOverlap{} of overlap at the heal while A learns of the change.
+
+\textit{One-way links and handovers inside a partition.} The system model expected a link
+that works in one direction to leave both A and B accepting. It does not: if A's device can
+receive but not send, A hears of B's activation and the overlap lasts \tbMuteOverlap{}; if it
+can send but not receive, A stops at $T'$, B never activates, and nobody records for
+\tbDeafNoCommand{}. A handover by A to S inside a P-C partition, while B activates in the
+other part, makes B's whole tenure residual under the precedence rule (\tbHandoverResidual{}
+orders, \tbHandoverOverlap{} of S and B both recording): two successions in two partitions
+are the plural case in disguise, and any deterministic precedence turns one side's orders
+residual. \pending{Precedence between a handover and an activation: decision for the
+supervisors.}
+
+\begin{table}[t]
+\caption{Faults (medians over 10 seeds; times in seconds).}
+\label{tab:faults}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Fault & overlap & no command & residual & crew flips \\
+\midrule
+\inputrows{tables/tab_faults.tex}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Settlement}
+\label{sec:eval-settlement}
+
+With A incapacitated in P-A and A's device lost for good, the system model's settlement
+rule, read literally, leaves \tbStrictLostNeverMin{} to \tbStrictLostNeverMax{} valid
+decisions per incident never settled (medians by policy): every decision after A's last
+heartbeat. With the rule of \cref{prop:settlement}, S1 and S3 settle all decisions but at most A's
+last, within \tbClosingSettlePninetyfive{} (95th percentile). Under S4 the deputy's
+decisions wait for A's device: \tbSFourSettlePninetyfiveKept{} at the 95th percentile when it
+reconnects at the heal, and \tbSFourNeverSettledLost{} decisions never settled when it is
+lost. In every policy and partition case, decisions made during a partition settle only
+after the heal, so crews and operators work from provisional orders for the length of the
+outage. \pending{Whether that is workable: ask the rescue service.}
+
+\subsection{Invariants under Random Flapping}
+\label{sec:eval-search}
+
+Across the \tbSearchRuns{} random incidents, under both settlement rules and with the
+acknowledged and acceptance variants: every device ended with the same records and no
+accepted decision was lost. Authoritative verdicts later revoked by some device:
+\tbSearchRevoked{}. Final verdicts that disagreed with the truth oracle while clock error
+stayed within $\epsilon$: \tbSearchMisclassified{}. The search found two faults
+in our own first implementation of acceptance---settlement that ignored a pending appointee,
+and a validity check that compared two devices' clocks---both fixed before the runs reported
+here. It is evidence, not proof; \pending{TLA+ for \cref{prop:single-acceptor} and part (i)
+of \cref{prop:settlement}.}
+
+Clock error matters little at GNSS accuracy: with $\epsilon$ up to 2\,s, no decision was in
+doubt at one decision per 20\,s; at 10\,s and 60\,s, \tbDoubtTen{} and \tbDoubtSixty{} per
+incident. A clock beyond the bound misclassifies decisions near a change of command, as
+expected.
+
+\subsection{Choosing the Parameters}
+\label{sec:eval-parameters}
+
+Under S4, a takeover while A is fit happens exactly when the outage outlasts $T$: the rate
+of needless takeovers is the probability that a commander's data outage lasts longer than
+$T$, a distribution only the rescue service can supply. Waiting longer costs completeness:
+when B takes over, B lacks \tbBlindSixty{}, \tbBlindThreeHundred{} and \tbBlindTwelveHundred{}
+of A's valid decisions at $T = 60$, 300 and 1{,}200\,s. For the lease policies, $L$ trades the
+time without command in P-B ($D - L$ for an outage of length $D$) against overlap when $L$
+exceeds the time the operator or C takes to act. \pending{Outage-length distribution and
+reaction times: ask the rescue service; then report expected costs per policy.}
+
+\subsection{The Prototype}
+\label{sec:eval-prototype}
+
+The prototype, built before the authority model, implements S1 on Python~3.12 services
+with FastAPI and asyncpg, run under Docker Compose with one regional core, two vehicle
+edges that can each hold command, and responder edges. The core issues each command tenure
+an epoch, accepts journal entries only from the edge recorded as holding the current epoch,
+and renews the holder's lease on traffic and heartbeats; an operator promotes another edge
+after copying the core's journal prefix. Across two independent vehicle edges under a real
+partition, a superseded edge that reconnects is refused with HTTP~409 and demotes itself,
+and a holder that loses only its backhaul stops after its lease ($L = 15$\,s) and resumes
+when the link returns: the cost of \cref{sec:eval-costs} in miniature. Stale-epoch writes are
+refused in a median of \promotionMedianB{}, before any journal write, against
+\promotionMedianA{} for a commit. A TLA+ model of the strict promotion protocol passes six
+safety invariants over 38.56\,M states, and a three-voter Raft cluster moves leadership to
+the reachable majority in all twelve runs: consensus cannot carry the organization's
+decision. \pending{Condense further once the extension below exists.}
+
+The prototype falls short of the model: it binds authority to a vehicle, not a person; it
+has no grants, signed decisions or succession acts; promotion needs the core; and it does
+not label residual decisions. \pending{Planned: persons, signed grants and succession
+acts; the anchor policy with appointments effective on acceptance and settlement; runs on
+the multi-host testbed for the reconnection cases of \cref{tab:faults}, compared with the
+model's predictions for the same link schedules.}
+
+\subsection{Expert Walkthrough}
+\label{sec:eval-walkthrough}
+
+\pending{Planned: officers of the rescue service walk through the storyboard of the
+scenario and the status display, under S3 and S4. We record whether they read provisional,
+residual and in-doubt orders as intended, what they would do with a residual order already
+carried out, and what $T$ and $L$ they would accept.}

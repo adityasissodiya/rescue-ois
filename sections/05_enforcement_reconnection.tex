@@ -1,0 +1,186 @@
+\section{Enforcement and Reconnection}
+\label{sec:enforcement}
+
+The authority model says who held command when. This section says what devices do about
+it while they cannot reach each other, and what happens to authority and orders when they
+reconnect. Three mechanisms matter: the timeout with which a commander's device stops on
+its own (\cref{sec:ack}), the moment at which an appointment takes effect
+(\cref{sec:acceptance}), and the settlement of orders (\cref{sec:settlement}).
+
+\subsection{Enforcement on Devices}
+\label{sec:device-enforcement}
+
+A device lets a person add a decision only if two things hold on the records that device
+holds: the person holds command now, and the policy's local condition allows it---the
+lease for S1, S2 and S3+L, the commander's timeout $T'$ for S4. The same check guards a
+handover, so a commander whose device has stopped cannot hand over either. A decision that
+arrives from another device is always kept; if it rests on an authority record the device
+has not received, it stays provisional until that record arrives. Field submissions are
+always accepted.
+
+\subsection{Acknowledged Timeouts}
+\label{sec:ack}
+
+Under S4, B activates once B's device has heard nothing from A's device for $T$, and A's
+device stops accepting A's decisions once it has heard nothing from B's for $T' < T$. The
+system model argued that A and B ``measure the same silence'', so that $T' < T$ keeps one
+device at a time accepting. On links that store and forward, they do not.
+\Cref{fig:relay} shows how. A vehicle that lost contact with B still holds a heartbeat
+B sent before activating; when A's handheld reaches that vehicle again, the heartbeat
+arrives, and A's device, having just ``heard from B'', starts accepting again. The
+heartbeat is fresh enough by its timestamp, yet B has meanwhile taken command. In our
+witness the two record side by side for \tbRelayOverlap{} (\cref{sec:eval-faults}).
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_relay}
+\caption{A stale heartbeat revives a stopped commander. A's handheld is cut off at $t_0$.
+V1 last hears B at $t_1$ and keeps B's heartbeat from then. A's device stops at $T'$ after
+the last beat of B's it received, and B activates at $T$. When A's Wi-Fi to V1 returns, V1
+hands A B's heartbeat from $t_1$, younger than $T'$; A's device accepts again, beside B,
+until $t_1 + T'$. With an acknowledged timeout, the same heartbeat reports that B last
+heard A at $t_0$, and A's device stays stopped.}
+\label{fig:relay}
+\Description{A timeline with three lanes: A's handheld, vehicle V1 and B's vehicle. A is cut off at t0 and stops at T-prime; B activates at T; V1, which last heard B at t1, later hands A that old heartbeat, and A accepts again beside B until t1 plus T-prime.}
+\end{figure}
+
+The fix is the one leases have long used against this: renew by acknowledgment, not by
+hearing. Every heartbeat carries, for each other device, the timestamp of the latest
+heartbeat the sender has received from it. A's device stops once the latest of \emph{its
+own} heartbeats that B's device is known to have received is more than $T'$ old.
+
+\begin{proposition}[One device at a time]
+\label{prop:single-acceptor}
+Let clock offsets between devices differ by at most $\epsilon$, and let a device that
+holds a heartbeat hold every record its sender held when sending it. Let B's device
+activate at the first time $t_B$ at which $C_B(t_B) - y \geq T$, where $y$ is the timestamp
+of the latest heartbeat of A's it holds, and let A's device accept A's decisions at time
+$t$ only if A holds command on its records and $C_A(t) - x(t) \leq T'$, where $x(t)$ is the
+largest timestamp of A's heartbeats that the heartbeats of B's held by A's device report B
+to have received. If $T - T' > \epsilon$, A's device accepts none of A's decisions at or
+after $t_B$.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+If A's device holds a heartbeat of B's sent at or after $t_B$, it holds B's activation, so A
+no longer holds command on its records and the device refuses. Otherwise every heartbeat
+of B's that it holds was sent before $t_B$, and reports a value at most $y_B$, the value of
+$y$ at $t_B$; hence $x(t) \leq y_B$. Accepting at $t$ needs $C_A(t) \leq y_B + T'$, while
+activation gives $C_B(t_B) \geq y_B + T$. With $C_v(t) = t + o_v$ and
+$o_B - o_A \leq \epsilon$, $t \leq t_B - (T - T') + \epsilon < t_B$.
+\end{proof}
+
+The margin needs to cover only the clock error, not message delay, the heartbeat period or
+the path through the mesh: those make $x$ lag behind $y$, which only stops A earlier. The
+rule the system model used, with $x$ replaced by the timestamp of the latest heartbeat of
+B's, has no such bound: a heartbeat of B's sent after B last heard A, but before B
+activated, can reach A arbitrarily late, as in \cref{fig:relay}. Drift adds a term
+proportional to $T$, which is negligible while GNSS is available. Leases renewed at the
+regional server (S1, S2, S3+L) have the same weakness and the same fix.
+\pending{Model-check \cref{prop:single-acceptor} in TLA+ with relaying channels.}
+
+\subsection{When an Appointment Takes Effect}
+\label{sec:acceptance}
+
+A takeover by C, or a promotion by an operator, is signed at the regional centre. The
+system model let it take effect when signed. When the scene is cut off from the centre, as
+in P-B, this rewrites the past (\cref{fig:acceptance}a). A is fit and does not answer the
+call, so C takes over; A, unaware, keeps giving orders over the mesh, and crews see them as
+valid. When cellular returns, the takeover arrives with its earlier timestamp, and every
+order A gave since becomes residual---orders that A gave in good faith and crews have
+carried out. In the evaluation this turns \tbSignedResidual{} orders residual, every one of
+which the three crew devices had shown as valid: \tbSignedFlips{} flips
+(\cref{sec:eval-faults}).
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_acceptance}
+\caption{A takeover that cannot reach the scene. In P-B the scene keeps its mesh but loses
+the regional centre. C, unable to reach A by voice, signs a takeover appointing B at $s$.
+(a) Effective when signed: A's orders d1 and d2, given over the mesh and seen as valid by
+crews, become residual when the links return. (b) Effective when B's device accepts it:
+command passes at the heal $h$, d1 and d2 stand, and A's device learns of the change at
+once.}
+\label{fig:acceptance}
+\Description{Two timelines with lanes for A, B and C during a P-B partition. C takes over at s. In panel a, A's orders d1 and d2 turn residual when links heal; in panel b, B accepts the takeover at the heal and d1 and d2 stand.}
+\end{figure}
+
+We let a takeover or promotion take effect when the appointee's device accepts it, as a
+handover already does when the recipient accepts it. This is the confirmation step of an
+interlocked transfer of control~\cite{flemisch2012balance,gil2019designing}, made explicit
+for the case where the confirmation itself is delayed. Three rules come with it: the
+appointee's device accepts as soon as it holds the appointment and the appointee is fit; an
+appointment older than the one in force can no longer be accepted, so a stale takeover
+cannot override a newer one; and settlement waits for anyone named in an appointment not
+yet accepted (\cref{sec:settlement}). Without the third rule, our search found confirmed
+verdicts that a late acceptance later revoked. In P-A, acceptance changes nothing: B
+accepts at once, and A, who cannot be told, keeps recording until it reconnects. Those
+residual orders are the irreducible cost of a commander who cannot be reached.
+\pending{Decision for the supervisors: effective on acceptance.}
+
+\subsection{Settlement}
+\label{sec:settlement}
+
+A valid order is provisional until the regional server confirms it; devices that receive
+the confirmation, and hold the records it rests on, mark it authoritative. The server
+decides nothing: it confirms only that no record that could change the verdict can still
+arrive. Per-person sequence numbers make this checkable: a heartbeat from a person's
+device carries that person's latest sequence number, so once the server holds a heartbeat
+with timestamp at least $\tau + \epsilon$ and every record of that person up to its sequence
+number, it knows that person signed nothing it lacks up to $\tau$.
+
+Whose records must be complete? The system model's rule, read literally, names everyone
+named in any authority record. Then a commander whose device is lost blocks the settlement
+of every later decision, forever (\cref{sec:eval-settlement}). But an unconditional
+act---a grant, a takeover or promotion once in effect---overrides everything before it, so
+only some people can still change a verdict.
+
+\begin{proposition}[Settlement]
+\label{prop:settlement}
+For a decision $d$ with timestamp $\tau_d$, let $R(d)$ hold the appointing officer and the
+operators, every holder of command since the latest unconditional act before
+$\tau_d - \epsilon$, the deputies named in rules for those holders, and anyone named in an
+appointment not yet accepted. Let the server confirm $d$ once its records classify $d$ as
+valid and, for every person in $R(d)$, it holds that person's records complete up to
+$\tau_d + \epsilon$. Under the assumptions of \cref{sec:system-model}:
+(i) no device that has marked $d$ authoritative later classifies it otherwise; and
+(ii) if $d$ is valid and the devices of everyone in $R(d)$ eventually reach the server, $d$
+is confirmed.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The verdict on $d$ depends only on authority acts with timestamps up to $\tau_d + \epsilon$:
+those that decide who held command at $\tau_d$, and those within $\epsilon$ of it. Any act
+that precedes $d$ in real time has a timestamp below $\tau_d + \epsilon$. An act that changes
+who held command after the latest unconditional act can be signed only by the appointing
+officer, the holder (a handover), a deputy of the holder (an activation), or an appointee
+(an acceptance), all of whom are in $R(d)$; acts before the unconditional act are overridden
+by it. Completeness of their records means no such act can still arrive, so the server's
+verdict is final, and a device that holds the confirmation and the records it lists computes
+the same verdict. For (ii), every completeness condition is eventually met once the devices
+of $R(d)$ reach the server.
+\end{proof}
+
+Part (ii) is where policies differ. Under S1 and S3 the successor holds command by an
+unconditional act, so the predecessor leaves $R(d)$ and the successor's orders settle
+within seconds, even if the predecessor's device is never seen again. Under S4 the
+successor holds command by an activation, which is valid only if the predecessor was still
+the holder, and only the predecessor's records can show that. The deputy's orders therefore
+stay provisional until the predecessor's device reconnects, or for ever if it is lost,
+unless C ratifies the activation with a takeover. \pending{Model-check part (i) in TLA+;
+decide with the supervisors whether S4 requires ratification by C.}
+
+\subsection{What Commanders and Crews See}
+\label{sec:readers}
+
+R4 asks that every person who acts on an order can see whether it stands. Each device shows,
+for every order, who issued it, under which act, and its status. Orders move between
+statuses as records arrive: provisional to authoritative when settled; provisional to
+residual when a record arrives showing that its issuer no longer held command; provisional
+to in doubt when a change of command turns out to lie within $\epsilon$. A move from
+provisional to residual is a flip: a crew may already have acted. Flips cannot be prevented
+while a commander cannot be told, but policies differ widely in how many they produce, and
+appointments that take effect on acceptance remove those that a takeover from afar
+would cause. The evaluation counts flips on the crews' devices.
+\pending{Design of the status display, and whether officers read it as intended: expert
+walkthrough, \cref{sec:eval-walkthrough}.}

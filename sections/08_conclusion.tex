@@ -1,18 +1,19 @@
 \section{Conclusion}
+\label{sec:conclusion}
 
-Command at an incident belongs to a person, and the organization, not the network,
-decides who that person is. We separated a person's right to command from a node's right
-to write: authority comes from signed grants and a succession rule fixed in advance,
-nodes exercise it, a decision binds when it is admitted under a valid grant, and
-decisions made under a superseded grant are kept as labelled residuals. While the
-commander is cut off, no design can keep the commander recording, move command without
-them, and keep one disconnected edge accepting, all at once. Succession is therefore a
-choice of policy, and we laid out six policies by what each gives up. The \systemname{}
-prototype realizes one of them, immediate promotion through the core with a lease, and we
-reported both what it guarantees and where it falls short of the model. Raft moves
-authority to the reachable quorum and a last-writer-wins CRDT lets the merge decide;
-neither can carry the organization's decision.
+Command at an incident belongs to a person, and the organization, not the network, decides
+who that person is. We separated a person's right to command from a device's right to
+write, gave every order a status that the people acting on it can see, and asked what each
+succession policy costs them while devices cannot reach each other and when they
+reconnect. Three mechanisms decide most of that cost: a commander's device must stop by a
+timeout the deputy has acknowledged, not one it measures alone, or a relayed heartbeat can
+revive it; an appointment must take effect when the successor's device accepts it, or a
+takeover signed from afar rewrites orders already carried out; and orders settle only once
+the predecessor's records arrive or the appointing officer acts, which pre-authorized
+succession has to plan for. Leases renewed at the regional server, as in our earlier
+prototype, cost most in the case that needs no succession at all.
 
-\pending{Next: check succession practice with the rescue service, extend the prototype
-with persons, grants and policies S0--S4, run the policy comparison across partition cases
-P-A to P-C on a multi-host testbed, and model-check each policy with the lease in TLA+.}
+\pending{Next: sign-off of the model's open choices, rescue-service interviews on
+succession practice and outage lengths, model checking of
+\cref{prop:single-acceptor,prop:settlement}, the prototype extended to the anchor policy on
+the multi-host testbed, and an expert walkthrough of the status display.}

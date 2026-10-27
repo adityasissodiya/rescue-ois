@@ -1,0 +1,129 @@
+\section{Setting and Authority Model}
+\label{sec:model}
+
+\subsection{The Setting as a Cyber-Physical System}
+\label{sec:setting}
+
+\Cref{fig:scenario} shows the scenario, a forest fire in hilly forest near a village,
+taken from the scenario and system model we use with the rescue service
+\pending{sign-off pending}. Three couplings make it a cyber-physical system rather than an
+information system with mobile clients:
+\begin{itemize}
+  \item \emph{Orders actuate.} A decision moves crews and vehicles. An order that later
+  turns out to be residual may already have been carried out; the system can label it,
+  not undo it.
+  \item \emph{Terrain decides connectivity.} Cellular coverage is good along the road and
+  poor in the valleys; the mesh between vehicles is limited by range and terrain. Which
+  devices can reach which follows from where people and vehicles are.
+  \item \emph{Time without command is exposure.} While no one can record orders, crews act
+  on the last orders they have, and new hazards go without a recorded response.
+\end{itemize}
+
+Requirements R1 and R2 follow from mobile-IT and incident-reporting findings that
+responders need locally available information and durable later
+documentation~\cite{rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}; R3
+follows from decision-provenance requirements and command
+guidance~\cite{naja2010provenance,rsg-rad201}; R4 from the human-factors evidence that the
+people who act need to know how certain their information is~\cite{endsley2017autonomy}.
+\begin{itemize}
+  \item \textbf{R1 (Offline operation).} Every device keeps working from previously
+  synchronized data without continuous connectivity.
+  \item \textbf{R2 (Durable submission).} Field submissions survive device restarts and
+  prolonged partitions.
+  \item \textbf{R3 (Attributable command under succession).} Every decision is attributable
+  to an authenticated person and to the grant under which that person made it. For every
+  decision the system determines whether the grant was valid under the organization's
+  succession rule when the decision was made, and it keeps every decision for which it
+  was not.
+  \item \textbf{R4 (Visible certainty).} Every person who acts on a decision can see whether
+  it stands, may still change, or was made without valid authority.
+\end{itemize}
+
+\subsection{People, Grants and Decisions}
+\label{sec:system-model}
+
+\textit{People and roles.} A primary commander A, a deputy B, a sector leader S, and a
+superior officer C, the duty chief, who appoints commanders and may take over. Crews carry
+out orders and report; operators at the regional centre follow the incident; reviewers
+establish afterwards who decided what. The organization has one commander at a time.
+Shared or contested authority, where several people must agree, is out of scope
+(\cref{sec:thesis}).
+
+\textit{Grants and succession acts.} C issues A a signed role grant. A succession rule, such
+as ``B may assume command if A has been silent for $T$'', is signed by C in advance. A
+handover from A to B, a takeover by C, an activation by B under a rule, and a promotion by an
+operator are signed acts. Every grant and act is itself a record in the journal.
+
+\textit{Decisions.} A decision is signed by the person who makes it and carries the act
+under which that person believes they hold command, a per-person sequence number, and the
+GNSS time of the device it was made on. Field submissions---observations, status reports,
+requests---need no authority and are never invalid.
+
+\textit{Devices.} Vehicle computers, handhelds and the regional server. A device exercises
+the authority of the person using it and holds none of its own, so a commander who changes
+device takes their authority along. Every device keeps the records it has, passes them on
+over any link that is up, and sends heartbeats that carry its user's latest sequence
+number. Records are never changed, merged or deleted, so they form a grow-only set and
+duplicates and reordering do no harm.
+
+\textit{Channels.} Cellular data to the regional server, a mesh between vehicles at the
+scene, Wi-Fi between a handheld and a nearby vehicle, and Rakel voice radio. Voice is
+outside the system, but it is how succession is usually agreed and how C tries to reach a
+silent commander; the system records the outcome.
+
+\textit{Partition cases.} \emph{P-A}: only A's device is cut off. \emph{P-B}: every vehicle
+loses its cellular link, while the mesh still works. \emph{P-C}: the mesh also splits, so A
+and B are in different parts. Independently, A may be \emph{fit} and answering voice, fit
+but unreachable by voice, or \emph{unfit}---incapacitated, with or without a connected
+device. Nobody can tell the last two apart from the network alone.
+
+\textit{Assumptions.} Messages may be delayed, duplicated and reordered, and are eventually
+resent. A device that holds a heartbeat holds every record its sender held when it sent it
+(heartbeats travel with the records). Clock error between devices is bounded by $\epsilon$
+while GNSS is available. Devices are not Byzantine, credentials are not stolen, and a person
+signs from one device at a time.
+
+\subsection{Who Commanded When, and the Status of a Decision}
+\label{sec:statuses}
+
+Every device computes who held command when from the authority records it holds, with one
+rule: start from C's grant, apply the succession acts in timestamp order, and drop any act
+its signer was not entitled to make at that moment (a handover by someone who no longer
+held command, an activation under a rule whose primary had already handed over). Devices
+that hold the same records therefore reach the same verdict. A decision then has one of
+four statuses:
+\begin{itemize}
+  \item \textbf{Authoritative:} made by the person who held command at that time, and
+  settled, so no record that could change this can still arrive (\cref{sec:settlement}).
+  \item \textbf{Provisional:} valid on the records this device holds, but not yet settled.
+  \item \textbf{Residual:} made by someone who did not hold command at that time, because
+  their grant had been superseded or was never valid. Kept, attributed and labelled for
+  review; never merged and never dropped.
+  \item \textbf{In doubt:} made within the clock-error bound $\epsilon$ of a change of
+  command, so the order is open. A person decides.
+\end{itemize}
+A residual decision is a \emph{legitimacy gap}. A valid decision that the server or the
+successor does not yet hold, because its device has not reconnected, is a
+\emph{completeness gap}. A crew can act on a provisional order that later becomes
+residual; we call this a \emph{flip}, and count it as the clearest cost a policy imposes on
+the people who act (\cref{sec:readers}). \pending{The status names and the display of
+them to crews are to be checked in the expert walkthrough.}
+
+The organization decides who commands, when command should move, and what to do about
+residual decisions; the system records and enforces what it decided, applies its rules the
+same way on every device, and shows every reader who commands and how certain that is. It
+never decides who commands.
+
+\subsection{The Authority Trade-off}
+\label{sec:tradeoff}
+
+Let A's device lose contact with every other device. It can receive no record, including
+one saying that command has moved. While A is cut off, a design can provide at most two of:
+(a) A keeps recording decisions; (b) command moves to B without A's participation;
+(c) at most one device accepts decisions at any moment. With (a) and (b), A and B both
+record; with (b) and (c), A must stop before B starts, on a local timer, which bounds (a);
+with (a) and (c), B must wait for A. This is the availability--consistency tension of
+partitioned systems~\cite{davidson1985consistency,gilbert2002cap,brewer2012cap} applied to
+an authority role, and it holds by construction; we use it as framing, not as a result.
+Succession is therefore a choice of policy. The question is what each choice costs, which
+is the subject of the rest of the paper.

@@ -2,14 +2,11 @@
 
 | File | Status |
 |---|---|
-| `fig_setting.tex` | In the paper (TikZ), included by `sections/01_introduction.tex` |
-| `fig_promotion_timeline.tex` | In the paper (TikZ), included by `sections/04_synchronization_protocol.tex` |
-| `fig_fleet_scaling.pdf` | Plot written by `scripts/plot_fleet_scaling.py`; not in the paper |
-| `fig_netem_schedule.pdf` | Plot written by `scripts/plot_netem_schedule.py`; not in the paper |
-| `fig_promotion_cost.pdf` | Plot written by `scripts/plot_promotion_cdf.py`; not in the paper |
-| `fig_recovery.pdf` | Plot written by `scripts/generate_plots.py`; not in the paper |
+| `fig_scenario.tex` | In the manuscript (TikZ), Fig. 1, included by `sections/01_introduction.tex`; adapted from `model/scenario-and-model.tex` |
+| `fig_relay.tex` | In the manuscript (TikZ), Fig. 2, included by `sections/05_enforcement_reconnection.tex` |
+| `fig_acceptance.tex` | In the manuscript (TikZ), Fig. 3, included by `sections/05_enforcement_reconnection.tex` |
+| `fig_setting.tex` | The WONS draft's setting figure; not in the manuscript (node-centred, superseded by `fig_scenario.tex`) |
+| `fig_promotion_timeline.tex` | The WONS draft's S1 timeline; not in the manuscript, candidate for the prototype subsection |
+| `fig_fleet_scaling.pdf`, `fig_netem_schedule.pdf`, `fig_promotion_cost.pdf`, `fig_recovery.pdf` | Plots from `scripts/`; not in the manuscript |
 
-`unused/` holds figures from earlier drafts that no source file includes. They are kept for
-reuse; move one back to this folder before including it. `fig_sequencing_boundary.pdf` was
-`fig_linearization_boundary.pdf` before the rename to Authority-Aligned Sequencing, so its
-content may still use the old term.
+`unused/` holds figures from earlier drafts that no source file includes.

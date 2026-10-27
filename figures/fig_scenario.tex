@@ -1,0 +1,70 @@
+% The scenario: people, devices and links, adapted from model/scenario-and-model.tex
+% (Fig. 1 there). Adds the V1--V3 mesh link the testbed uses, so that a handover inside a
+% P-C partition is possible. Colours are defined in main.tex.
+\begin{tikzpicture}[x=0.92cm, y=0.82cm, every node/.style={font=\scriptsize},
+  veh/.style={draw=ink, fill=soft, rounded corners=2pt, minimum width=1.75cm,
+              minimum height=.75cm, align=center},
+  crew/.style={draw=ink, fill=white, rounded corners=2pt, minimum width=1.2cm,
+               minimum height=.5cm, align=center},
+  hh/.style={draw=ink, fill=white, rounded corners=4pt, minimum width=1.15cm,
+             minimum height=.6cm, align=center},
+  srv/.style={draw=ink, fill=white, cylinder, shape border rotate=90, aspect=.25,
+              minimum width=1.4cm, minimum height=.85cm, align=center},
+  person/.style={draw=ink, circle, fill=white, inner sep=1.3pt, font=\scriptsize\bfseries},
+  cell/.style={draw=black!45, thick},
+  mesh/.style={draw=accept, thick},
+  wifi/.style={draw=accept, thick, densely dotted},
+  wired/.style={draw=black!70, thick},
+]
+  % Regional command centre
+  \node[srv] (srv) at (5,7.1) {Regional\\server};
+  \node[person] (C) at (2.6,7.1) {C};
+  \node[person] (O) at (7.4,7.1) {Op};
+  \draw[wired] (C) -- (srv);
+  \draw[wired] (O) -- (srv);
+  \begin{scope}[on background layer]
+    \node[draw=ink, fill=soft!40, rounded corners=5pt, fit=(srv)(C)(O), inner sep=8pt,
+          label={[font=\scriptsize\bfseries, anchor=south west]north west:Regional command centre}] (cc) {};
+  \end{scope}
+
+  % Incident area
+  \node[veh] (V1) at (1.6,3.6) {\textbf{V1}\\command vehicle};
+  \node[veh] (V2) at (5.4,4.3) {\textbf{V2} $\cdot$ B\\sector North};
+  \node[veh] (V3) at (8.6,2.7) {\textbf{V3} $\cdot$ S\\sector South};
+  \node[crew] (K12) at (5.4,2.6) {Crews 1, 2};
+  \node[crew] (K34) at (10.2,1.2) {Crews 3, 4};
+  \node[crew] (K5) at (3.4,1.2) {Crew 5\\village};
+  \node[hh] (HA) at (0.2,1.2) {A's\\handheld};
+  \node[person] (A) at (-1.05,1.2) {A};
+  \draw[black!60] (A) -- (HA);
+
+  \begin{scope}[on background layer]
+    \node[draw=black!40, dashed, rounded corners=8pt, fit=(V1)(V2)(V3)(K12)(K34)(K5)(HA)(A),
+          inner sep=8pt, label={[font=\scriptsize\bfseries, anchor=north west]south west:Incident area: hills, valleys, a village}] (area) {};
+  \end{scope}
+
+  % Cellular backhaul (patchy)
+  \draw[cell] (V1.north) -- (srv.south west);
+  \draw[cell] (V2.north) -- (srv.south);
+  \draw[cell] (V3.north) -- (srv.south east);
+  \draw[cell, dashed] (HA.north) .. controls (0.2,5.4) .. (srv.west);
+  % Mesh between vehicles and to crews
+  \draw[mesh] (V1) -- (V2);
+  \draw[mesh] (V2) -- (V3);
+  \draw[mesh] (V1.south east) .. controls (5.6,3.3) .. (V3.west);
+  \draw[mesh] (V2) -- (K12);
+  \draw[mesh] (V3) -- (K34);
+  \draw[mesh] (V1) -- (K5);
+  % Wi-Fi between A's handheld and V1
+  \draw[wifi] (HA) -- (V1);
+
+  % Legend
+  \begin{scope}[shift={(-1.05,-0.95)}]
+    \draw[cell] (0,0) -- (.55,0); \node[anchor=west] at (.6,0) {cellular (dashed: often lost)};
+    \draw[mesh] (4.6,0) -- (5.15,0); \node[anchor=west] at (5.2,0) {mesh radio};
+    \draw[wifi] (7.0,0) -- (7.55,0); \node[anchor=west] at (7.6,0) {Wi-Fi};
+    \draw[wired] (8.8,0) -- (9.35,0); \node[anchor=west] at (9.4,0) {wired};
+  \end{scope}
+  \node[anchor=west, font=\scriptsize\itshape] at (-1.05,-1.45)
+    {Everyone also has Rakel voice radio, which is outside the system.};
+\end{tikzpicture}
