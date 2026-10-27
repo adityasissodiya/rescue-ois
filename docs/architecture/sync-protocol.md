@@ -22,6 +22,8 @@ Replicates master data (sites, plans, hazards, area geometries) and published ma
 
 When an incident is dispatched, the assigned command vehicle receives the incident-specific bundle and opens the incident journal locally.
 
+**Implemented only on core's side** in the prototype: core serves `GET /sync/bootstrap`, but no edge code fetches it.
+
 - **Transport:** HTTPS to core `sync-api` over WG (preferred) or local creation if no link
 - **Mechanism:** `GET /sync/bootstrap?incident_id=...` returns AOI, plan refs, hazard subset, attachment list. Command K430 marks itself as the writer of `incident.journal` and `incident.state`.
 - **Direction:** core → command edge (initial); local thereafter
@@ -30,6 +32,8 @@ When an incident is dispatched, the assigned command vehicle receives the incide
 ## Flow 3 — Tablet → Nearest Vehicle
 
 Field tablets push and pull all incident data to/from the vehicle K430 they are physically connected to (OPS-TABLET VLAN over RUTX50).
+
+**Only the write is implemented** in the prototype: `POST /api/events` inserts into the outbox; `GET /api/bootstrap` and `GET /api/search` return fixed stub responses, and `GET /tiles/*` and `GET /files/*` return 501.
 
 - **Transport:** Local HTTPS over OPS-TABLET VLAN to `ops-api` on the K430
 - **Mechanism:**

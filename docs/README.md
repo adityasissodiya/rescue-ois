@@ -25,7 +25,7 @@ hardware, more than the code that exists. Each one below is labelled:
 
 | Document | Status | Contents |
 | --- | --- | --- |
-| [architecture/sync-protocol.md](architecture/sync-protocol.md) | Current, except flow 1 (not implemented) and the tablet side of flow 3 (a scaffold) | The six synchronization flows |
+| [architecture/sync-protocol.md](architecture/sync-protocol.md) | Current for flows 4 to 6 and the field-edit write of flow 3. Flow 1 is not implemented, flow 2 exists only on core's side, and flow 3's reads are stubs | The six synchronization flows |
 | [architecture/security-model.md](architecture/security-model.md) | Target design; its threat model also applies to the prototype | Network, transport, device and identity controls; residual risks |
 | [architecture/network-topology.md](architecture/network-topology.md) | Target design | IP plan, VLANs, firewall matrix |
 
