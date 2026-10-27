@@ -23,7 +23,7 @@ class Macro:
     name: str
     experiment: str
     select: dict
-    stat: str  # "median", "max", "min", "count", "n", or "median_min"/"median_max"
+    stat: str  # "median", "max", "min", "sum", "count", "n", or "median_min"/"median_max"
     column: str = ""
     pred: Callable[[Row], bool] | None = None  # for "count" and "frac", and a filter
     unit: str = ""
@@ -40,9 +40,9 @@ class Macro:
         if not rs:
             raise ValueError(f"{self.name}: no rows for {self.select}")
         if self.stat == "n":
-            return str(len(rs))
+            return _fmt(len(rs))
         if self.stat == "count":
-            return str(sum(1 for r in rs if self.pred(r)))
+            return _fmt(sum(1 for r in rs if self.pred(r)))
         if self.stat in ("median_min", "median_max"):
             groups: dict[object, list] = {}
             for r in rs:
@@ -54,7 +54,7 @@ class Macro:
         xs = [r[self.column] for r in rs if r.get(self.column) is not None]
         if not xs:
             return "--"
-        x = {"median": statistics.median, "max": max, "min": min}[self.stat](xs)
+        x = {"median": statistics.median, "max": max, "min": min, "sum": sum}[self.stat](xs)
         return _fmt(x) + self.unit
 
 
@@ -82,6 +82,11 @@ def _s4_flapping(r: Row) -> bool:
 
 
 MACROS = [
+    # Invariants over the random search.
+    Macro("tbSearchRevoked", "search", {}, "sum", "auth_regressions",
+          note="authoritative verdicts later revoked, all runs"),
+    Macro("tbSearchMisclassified", "search", {}, "sum", "misclassified",
+          note="final verdicts that disagree with the truth oracle, all runs"),
     # Scale of the runs.
     Macro("tbSeedsPerCell", "matrix", {"policy": "S0", "case": "none", "a_state": "alive"},
           "n", note="seeds per cell of the policy matrix"),
@@ -236,6 +241,24 @@ def _faults(data: dict[str, list[Row]]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _margin_thresholds(data: dict[str, list[Row]]) -> list[tuple[str, str, str]]:
+    """(macro, value, how) for the margin sweep: the largest margin at which the document's
+    rule still overlapped (5 s heartbeats, eps = 2 s), and the smallest margin from which
+    the acknowledged rule never overlapped, over every period and eps."""
+    rows = data["margin"]
+    plain = where(rows, acked=False, period=5.0, eps=2.0)
+    last = max(r["margin"] for r in plain if r["overlap_s"] > 0)
+    acked = where(rows, acked=True)
+    bad = [r["margin"] for r in acked if r["overlap_s"] > 0]
+    first = min(m for m in {r["margin"] for r in acked} if all(b < m for b in bad))
+    return [
+        ("tbMarginPlainLast", _fmt(last) + SEC,
+         "largest `margin` with any `overlap_s` > 0, acked=False, period=5, eps=2"),
+        ("tbMarginAckedFirst", _fmt(first) + SEC,
+         "smallest `margin` above every margin with `overlap_s` > 0, acked=True"),
+    ]
+
+
 def _commit(path: Path) -> str:
     try:
         return subprocess.run(["git", "-C", str(path), "rev-parse", "--short=12", "HEAD"],
@@ -272,6 +295,13 @@ def write_latex(results: Path, out: Path) -> list[Path]:
             filt += f" ({m.note or 'extra filter in latex.py'})"
         trace.append(f"| `\\{m.name}` | {v} | `{m.experiment}.csv` | {filt} | {stat} | "
                      f"{len(m.rows(data))} |")
+    total = sum(len(rows) for rows in data.values())
+    macros.append(f"\\newcommand{{\\tbTotalRuns}}{{{_fmt(total)}}}")
+    trace.append(f"| `\\tbTotalRuns` | {_fmt(total)} | all CSVs | all | rows | {total} |")
+    for name, value, how in _margin_thresholds(data):
+        macros.append(f"\\newcommand{{\\{name}}}{{{value}}}")
+        trace.append(f"| `\\{name}` | {value} | `margin.csv` | {how} | threshold | "
+                     f"{len(data['margin'])} |")
     files = {
         "testbed_macros.tex": "\n".join(macros) + "\n",
         "tab_policy_costs.tex": header + _policy_costs(data),
