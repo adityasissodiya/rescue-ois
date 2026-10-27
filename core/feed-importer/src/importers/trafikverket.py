@@ -11,7 +11,7 @@ class TrafikverketImporter:
         # TODO: implement Trafikverket REST fetch with API key auth.
         raise NotImplementedError
 
-    async def ingest(self, session) -> None:  # noqa: ANN001
+    async def ingest(self, session) -> None:
         """Load Trafikverket data into staging.trafikverket_*."""
         # TODO: parse, normalize, upsert.
         raise NotImplementedError

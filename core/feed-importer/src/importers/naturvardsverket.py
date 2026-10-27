@@ -11,7 +11,7 @@ class NaturvardsverketImporter:
         # TODO: implement Naturvårdsverket open data fetch.
         raise NotImplementedError
 
-    async def ingest(self, session) -> None:  # noqa: ANN001
+    async def ingest(self, session) -> None:
         """Load Naturvårdsverket data into staging.naturvardsverket_*."""
         # TODO: parse, validate, upsert.
         raise NotImplementedError

@@ -12,7 +12,7 @@ class LantmaterietImporter:
         # spool, hand off to ingest().
         raise NotImplementedError
 
-    async def ingest(self, session) -> None:  # noqa: ANN001 - SQLAlchemy session, typed at call site
+    async def ingest(self, session) -> None:
         """Validate and load fetched data into staging.lantmateriet_*."""
         # TODO: validate against expected schema, upsert into staging tables,
         # mark a publication candidate row.

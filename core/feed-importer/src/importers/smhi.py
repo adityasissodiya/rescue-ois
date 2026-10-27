@@ -11,7 +11,7 @@ class SMHIImporter:
         # TODO: implement SMHI Open Data REST fetch.
         raise NotImplementedError
 
-    async def ingest(self, session) -> None:  # noqa: ANN001
+    async def ingest(self, session) -> None:
         """Load SMHI data into staging.smhi_*."""
         # TODO: parse JSON, upsert into staging tables.
         raise NotImplementedError
