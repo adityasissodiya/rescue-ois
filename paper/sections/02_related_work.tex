@@ -1,0 +1,147 @@
+\section{Related Work}
+\label{sec:related}
+
+Three bodies of work bear on the question: how human-in-the-loop systems transfer
+authority, how distributed systems keep one holder of a role and decide when an
+authorization is final, and how incident command works. \Cref{tab:positioning} summarizes
+where each sits.
+
+\subsection{Authority Transfer in Human-in-the-Loop Systems}
+\label{sec:related-hitl}
+
+\textit{Shared control and arbitration.} Robotics and vehicle research mostly replaces a
+binary handover with continuous arbitration, shifting authority between a human and
+automation by weights that follow intent, confidence, workload or
+delay~\cite{abbink2012haptic,abbink2018topology,darvish2023teleoperation}. Flemisch et
+al.\ separate authority, ability, responsibility and control, and argue that the four must
+stay in balance for a transfer to be safe~\cite{flemisch2012balance}. We use the same
+separation: a person's authority to command, which the organization confers, and a
+device's control over what enters the journal, which the system exercises on that person's
+behalf.
+
+\textit{Transfer as a protocol.} Handover and takeover are usually modelled as multi-step
+protocols with alerting, acknowledgement and confirmation that the receiving actor has
+entered the control loop~\cite{gil2019designing,gil2020engineering,saito2018transfer},
+or negotiated so that two actors never seize control at once~\cite{rothfuss2022negotiation}.
+Human-factors work is consistent that takeover quality depends on the receiver's situation
+awareness, and that transfers fail when the human is out of the
+loop~\cite{endsley2017autonomy,grindley2024handover}. Our appointments that take effect on
+acceptance (\cref{sec:acceptance}) are the distributed counterpart of this confirmation
+step, for the case where the confirmation itself is delayed by a partition.
+
+\textit{Lost links.} When the link fails, the confirmation loop breaks, and systems revert
+to behaviour authorized in advance: lost-link procedures for remotely piloted aircraft,
+minimum-risk manoeuvres for remote driving~\cite{reyesmunoz2023rpas,sakakeeny2024lost}.
+Even this fallback is not universally safe; braking on connection loss can itself cause
+collisions~\cite{brettin2025blindspot}. A link indicator can also stay nominal while the
+operator no longer has trustworthy control~\cite{sonaglio2026connectivity}. Pre-authorized
+deputy activation (S4, \cref{sec:policies}) is a lost-link procedure for command authority,
+and the commander's own timeout is its fallback; both inherit these problems, and we show
+that a device stopping its commander is the command analogue of an emergency stop that is
+not always safe (\cref{sec:eval-costs}).
+
+\textit{What is missing.} We found work on transfer between human operators under degraded
+links mostly at the level of interfaces and architectures~\cite{adekoya2026multioperator,rebolo2025c3},
+and none on how authority, stale permissions and the decisions made meanwhile are resolved
+once links return. \pending{Back this with a documented systematic search; the current
+basis is an AI-assisted literature review (Consensus, October 2026).} Those two gaps are
+where this paper sits. The setting also differs in kind: authority here passes between
+people, not between a person and automation; it concerns decisions taken over minutes, not
+control inputs at millisecond rates; and the record of who held authority when is itself
+an artifact that commanders, crews and reviewers rely on.
+
+\subsection{One Holder at a Time: Leaders, Leases and Fencing}
+\label{sec:related-leases}
+
+Leases bound how long a holder may act without contact~\cite{gray1989leases}, lock services
+grant them from a replicated coordinator~\cite{burrows2006chubby,hunt2010zookeeper}, and
+fencing tokens let a resource refuse a holder whose lease has lapsed~\cite{kleppmann2017ddia}.
+Lease protocols have been machine-checked, including their timing
+arithmetic~\cite{trencseni2026paxoslease,sharma2023grove}. Consensus and replicated state
+machines order the commands of successive leaders by view or
+epoch~\cite{oki1988viewstamped,junqueira2011zab,ongaro2014raft}, and Vertical Paxos lets an
+external master reconfigure the replicas~\cite{lamport2009vertical}, the role the duty
+chief plays here. In all of these, either a quorum chooses the holder, or the coordinator
+that grants the lease must be reachable. Neither holds at an incident: the organization
+names the commander, and the coordinator---the regional server---is the first thing a
+partition cuts off. Heartbeat-bound credentials come closest to our enforcement: a
+credential is valid only while its parent's heartbeats are fresh, which bounds how long a
+revoked agent can act by a window set by the heartbeat schedule and the clock
+skew~\cite{deochake2026heartbeat}. There, revocation means the parent stops beating. In
+succession by silence the successor keeps beating, and its relayed heartbeats are what can
+revive the old holder (\cref{sec:ack}).
+
+\subsection{Authorization and Finality under Weak Consistency}
+\label{sec:related-finality}
+
+Signed delegation lets a device check authority offline~\cite{lampson1992authentication,rfc2693spki,sudarsan2021survey},
+and freshness bounds make revocation effective offline within a known
+window~\cite{stubblebine1995recent}. Weakly consistent replicas can keep data eventually
+consistent while access-control policy is temporarily inconsistent~\cite{wobber2010policy}.
+Jacob and Hartenstein separate an operation's causal authorization, decided from the
+history its issuer knew and final once made, from its topological authorization in the
+eventual total order, which a concurrent revocation can still
+overturn~\cite{jacob2025eventually}. Our provisional and residual orders apply that
+distinction to command; we do not claim the distinction. What we add is when the second,
+revisable verdict becomes final without consensus between devices, for authority that one
+person holds at a time (\cref{prop:settlement}). Confidentiality, integrity and
+accessibility cannot all hold in a highly available
+system~\cite{yanakieva2021impossibility}, and blockchain protocols resolve the
+availability--finality dilemma by an available ledger with a finalized
+prefix~\cite{neu2021ebbandflow}, which our provisional and authoritative statuses resemble;
+there, finality comes from a quorum, here from the completeness of the records of the
+people who could still change the verdict. Bayou distinguished tentative from committed
+writes in weakly connected storage~\cite{terry1995bayou}. Invariant confluence and the CALM
+theorem identify what can run without coordination~\cite{bailis2014coordination,hellerstein2020calm};
+judging a decision by the grant it was made under is not monotone, which is why settlement
+needs a completeness condition. Finally, a final verdict does not end an authorization's
+effects: earlier authorized work can still cause an effect the application
+rejects~\cite{santosgrueiro2026effect}. At an incident the effect frontier is a crew acting
+on an order, beyond any system's control, so we cannot claim closure; we measure how many
+orders crews saw as valid before they turned residual, and design to reduce it.
+
+\subsection{Incident Command and Emergency Networks}
+\label{sec:related-ics}
+
+Incident command systems combine hierarchical and network forms, coordinating many
+organizations under a temporary hierarchy~\cite{moynihan2008combining,moynihan2009network}.
+We model only the designated part: one commander at a time, changed by explicit or
+pre-agreed acts. Military command and control faces the same disconnected, intermittent and
+limited links, and tactical middleware tolerates them~\cite{suri2009tactical}, but does not
+decide who may issue an order. Public-safety and edge research places resilient transport,
+storage and consensus near responders~\cite{kumbhar2015legacy,wang2023overview,sagor2024distressnetng,jahanian2022conice};
+CoNICE reaches consensus among infrastructure-less peers, an assumption of no privileged
+peer that incident command removes. Multi-writer replicated data
+types~\cite{almeida2014delta,hanssen2025emergency} and local-first
+software~\cite{kleppmann2019localfirst} serve the replication of field data well, but as
+an authority mechanism they let every replica decide. \pending{Still to cover: how Swedish
+rescue services transfer command in practice, once the rescue service has been asked; and
+handover of unmanned aircraft between control stations.}
+
+\begin{table}[t]
+\caption{What each approach does when the holder of authority loses its link, and when the
+link returns. Only this work takes authority from the organization and defines what happens
+to the decisions made meanwhile.}
+\label{tab:positioning}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Approach} & \textbf{Who holds authority} & \textbf{When the holder's link is lost} & \textbf{When it returns} \\
+\midrule
+Shared control, teleoperation~\cite{abbink2018topology,darvish2023teleoperation} & Arbitration between a human and automation & Fallback to local autonomy & Resumption; stale permissions largely unaddressed \\
+\addlinespace
+Lost-link procedures~\cite{reyesmunoz2023rpas,sakakeeny2024lost} & The remote pilot; a pre-agreed procedure & Pre-authorized behaviour & Pilot resumes control \\
+\addlinespace
+Consensus (Raft, VR, Zab)~\cite{ongaro2014raft,oki1988viewstamped,junqueira2011zab} & Whoever the reachable quorum elects & Minority side cannot commit & Log repaired to the majority's \\
+\addlinespace
+Lock service with leases~\cite{burrows2006chubby,hunt2010zookeeper} & The coordinator's choice & Holder stops when its lease lapses & Holder must reacquire \\
+\addlinespace
+Weak-consistency access control~\cite{wobber2010policy,jacob2025eventually} & Policy, replicated & Replicas decide on local policy & Final only as causally authorized; the topological verdict stays revisable \\
+\addlinespace
+Multi-writer CRDT~\cite{hanssen2025emergency} & Any replica & Every replica writes & Merge picks a winner \\
+\addlinespace
+\textbf{This work} & \textbf{A person, by the organization's signed grants and rules} & \textbf{Chosen by the succession policy} & \textbf{Orders kept and classified; settled when the records are complete} \\
+\bottomrule
+\end{tabularx}
+\end{table}

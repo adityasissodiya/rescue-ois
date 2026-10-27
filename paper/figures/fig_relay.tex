@@ -1,0 +1,38 @@
+% A stale heartbeat, relayed by V1, revives A's stopped device under S4 (Sec. 5.2).
+% Times follow the testbed's relay fault: t0 = cut, t1 = t0 + 200 s, T' = 240 s,
+% T = 300 s, Wi-Fi back at t0 + 330 s. One time unit = 50 s.
+\begin{tikzpicture}[x=1.02cm, y=0.62cm, every node/.style={font=\scriptsize}]
+  \foreach \y/\l in {3/A's handheld, 2/V1 (relay), 1/B (V2)} {
+    \draw[black!25] (0,\y) -- (10,\y);
+    \node[anchor=east] at (-0.1,\y) {\l};
+  }
+  \draw[->, black!55] (0,0.05) -- (10.2,0.05) node[right]{time};
+  \foreach \x/\l in {0/$t_0$, 4/$t_1$} {
+    \draw[black!55] (\x,-0.05) -- (\x,0.15); \node[below] at (\x,0) {\l};
+  }
+  % A's handheld is cut off from t0 until its Wi-Fi to V1 returns at 6.6.
+  \fill[warn!9] (0,2.72) rectangle (6.6,3.28);
+  \node[text=warn, font=\scriptsize\bfseries] at (0.15,3) {$\times$};
+  % V1 loses B and the core at t1.
+  \fill[black!6] (4,1.72) rectangle (10,2.28);
+  \node[text=black!50, font=\scriptsize\itshape] at (8.4,2) {V1 cut off from B};
+  % B's heartbeats reach V1 until t1.
+  \foreach \x in {1,2,3,4} { \draw[->, accept, thin] (\x,1.1) -- (\x,1.88); }
+  \node[text=accept, anchor=west] at (4.1,1.5) {B's heartbeats reach V1 until $t_1$};
+  % A's device stops at T' after the last heartbeat of B's it received (about t0).
+  \draw[warn, line width=1.4pt] (4.8,2.66) -- (4.8,3.34);
+  \node[text=warn, above] at (4.8,3.3) {A stops ($T'$)};
+  % B activates at T.
+  \draw[accept, dashed, thick] (6,0.7) -- (6,1.3);
+  \node[text=accept, anchor=north] at (6,0.66) {B activates ($T$)};
+  \fill[accept!18] (6,0.72) rectangle (10,1.28);
+  \node[text=accept] at (8.6,1) {B accepts};
+  % Wi-Fi returns: V1 hands A the heartbeat of B's from t1.
+  \draw[->, fence, thick] (6.6,2.12) -- (6.6,2.88);
+  \node[text=fence, anchor=east] at (6.52,2.5) {V1 relays B's beat from $t_1$};
+  % A's device accepts again until t1 + T' (8.8).
+  \fill[fence!25] (6.6,2.72) rectangle (8.8,3.28);
+  \node[text=fence] at (7.7,3) {A accepts again};
+  \draw[fence, line width=1.4pt] (8.8,2.66) -- (8.8,3.34);
+  \node[text=fence, above] at (8.8,3.3) {$t_1 + T'$};
+\end{tikzpicture}

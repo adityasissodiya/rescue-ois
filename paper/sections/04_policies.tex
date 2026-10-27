@@ -1,0 +1,54 @@
+\section{Succession Policies}
+\label{sec:policies}
+
+\Cref{tab:policies} defines the policies we compare. Each has two parts: what the holder's
+device enforces on its own, and who may move command, on which trigger. $L$ is a lease
+length, $T$ the silence after which a deputy may activate, and $T'$ the commander's own
+timeout. S1 is the policy our earlier prototype implements (\cref{sec:eval-prototype}); S5,
+in which both record and the organization reconciles later, is the boundary case on the
+plural side and is not a candidate.
+
+\begin{table}[t]
+\caption{Succession policies. ``Stops'' says when the holder's device refuses the holder's
+decisions without being told. The last column gives the property of \cref{sec:tradeoff}
+that each policy gives up in the evaluation when A is fit and cut off (P-A), with the
+defaults of \cref{tab:params}.}
+\label{tab:policies}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.06\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+& \textbf{Who moves command, on which trigger} & \textbf{Holder's device stops} & \textbf{Gives up} \\
+\midrule
+S0 & Nobody during a partition; handovers only & Never & (b): command never moves \\
+\addlinespace
+S1 & The operator promotes B through the regional server once A is silent there (or reported unfit) and B reaches the server & After $L$ without the server & (a): A stops after $L$; no overlap unless the operator acts within $L$ \\
+\addlinespace
+S2 & As S1, but only once the server has not heard A for $L$ plus a margin, or while A's device is reachable & As S1 & (a), as S1 \\
+\addlinespace
+S3 & C calls A by voice when A is silent or reported unfit; if A does not answer, C takes over and appoints B & Never & (c) if A is fit but does not answer; otherwise nothing moves \\
+\addlinespace
+S3+L & As S3 & As S1 & (a); and (c) when $L$ exceeds C's reaction time \\
+\addlinespace
+S4 & B activates under a rule signed in advance once A's device has been silent for $T$ & After $T'$ without B, $T' < T$ & (a): A stops at $T'$; nobody records between $T'$ and $T$ \\
+\addlinespace
+S5 & As S4 & Never & (c): both record \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Where the earlier conference draft stated expectations for each policy as hypotheses, the
+evaluation confirms most of them and refutes six as stated (\cref{sec:eval}): S1 does not
+overlap unless the operator reacts faster than $L$; neither S3 nor S4 moves command in P-B
+when A is unfit; a lease on A's side does not give S3 one device at a time for every $L$;
+S4's single acceptor fails on store-and-forward links unless the timeout is acknowledged;
+a one-way link under S4 produces a gap with nobody in command, not two commanders; and not
+every valid decision settles. \pending{Keep this paragraph only if the conference version
+is published; otherwise state the expectations here and the outcomes in \cref{sec:eval}.}
+
+\textit{Anchor policy.} S3 matches what we believe practice is: command moves upward, by a
+takeover announced on voice radio. We propose S3 with appointments that take effect on
+acceptance (\cref{sec:acceptance}) as the anchor, and S4 with an acknowledged timeout
+(\cref{sec:ack}) and ratification by C (\cref{sec:settlement}) for situations where C
+cannot act. \pending{Depends on whether pre-authorized succession exists in Swedish rescue
+services, and on what $T$ the organization would choose; to be asked.}

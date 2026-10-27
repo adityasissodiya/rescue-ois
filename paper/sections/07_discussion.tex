@@ -1,0 +1,72 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the Organization Has to Choose}
+\label{sec:org-choices}
+
+The policies do not differ in whether they fail, but in where and at whose expense.
+Leases that a device renews at the regional server protect against two commanders at the
+price of having none when only the backhaul is lost, which the scenario suggests is the
+common case; a timeout measured against the deputy (S4) avoids that price but cannot
+detect an unfit commander whose device is still connected; a takeover by the duty chief
+(S3) handles the unfit commander through voice and a report from the scene, but cannot reach
+a scene that is cut off from the centre. Each choice has a parameter---$L$, $T$, the time to
+report a commander unfit---that the organization, not the system designer, should set, and
+each parameter's cost depends on how long commanders' data outages last. The evaluation
+gives the shape of these costs; the rescue service has to supply the distributions that
+turn them into expected costs. \pending{Interview questions in TCPS\_PLAN.md.}
+
+Command given by voice alone is the hidden cost of policies that stop the commander. When a
+device refuses its commander, the commander does not stop commanding: the orders go out by
+radio and never enter the journal. The journal is then complete only in the sense that it
+holds every order the system accepted.
+
+\subsection{Presence of a Person, Not of a Device}
+\label{sec:presence}
+
+The scenario's ``cut off or incapacitated, and nobody can tell which'' is only half right.
+The network cannot tell, and a device heartbeat actively says the wrong thing: it reports
+that a device is up, not that its user can command. A succession rule that reacts to
+silence therefore needs a signal of the person---a dead-man switch, a periodic
+acknowledgement---and that signal will fire for a commander who is merely busy. The
+human-factors literature on takeover requests has the same tension between alerting early
+and alerting falsely~\cite{grindley2024handover}. \pending{Decision for the supervisors:
+device or person presence; if person, what signal.}
+
+\subsection{Designated and Plural Authority}
+\label{sec:thesis}
+
+This paper covers one class of decision: a command decision, which gets its legitimacy
+from one designated person's role, takes effect when it is issued, and is settled by
+authority, never by merge, when it conflicts with another. Decisions whose authority is
+shared or contested belong to the opposite pole, where legitimacy comes from agreement
+among several parties and a decision binds only at reconciliation; there, merge or
+consensus is the right tool. The class of decision, not the state of the network, chooses
+between the two. The model defines residual decisions, attributes and labels them; it does
+not resolve them. Two successions in two parts of a partition (\cref{sec:eval-faults}) are
+where the designated pole shades into the plural one.
+
+\subsection{Security Assumptions}
+
+The model assumes devices are not Byzantine and credentials are not stolen. A compromised
+device of a legitimate person can still sign false acts, for example an activation that
+claims a silence that did not happen, or a handover with a backdated timestamp. Signatures
+make such acts attributable, not impossible. Heartbeats that carry a person's latest
+sequence number may make backdating detectable: an act whose sequence number exceeds the
+one a later heartbeat of the same person reported cannot have been signed when it claims.
+\pending{Develop and evaluate this property, or state it as future work.} Revocation of a
+stolen device is eventual under total disconnection.
+
+\subsection{Limits of the Evidence}
+\label{sec:limits}
+
+The evaluation runs on a model of our own system, whose structural results---which policy
+fails where, the counterexamples, the invariants---do not depend on its parameters, but
+whose magnitudes do: latencies, gossip and heartbeat periods, reaction times and decision
+rates are chosen, not measured. The truth oracle applies the same rule as the devices, so
+it tests timing and clocks, not whether the rule is the right one for the organization.
+Outages have fixed lengths; there is one incident, one commander and one deputy, a fixed
+topology, and no mobility or radio model. The random search is evidence, not proof.
+\pending{Prototype runs and model checking (\cref{sec:eval-prototype}) address the first and
+last of these; the walkthrough (\cref{sec:eval-walkthrough}) the question of whether the
+statuses serve the people who read them.}

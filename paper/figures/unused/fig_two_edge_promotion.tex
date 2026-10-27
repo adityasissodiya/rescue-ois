@@ -1,0 +1,54 @@
+% Two-edge fenced promotion: the two measured outcomes, side by side.
+% Hand-drawn TikZ rather than a plot -- the message is where the fence sits
+% (at the journal boundary in (a), at the edge's own boundary in (b)), which is
+% a layout property, not a data property.
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  font=\scriptsize,
+  stage/.style={
+    draw, rounded corners=1.2pt, align=center, inner sep=2pt,
+    text width=2.05cm, minimum height=0.84cm, fill=white},
+  ok/.style={stage, draw=accept, line width=0.5pt},
+  stopped/.style={stage, draw=fence, line width=1.0pt, fill=fence!8},
+  flow/.style={-{Latex[length=1.6mm,width=1.4mm]}, draw=accept, line width=0.6pt},
+  lane/.style={font=\scriptsize\bfseries, anchor=west},
+  barrier/.style={draw=fence, line width=1.7pt},
+  fencelabel/.style={font=\scriptsize, color=fence, anchor=north},
+]
+
+% ---- lane (a): the superseded incumbent comes back -------------------------
+\node[lane] at (0.10, 2.52) {(a) Superseded edge A reconnects};
+
+\node[ok]      (a1) at (1.13, 1.88) {A isolated at\\epoch~$e$;\\buffers writes};
+\node[ok]      (a2) at (4.13, 1.88) {A reconnects,\\forwards its\\buffered batch};
+\node[stopped] (a3) at (7.47, 1.88) {A demotes; its\\own accept\\path refuses};
+
+\draw[flow] (a1) -- (a2);
+\draw[flow] (a2) -- (a3);
+
+% Fence in open space between A and the journal: A learns by being rejected.
+\draw[barrier] (5.80, 1.34) -- (5.80, 2.42);
+\node[fencelabel] at (5.10, 1.28) {core rejects: epoch~$e{+}1$ held by B};
+
+% ---- lane (b): the current holder loses only its backhaul ------------------
+\node[lane] at (0.10, 0.62) {(b) Holder B loses backhaul};
+
+\node[ok]      (b1) at (1.13, -0.02) {B at epoch~$e{+}1$,\\lease valid:\\accepts};
+\node[stopped] (b2) at (4.13, -0.02) {Lease lapses:\\B refuses\\authority writes};
+\node[ok]      (b3) at (7.47, -0.02) {Link returns:\\B renews,\\accepts again};
+
+\draw[flow] (b1) -- (b2);
+\draw[flow] (b2) -- (b3);
+
+% Fence on B's own boundary: nothing reaches it, a timer expires.
+\draw[barrier] (2.86, -0.56) -- (2.86, 0.52);
+\node[fencelabel] at (2.90, -0.62) {lease timeout, not a message};
+
+% ---- shared outcome --------------------------------------------------------
+\node[draw, line width=0.8pt, rounded corners=1.2pt, fill=black!5,
+      text width=8.24cm, align=center, inner sep=3pt, anchor=north]
+  at (4.30, -1.14)
+  {Authoritative journal unchanged in both outcomes: no forked prefix;\\
+   buffered rows retained for reconciliation};
+
+\end{tikzpicture}

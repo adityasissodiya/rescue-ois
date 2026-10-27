@@ -1,0 +1,20 @@
+In incident response, command belongs to a person: the incident commander, appointed by
+the organization. The commander works from a vehicle or a handheld that is often cut off,
+and the organization may then move command to a deputy or a superior, while the devices of
+the people involved cannot reach one another and crews keep acting on the orders those
+devices record. We ask how an intermittently connected incident information system can
+represent such a succession, enforce it on devices that cannot reach each other, and
+reconcile it when they reconnect, and what each succession policy costs the people who act
+on its orders. We separate a person's authority, conferred by signed grants and by
+succession rules the organization fixes in advance, from a device's enforcement of it, and
+give every order one of four statuses that crews and commanders can see. On an executable
+model of a forest-fire incident, we compare six succession policies across three partition
+cases and three states of the commander, over \tbTotalRuns{} simulated incidents. A
+commander's device that stops on its own after losing contact with the deputy can be
+revived by a stale heartbeat relayed through another vehicle; a timeout acknowledged by
+the deputy prevents this with a margin of only the clock error. A takeover that takes
+effect when it is signed, rather than when the successor's device accepts it, turns orders
+given in good faith into residual orders after the fact. Settlement of orders is safe, but
+it completes only once the predecessor's records arrive or the appointing officer acts.
+\pending{Prototype runs on vehicle edges and an expert walkthrough with rescue-service
+officers: planned.}

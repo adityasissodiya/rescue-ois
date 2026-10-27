@@ -1,0 +1,122 @@
+\section{Introduction}
+\label{sec:introduction}
+
+A rescue service fighting a forest fire is a cyber-physical system in which people close
+the loop. Crews, vehicles and equipment act on the ground; an incident commander decides
+where they go; and the commander's orders travel to them through vehicle computers,
+handhelds and radio links that come and go with the terrain. Wireless connectivity at such
+an incident alternates between wide-area coverage, a mesh between vehicles, and
+isolation~\cite{zimbelman2022mesh,wang2023overview}, and Swedish rescue-service guidance
+treats the incident's information as an ongoing, secrecy-restricted
+record~\cite{rsg-rad201,rsg-kommunalplan,pilemalm2014enabling,westman2021mobilisation}.
+
+Command belongs to a \emph{person}, not to a device. Every resource assignment, status
+transition and hazard annotation---a \emph{decision}, or order---carries the authority of
+the person who made it. When the commander is cut off, the organization may decide that
+command passes to a deputy or to a superior officer, usually agreed over voice radio. The
+devices of the people involved may not be able to reach one another when this happens,
+and crews keep acting on whatever orders their devices show. When the links return, the
+system holds orders from two people and must say which of them stand.
+
+Ordering is not the hard part. One person cannot be in two places at once, so a per-person
+sequence number and GNSS time order that person's decisions. The hard part is the
+cut-over between two people's authority, and what it does to the people who acted on the
+orders. Sorting by time yields a tidy record of conflicting orders, such as ``crew~2 to the
+north flank'' from the cut-off commander and ``crew~2 to the village edge'' from the
+deputy, without saying which one was valid, and without telling crew~2 which order it
+should have followed.
+
+Two bodies of work come close. Research on human-in-the-loop cyber-physical systems
+transfers control authority between a human and automation, over an actuator, with graded
+shared control while the link works, interlocked handover protocols that confirm the
+receiving side is in the loop, and local fallback when the link is
+lost~\cite{flemisch2012balance,abbink2018topology,gil2019designing,darvish2023teleoperation,reyesmunoz2023rpas}.
+It has little to say about transfer between human operators under degraded links, and
+almost nothing about what happens to authority and decisions when the links
+return (\cref{sec:related-hitl}). Distributed systems provide the mechanisms---leases,
+fencing tokens, epochs, signed delegation---but let something other than the organization
+choose who may decide: consensus elects whichever node the reachable quorum
+chooses~\cite{ongaro2014raft}, a multi-writer replicated data type lets its merge rule
+pick between conflicting decisions~\cite{hanssen2025emergency}, and access control over
+weakly consistent replicas keeps verdicts revisable without saying when they become
+final~\cite{wobber2010policy,jacob2025eventually}.
+
+\begin{figure}[t]
+\centering
+\input{figures/fig_scenario}
+\caption{The scenario. A forest fire near a village, two sectors and five crews. The
+incident commander A works from the command vehicle V1 or a handheld; B leads sector North
+from V2 and is A's designated deputy; S leads sector South from V3; C, the duty chief at
+the regional command centre, appoints commanders and may take over. Every device keeps a
+copy of the incident journal and accepts entries while cut off; cellular links to the
+regional server are often lost in the valleys.}
+\label{fig:scenario}
+\Description{A diagram of the regional command centre, with duty chief C, an operator and the regional server, above an incident area with vehicles V1, V2 and V3, crew devices and A's handheld, joined by cellular, mesh, Wi-Fi and wired links.}
+\end{figure}
+
+We separate a person's \emph{right to command} from a device's \emph{right to write}.
+Authority comes from signed role grants and from succession rules the organization fixes
+in advance; devices enforce it but hold none of their own. While a commander is cut off, no
+design can let the commander keep recording, move command without the commander, and keep
+one device at a time accepting orders, all at once (\cref{sec:tradeoff}). Succession is
+therefore a choice of policy, and the organization should be able to see what each choice
+costs. This leads to our research question:
+
+\begin{quote}
+\itshape How can an intermittently connected incident-response system represent the
+transfer of command authority between people, enforce it on devices that cannot reach each
+other, and reconcile it when they reconnect, and what does each succession policy cost the
+people who act on its decisions?
+\end{quote}
+
+The mechanisms we use---signed records, leases, epochs, completeness proofs---are
+established~\cite{gray1989leases,kleppmann2017ddia,lampson1992authentication}. The
+contribution is how they must be shaped when authority belongs to people, and what that
+costs:
+
+\begin{enumerate}
+  \item[(C1)] \textbf{An authority model for human command through devices}
+  (\cref{sec:model}). Authority belongs to people through signed grants, succession acts
+  and rules; devices enforce it; every order carries one of four statuses
+  (authoritative, provisional, residual, in doubt) that the people who act on it can see.
+  \item[(C2)] \textbf{The cost of each succession policy} (\cref{sec:policies,sec:eval}).
+  Six policies, from no succession to pre-authorized deputy activation, compared across
+  three partition cases and three states of the commander, by how long the commander can
+  record, how long nobody can, how many orders end up residual, and how many orders crews
+  saw as valid before they turned residual.
+  \item[(C3)] \textbf{Reconnection semantics} (\cref{sec:enforcement}). Appointments that
+  take effect when the successor's device accepts them, and settlement of orders by the
+  regional server, with two supporting results: an acknowledged timeout keeps one device
+  at a time accepting orders whenever the gap between the deputy's and the commander's
+  timeouts exceeds the clock error, even over store-and-forward links
+  (\cref{prop:single-acceptor}); and settlement never revokes a confirmed verdict, but
+  completes only through the predecessor's records or an act by the appointing officer
+  (\cref{prop:settlement}).
+\end{enumerate}
+
+We evaluate on an executable model of the scenario of \cref{fig:scenario}, with a truth
+oracle and \tbTotalRuns{} simulated incidents, including \tbSearchRuns{} with random link
+flapping (\cref{sec:eval}). Among the results:
+\begin{itemize}
+  \item Under pre-authorized deputy activation, a commander's device that stops on its own
+  can be revived by a heartbeat of the deputy's that a vehicle relays after the deputy has
+  already taken over: in our witness the two record at once for a median of
+  \tbRelayOverlap{}, and never with an acknowledged timeout.
+  \item A takeover signed at the regional centre while the scene is cut off turns every
+  order the commander gives in the meantime into a residual order when the links return:
+  \tbSignedResidual{} orders, each already shown as valid on every crew device. If the
+  takeover takes effect when the successor accepts it, none are.
+  \item A lease renewed at the regional server, as in our earlier prototype, costs most when
+  only the backhaul is lost: the commander is fit and reachable over the mesh, yet nobody
+  can record orders for \tbPBNoCommand{} of a 1{,}200\,s outage.
+\end{itemize}
+\pending{Prototype runs on vehicle edges, model checking of the two supporting results,
+and an expert walkthrough with rescue-service officers are planned; see
+\cref{sec:eval-prototype,sec:eval-walkthrough}.}
+
+\Cref{sec:related} positions the work. \Cref{sec:model} gives the setting, the authority
+model and the trade-off; \cref{sec:policies} the succession policies;
+\cref{sec:enforcement} enforcement on devices and reconciliation at reconnection.
+\Cref{sec:eval} evaluates the policies and mechanisms, \cref{sec:discussion} discusses
+what they mean for the organization and where the model stops, and
+\cref{sec:conclusion} concludes.
