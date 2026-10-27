@@ -1,24 +1,27 @@
 # AAS succession testbed
 
-An executable form of the scenario and system model (`model/scenario-and-model.tex` on the
-`paper` branch), used to run the policy comparison that the paper plans in section VI-A
-and has not run: succession policies S0 to S5, partition cases P-A, P-B and P-C, a fit or an
-incapacitated commander, with sweeps of L and T. It measures the costs the paper lists,
-tests every hypothesis cell of Table II as a predicate, and searches random link
-schedules for runs that break the model's invariants.
+An executable form of the scenario and system model (`model/scenario-and-model.tex` on
+branch `tcps`; branch `paper` keeps the copy under review). It runs the policy comparison that the WONS
+draft (branch `paper`) planned in its section VI-A and the TCPS manuscript (branch
+`tcps`) reports: succession policies S0 to S5, partition cases P-A, P-B and P-C, and a
+commander who is fit, fit but unreachable by voice, or incapacitated, with sweeps of L
+and T. It measures the costs the WONS draft lists, tests every hypothesis cell of that
+draft's Table II as a predicate, and searches random link schedules for runs that break
+the model's invariants.
 
-`FINDINGS.md` says what the results mean for the paper. `results/REPORT.md` has the
-numbers.
+The testbed was built against the WONS draft, so section and table numbers here and in
+`FINDINGS.md` are that draft's. `FINDINGS.md` says what the results mean for the paper;
+`results/REPORT.md` has the numbers.
 
 ## Why a simulator, and not the Docker prototype
 
-The prototype on `main` has no persons, grants, succession acts or policies (paper,
-section III-B), so it can run S1 only. The open questions are also about policy semantics
+The prototype has no persons, grants, succession acts or policies (WONS draft, section
+III-B), so it can run S1 only. The open questions are also about policy semantics
 (who can record when, which decisions end up residual, what settles), not about service
 latency. A deterministic discrete-event model answers them for thousands of incidents in
-minutes and gives a reproducible trace for every counterexample. It does not replace the
-multi-host testbed: it has no real network stack, no cryptography, and its latencies are
-parameters. Its role is to decide which experiments the prototype must run, and with
+minutes and gives a reproducible trace for every counterexample. It does not replace
+running the prototype on several hosts: it has no real network stack, no cryptography,
+and its latencies are parameters. Its role is to decide which experiments the prototype must run, and with
 which parameters.
 
 ## Quick start
@@ -31,17 +34,24 @@ python -m aas_testbed list                              # the experiments and th
 python -m aas_testbed run --policy S3 --case P-A --no-voice --decisions   # one incident, traced
 python -m aas_testbed run --policy S4 --relay-fault          # the stale-heartbeat counterexample
 python -m aas_testbed run --policy S4 --relay-fault --acked  # ... and the proposed fix
-python -m aas_testbed all                               # every experiment (~7,000 runs, ~10 min on 4 cores)
-python -m aas_testbed all --quick                       # a fifth of the seeds (~1.5 min)
+python -m aas_testbed all                               # every experiment, then the report (8,950 runs)
+python -m aas_testbed all --quick                       # a fifth of the seeds
 python -m aas_testbed matrix --seeds 50                 # one experiment
 python -m aas_testbed report                            # results/REPORT.md from the CSVs
-python -m aas_testbed latex --out ../../rescue-ois-tcps/data   # macros and table rows for the paper
+python -m aas_testbed latex --out <dir>                 # macros, table rows and their trace for the manuscript
 python -m pytest
 ```
 
+The experiments write to `results/` unless given `--out`. `REPORT.md` records the commit
+it was generated from and whether `aas_testbed/` had uncommitted changes, so commit code
+changes before a run whose results you will commit. For `latex`, "Working on the
+Manuscript" in the root README says which directory to pass and where the table rows go.
+
 Every run is deterministic in its seed. A row in any CSV can be replayed with `run` and
-the same parameters; a row of `search.csv` with
-`aas_testbed.experiments.search_config(policy, seed, settlement)`.
+the same parameters. A row of `search.csv.gz` is replayed with
+`aas_testbed.experiments.search_config(policy, seed, settlement)`, then
+`dataclasses.replace(cfg, acked=True)` or `replace(cfg, effect="acceptance")` if the row's
+`acked` or `effect` column says so.
 
 ## Layout
 
@@ -154,7 +164,7 @@ clock beyond the bound; random flapping on every link (`search`).
 
 ## Metrics
 
-Mapped to the list in the paper's section VI-A.
+Mapped to the list in the WONS draft's section VI-A.
 
 | Paper's metric | Column |
 | --- | --- |
