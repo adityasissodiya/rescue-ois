@@ -10,7 +10,7 @@ Accepted
 
 ## Decision
 
-There is exactly one source of evaluation data for the AAL harness: `artifacts/data/eval_metrics.jsonl` by default, or the path supplied in `RESCUE_OIS_METRICS_PATH`. The file format is JSON Lines, one record per measured event, with fields: `run_id`, `scenario`, `metric_name`, `value_ms`, `timestamp_iso`, `notes`.
+There is exactly one source of evaluation data for the prototype's evaluation harness: `artifacts/data/eval_metrics.jsonl` by default, or the path supplied in `RESCUE_OIS_METRICS_PATH`. The file format is JSON Lines, one record per measured event, with fields: `run_id`, `scenario`, `metric_name`, `value_ms`, `timestamp_iso`, `notes`.
 
 - `scripts/evaluate-pilot.py` writes to that file. It does not embed default or fallback values.
 - Downstream analysis reads measured JSONL outputs. It must not contain inline data arrays. If the file is missing or empty, downstream analysis should exit with a non-zero status and a clear error message.

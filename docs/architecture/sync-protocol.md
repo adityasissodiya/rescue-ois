@@ -1,7 +1,7 @@
 # Sync Protocol
 
-Rescue OIS supports six distinct synchronization flows. The protocol goal is
-authority-aligned linearization: non-authority data remains locally useful and
+Rescue OIS supports six distinct synchronization flows. The protocol goal is a
+single command writer: non-authority data remains locally useful and
 forwardable, while authority-bearing incident events receive `event_seq` only
 at the current command authority. Each flow is described below in terms of
 **transport, mechanism, direction, and failure behavior**.
@@ -9,6 +9,8 @@ at the current command authority. Each flow is described below in terms of
 ## Flow 1 — Core → Vehicle Baseline
 
 Replicates master data (sites, plans, hazards, area geometries) and published map packages from the regional core to every vehicle K430.
+
+**Not implemented in the prototype.** This flow is deployment design only; `edge/syncd/src/pull.py` says why, and the evaluation measures none of it.
 
 - **Transport:** WireGuard overlay (`10.252.0.0/24`), HTTPS to `sync-api` and `packages` endpoints
 - **Mechanism:** PostgreSQL logical replication (master tables, one-way) + HTTP polling for `manifest.json` and PMTiles/attachment downloads via HTTP range requests
@@ -59,6 +61,6 @@ Command vehicle forwards the authoritative incident journal to the regional core
 Covers command transfer when the command vehicle is lost or operationally replaced. This is manual promotion with explicit fencing, not autonomous failover.
 
 - **Detection:** responder K430s may detect command-vehicle absence (for example by heartbeat timeout), but detection is not authorization to become command.
-- **Promotion:** an operator designates a new command and must fence/revoke the previous command authority. `scripts/promote-responder.sh` inserts a new durable `incident.command_epoch` row (monotonically increasing `epoch_id`), flips `EDGE_ROLE`, and restarts `syncd` so it re-reads the epoch on startup. The accept path then rejects `/accept/event-batch` requests whose `X-Command-Epoch` header does not match the current epoch (stale and future both return HTTP 409); see `edge/syncd/src/accept.py` and migration `005_command_epoch.sql`. The cryptographic promotion **token** of ADR-0004 (a core-signed artifact bound to incident/vehicle/operator) is the remaining unimplemented piece.
+- **Promotion:** an operator designates a new command and must fence/revoke the previous command authority. `scripts/promote-responder.sh` requires the candidate to hold the complete journal prefix (bootstrapped from core), takes a new epoch from the regional core (core's insert serializes concurrent promotions and records which node holds the epoch), mirrors it into the candidate's durable `incident.command_epoch`, flips `EDGE_ROLE`, restarts `syncd`, and repoints the responders; see [the command failover runbook](../runbooks/command-failover.md). Promotion therefore needs core. The accept path then rejects `/accept/event-batch` requests whose `X-Command-Epoch` header does not match the current epoch (stale and future both return HTTP 409); see `edge/syncd/src/accept.py` and migration `005_command_epoch.sql`. The cryptographic promotion **token** of ADR-0004 (a core-signed artifact bound to incident/vehicle/operator) is the remaining unimplemented piece.
 - **Reconciliation:** strict promotion must prevent two command writers from appending concurrently. If fencing cannot be established, accepting new authority-bearing events is unsafe.
 - **Audit:** target deployment logs promotion success/refusal with operator identity. This is a deployment design and model requirement, not fully validated in the Docker evaluation.

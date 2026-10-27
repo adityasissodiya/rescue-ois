@@ -1,4 +1,9 @@
-# What Fails Without Authority-Aligned Linearization
+# What Fails Without a Single Command Writer
+
+> **Status.** The design argument for the prototype's single-writer rule, written
+> for the drafts that called the approach Authority-Aligned Linearization (AAL).
+> The current manuscript (branch `tcps`) frames the problem as command succession
+> between people; this page still describes the prototype accurately.
 
 Rescue OIS is not a general offline data store, generic mesh platform, or
 substitute for Raft. The central boundary is operational authority:
@@ -72,35 +77,47 @@ creates `incident.command_epoch` and the `incident.current_epoch` view;
 `command_epoch`. Unit-covered by `edge/syncd/tests/test_accept_epoch.py` and
 measured by `scripts/evaluate-fenced-promotion.py`.
 
-What remains unimplemented is genuine **multi-edge** fenced promotion: an
-isolated former command edge learning that its epoch is stale, and a newly
-promoted edge obtaining the journal prefix from core (`edge/syncd/src/pull.py` is
-a no-op stub and `core/sync-api` exposes no journal-row endpoint). Rejection
-today happens at the current command's own acceptor, not at the stale writer.
+Promotion across two edges is implemented, but no harness measures it.
+`scripts/promote-responder.sh` bootstraps the journal prefix from core
+(`GET /sync/journal-events`, checked for gaps by `edge/syncd/src/bootstrap.py`),
+takes a new epoch from core, which records the node that holds it, and repoints the
+responder edges (see the [command failover runbook](runbooks/command-failover.md)).
+Core rejects a batch from a stale epoch, or from a node other than the epoch holder,
+before writing anything. A former command edge that is cut off keeps accepting until
+its lease lapses (`lease_window_s`, 90 s by default), and demotes itself once core
+rejects a batch it forwards (`edge/syncd/src/forward.py`). Until the lease lapses, two
+vehicles can accept decisions; the
+[prototype guide](prototype.md#what-the-prototype-does-not-do) lists what else the
+prototype does not do.
 
 ## Test Gaps To Keep Visible
 
 All of the tests below live in
-`edge/syncd/tests/test_partition_and_boundary_visibility.py`. Four are now
-implemented as opt-in integration tests (`RESCUE_OIS_INTEGRATION_TESTS=1`, which
-starts or reuses the local Compose stack):
+`edge/syncd/tests/test_partition_and_boundary_visibility.py`. Six are opt-in
+integration tests (`RESCUE_OIS_INTEGRATION_TESTS=1`, which starts or reuses the
+local Compose stack):
 
 - `test_responder_partition_outbox_accumulates_then_replays`
 - `test_crash_after_local_outbox_insert_before_forward_preserves_event`
   (drives `scripts/evaluate-outbox-crash-restart.py`)
 - `test_stale_command_epoch_rejected_after_promotion`
 - `test_promotion_record_required_before_new_command_accepts_events`
+- `test_no_two_command_writers_for_same_incident_epoch` — core refuses a second
+  node even when it quotes the current epoch; the service-path witness for the
+  strict TLA+ `SingleCommand` property
+- `test_forked_sequence_is_rejected_as_protocol_error_not_server_error`
 
-Three remain genuinely unimplemented and are kept visible as
+Two remain unimplemented and are kept visible as
 `@pytest.mark.xfail(strict=True)`, so they fail the suite if they ever start
 passing silently:
 
-- `test_no_two_command_writers_for_same_incident_epoch` — cross-edge two-writer
-  race; model-only, see the strict TLA+ `SingleCommand` property
 - `test_crash_after_command_append_before_ack_does_not_duplicate_on_retry` —
   mid-flight ack-loss crash injection not automated
 - `test_crash_before_forwarded_mark_retries_without_duplicate_journal_row` —
   mid-flight forwarded-mark crash injection not automated
+
+The lease and self-demotion of a former command edge (`edge/syncd/src/forward.py`)
+have no test at all.
 
 The Raft baseline is only a quorum-progress illustration. It is not a
 workflow-equivalent baseline for the Rescue OIS application.

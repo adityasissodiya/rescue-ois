@@ -1,9 +1,14 @@
 # Architecture Overview
 
-Rescue OIS is a three-tier research prototype for authority-aligned
-synchronization in rescue-service incident response. Offline operation is a
-supporting property; the central protocol boundary is command authority for
+Rescue OIS is a three-tier research prototype of an incident information system
+for rescue services over intermittent links. Offline operation is a supporting
+property; the central protocol boundary is command authority for
 authority-bearing incident events.
+
+The hardware named below (K430 servers, RUTX50 routers, Rajant Hawk radios) and the
+field tablet are the target deployment. The prototype runs as a Docker Compose emulation on
+one host; see [Evidence Boundary](#evidence-boundary) and the
+[prototype guide](../prototype.md).
 
 ## Tiers
 
@@ -61,11 +66,15 @@ responder outbox forwarding, command-side idempotent sequencing,
 command-to-core backfill, duplicate replay, selected partition behavior, and
 model-level promotion safety. Service-level durable `command_epoch` storage and
 stale-epoch rejection **are** measured on the single-edge command path
-(`edge/syncd/src/accept.py`, `scripts/evaluate-fenced-promotion.py`). It does not
-validate Rajant radio behavior, Android tablet persistence, WireGuard or mTLS
-overhead, production promotion/fencing, genuine multi-edge fenced promotion
-(two independent edges, journal-prefix transfer, isolated stale writer), or
-exhaustive crash-boundary safety.
+(`edge/syncd/src/accept.py`, `scripts/evaluate-fenced-promotion.py`). Promotion
+across two edges is implemented, but no harness measures it end to end: the
+journal-prefix transfer from core is unit-tested, core's enforcement of an epoch held
+by one node has opt-in integration tests, and the lease and self-demotion of a former
+command edge have no test. The evaluation
+does not validate Rajant radio behavior, Android tablet persistence, WireGuard or
+mTLS overhead, production promotion/fencing, or exhaustive crash-boundary safety.
+Core-to-edge baseline replication (sync flow 1) is not implemented
+(`edge/syncd/src/pull.py`).
 
 The direct command accept-path partition artifact is intentionally narrow. It
 isolates a responder `syncd` process and submits command-originated writes
@@ -102,6 +111,7 @@ PostgreSQL remains available. It does not exercise the full tablet -> responder
 ## Further Reading
 
 - [../what-fails-without-our-solution.md](../what-fails-without-our-solution.md) — failure modes and claim discipline
+- [../prototype.md](../prototype.md) — running the prototype and re-running its evaluation
 - [network-topology.md](network-topology.md) — IP plan, VLANs, firewall matrix
 - [sync-protocol.md](sync-protocol.md) — six sync flows in detail
 - [security-model.md](security-model.md) — VLAN isolation, WireGuard, Knox, audit
