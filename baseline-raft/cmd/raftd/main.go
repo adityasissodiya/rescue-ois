@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/anonymous-nca-2026/rescue-ois/baseline-raft/internal/cluster"
-	"github.com/anonymous-nca-2026/rescue-ois/baseline-raft/internal/fsm"
-	httpsrv "github.com/anonymous-nca-2026/rescue-ois/baseline-raft/internal/http"
+	"github.com/adityasissodiya/rescue-ois/baseline-raft/internal/cluster"
+	"github.com/adityasissodiya/rescue-ois/baseline-raft/internal/fsm"
+	httpsrv "github.com/adityasissodiya/rescue-ois/baseline-raft/internal/http"
 )
 
 func main() {

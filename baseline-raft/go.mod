@@ -1,4 +1,4 @@
-module github.com/anonymous-nca-2026/rescue-ois/baseline-raft
+module github.com/adityasissodiya/rescue-ois/baseline-raft
 
 go 1.21
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/raft"
 
-	"github.com/anonymous-nca-2026/rescue-ois/baseline-raft/internal/fsm"
+	"github.com/adityasissodiya/rescue-ois/baseline-raft/internal/fsm"
 )
 
 type Server struct {
