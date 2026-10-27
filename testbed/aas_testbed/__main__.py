@@ -4,6 +4,7 @@
   <experiment> one experiment (see ``list``), written to <out>/<experiment>.csv
   all          every experiment, then the report
   report       results/REPORT.md from the CSVs already in <out>
+  latex        LaTeX macros and table rows for the paper, from results/
   list         the experiments and the question each answers
 """
 
@@ -16,6 +17,7 @@ import time
 from pathlib import Path
 
 from .experiments import DEFAULT_SEEDS, EXPERIMENTS, QUESTIONS, run_experiment
+from .latex import write_latex
 from .metrics import decision_table, measure
 from .network import CASES
 from .policies import POLICIES, make_policy
@@ -100,6 +102,10 @@ def main(argv: list[str] | None = None) -> int:
     rep = sub.add_parser("report", help="write <out>/REPORT.md from the CSVs")
     rep.add_argument("--out", type=Path, default=Path("results"))
 
+    lx = sub.add_parser("latex", help="LaTeX macros and table rows for the paper")
+    lx.add_argument("--results", type=Path, default=Path("results"))
+    lx.add_argument("--out", type=Path, required=True)
+
     sub.add_parser("list", help="the experiments and their questions")
 
     args = ap.parse_args(argv)
@@ -110,6 +116,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{name:11} {q}")
     elif args.cmd == "report":
         print(write_report(args.out))
+    elif args.cmd == "latex":
+        for path in write_latex(args.results, args.out):
+            print(f"wrote {path}")
     elif args.cmd == "all":
         for name in EXPERIMENTS:
             t0 = time.time()

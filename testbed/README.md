@@ -35,6 +35,7 @@ python -m aas_testbed all                               # every experiment (~7,0
 python -m aas_testbed all --quick                       # a fifth of the seeds (~1.5 min)
 python -m aas_testbed matrix --seeds 50                 # one experiment
 python -m aas_testbed report                            # results/REPORT.md from the CSVs
+python -m aas_testbed latex --out ../../rescue-ois-tcps/data   # macros and table rows for the paper
 python -m pytest
 ```
 
@@ -53,6 +54,7 @@ the same parameters; a row of `search.csv` with
 | `aas_testbed/metrics.py` | The truth oracle and the per-run metrics |
 | `aas_testbed/experiments.py` | The experiments and a parallel runner |
 | `aas_testbed/report.py` | `REPORT.md`, including the Table II hypothesis check |
+| `aas_testbed/latex.py` | LaTeX macros and table rows the paper quotes, with a trace of each number to its CSV and filter |
 | `FINDINGS.md` | What the results mean for the paper |
 | `tests/` | Rule unit tests, the model document's storyboard replayed, invariants |
 | `results/` | The CSVs (gzipped above 400 KB, for the pre-commit size check) and `REPORT.md` of the committed run |
