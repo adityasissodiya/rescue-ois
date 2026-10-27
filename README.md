@@ -40,8 +40,9 @@ history, then deleted:
 
 - The manuscript is in [`paper/`](paper/README.md), with the scenario and system model
   document in `paper/model/` and the prototype's datasets in `paper/data/`.
-- The WONS draft, as it was left, is the tag
-  [`wons-draft`](https://github.com/adityasissodiya/rescue-ois/tree/wons-draft).
+- The WONS draft, as it was left, is commit
+  [`d1b1eca`](https://github.com/adityasissodiya/rescue-ois/tree/d1b1ecae7d57aaf98d8348928c3e6f2704a954e1)
+  (`git worktree add ../wons-draft d1b1eca` checks it out next to this repository).
 - Commit hashes from the old branches still resolve: every one of those commits is in
   `main`'s history.
 
@@ -54,7 +55,7 @@ The work has been renamed as its framing changed, and older files keep older nam
 | AAS, Authority-Aligned Sequencing | The approach, as named in the WONS draft. The TCPS manuscript describes it without the acronym. |
 | AAL, Authority-Aligned Linearization; authority-aligned synchronization | Earlier names for AAS, in older documents and commits. |
 | Tiered Sync | The first name of the prototype's architecture. It survives in the design mock-ups in `preview/` and `ui_kits/`. |
-| WONS | The conference draft for WONS 2027, kept as the tag `wons-draft`. |
+| WONS | The conference draft for WONS 2027, kept as commit `d1b1eca`. |
 | NCA | The venue of an earlier, double-blind version of the prototype paper (2026); the name appears in old commits. The Android namespace `org.review.rescueois` is left over from anonymizing the code for double-blind review. |
 | TCPS | ACM Transactions on Cyber-Physical Systems, the journal the manuscript in `paper/` targets. |
 | Command edge, responder edge | The prototype's vehicle roles: the vehicle that accepts the incident's decisions, and the vehicles that queue field submissions and forward them to it. |

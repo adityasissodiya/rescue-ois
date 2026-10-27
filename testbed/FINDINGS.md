@@ -9,7 +9,7 @@ it changes in the paper or the model document, and is marked:
 - **[inference]**: my reading of what a result means for the paper.
 - **[open]**: speculation, or a question the testbed cannot answer.
 
-Section and table numbers refer to the WONS draft (tag `wons-draft`) and to the model
+Section and table numbers refer to the WONS draft (commit `d1b1eca`) and to the model
 document (`../paper/model/`), which is what this memo was written against. The TCPS
 manuscript (`../paper/`) is built on these findings; `../paper/TCPS_PLAN.md` says which
 it adopts and which decisions are still open.

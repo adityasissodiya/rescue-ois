@@ -1,6 +1,6 @@
 # The Prototype: Running It and Re-running Its Evaluation
 
-The prototype is the incident information system that the WONS draft (tag `wons-draft`)
+The prototype is the incident information system that the WONS draft (commit `d1b1eca`)
 evaluates: a regional core, a command vehicle edge and responder vehicle edges, run as a
 single-host Docker Compose emulation, with CRDT and Raft baselines and formal models of
 its single-writer rule. It implements one succession policy, S1 (promotion through the

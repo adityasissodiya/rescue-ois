@@ -1,7 +1,7 @@
 # CRDT-LWW Baseline
 
 Minimal Hanssen-style operation-based LWW Element Set baseline for the prototype's
-evaluation (the CRDT comparison in the WONS draft, tag `wons-draft`). How to run it:
+evaluation (the CRDT comparison in the WONS draft, commit `d1b1eca`). How to run it:
 [`docs/prototype.md`](../../docs/prototype.md#re-run-the-crdt-lww-baseline).
 
 The service models elements by immutable UUID and accepts ADD/UPD and DEL operations with

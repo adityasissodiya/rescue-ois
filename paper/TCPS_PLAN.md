@@ -1,8 +1,8 @@
 # Steering the paper toward ACM TCPS
 
-This manuscript turns the WONS conference draft (tag `wons-draft`) into a journal
-manuscript for ACM Transactions on Cyber-Physical Systems. The WONS draft stays as tagged
-until the supervisors sign off the system model. This file says what changes, why, and
+This manuscript turns the WONS conference draft (commit `d1b1eca`) into a journal
+manuscript for ACM Transactions on Cyber-Physical Systems. The WONS draft stays as it is
+at that commit until the supervisors sign off the system model. This file says what changes, why, and
 what evidence the journal version still needs. The results it relies on come from the
 testbed in `../testbed/`: `FINDINGS.md` and `results/REPORT.md` there.
 

@@ -1,8 +1,8 @@
 # AAS paper, TCPS manuscript (working draft)
 
 The journal manuscript for ACM Transactions on Cyber-Physical Systems, steered from the
-WONS conference draft, which is kept as the tag `wons-draft` until the supervisors sign
-off the system model. `TCPS_PLAN.md` says what changes and why, which decisions the
+WONS conference draft, which stays as it is at commit `d1b1eca` until the supervisors
+sign off the system model. `TCPS_PLAN.md` says what changes and why, which decisions the
 supervisors need to make, and what evidence is still missing. The code and the testbed
 behind the manuscript are in this repository, one directory up.
 
