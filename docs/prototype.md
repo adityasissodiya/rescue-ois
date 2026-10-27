@@ -1,6 +1,6 @@
 # The Prototype: Running It and Re-running Its Evaluation
 
-The prototype is the incident information system that the WONS draft (branch `paper`)
+The prototype is the incident information system that the WONS draft (tag `wons-draft`)
 evaluates: a regional core, a command vehicle edge and responder vehicle edges, run as a
 single-host Docker Compose emulation, with CRDT and Raft baselines and formal models of
 its single-writer rule. It implements one succession policy, S1 (promotion through the
@@ -120,8 +120,8 @@ What each harness drives:
 | Transitions between connectivity regimes | `scripts/evaluate-netem-schedule.py` | `artifacts/data/eval_netem_schedule.jsonl` |
 | Propagation and journal throughput vs fleet size | `scripts/evaluate-fleet-scaling.py` | `artifacts/data/eval_fleet_scaling.jsonl` |
 
-The datasets behind the WONS draft's numbers are committed on the `paper` branch, under
-`data/`, and its `TRACEABILITY.md` traces every number to its dataset and generator.
+The datasets behind the WONS draft's numbers are committed in `paper/data/`, and
+`paper/TRACEABILITY.md` traces each of its numbers to its dataset and generator.
 
 Important details:
 
@@ -260,7 +260,7 @@ What it does, and why it does it that way:
   `not leader` -- and reporting only the first would be cherry-picking Raft's
   worst phase.
 - `l0_isolated_write_*` is bound to the **in-window** probe, which is the phase
-  the WONS draft reports and `generate_raft_table.py` (on the `paper` branch)
+  the WONS draft reports and `paper/scripts/generate_raft_table.py`
   consumes. The post-step-down reading is recorded alongside as
   `l0_poststepdown_write_*`. The schema the table generator reads is unchanged.
 - **The probe runs inside L0 over its own loopback** (`docker exec ... curl

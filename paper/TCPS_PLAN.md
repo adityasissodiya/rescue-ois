@@ -1,11 +1,10 @@
 # Steering the paper toward ACM TCPS
 
-This branch turns the WONS conference draft (branch `paper`) into a journal manuscript for
-ACM Transactions on Cyber-Physical Systems. The WONS draft stays untouched on `paper`
+This manuscript turns the WONS conference draft (tag `wons-draft`) into a journal
+manuscript for ACM Transactions on Cyber-Physical Systems. The WONS draft stays as tagged
 until the supervisors sign off the system model. This file says what changes, why, and
 what evidence the journal version still needs. The results it relies on come from the
-testbed on branch `claude/loving-brown-erzfja` of rescue-ois, in `testbed/FINDINGS.md` and
-`testbed/results/REPORT.md` (to be merged into `main`).
+testbed in `../testbed/`: `FINDINGS.md` and `results/REPORT.md` there.
 
 ## Why TCPS
 

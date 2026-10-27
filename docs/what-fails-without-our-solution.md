@@ -2,7 +2,7 @@
 
 > **Status.** The design argument for the prototype's single-writer rule, written
 > for the drafts that called the approach Authority-Aligned Linearization (AAL).
-> The current manuscript (branch `tcps`) frames the problem as command succession
+> The current manuscript (`paper/`) frames the problem as command succession
 > between people; this page still describes the prototype accurately.
 
 Rescue OIS is not a general offline data store, generic mesh platform, or

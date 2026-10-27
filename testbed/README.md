@@ -1,11 +1,11 @@
 # AAS succession testbed
 
-An executable form of the scenario and system model (`model/scenario-and-model.tex` on
-branch `tcps`; branch `paper` keeps the copy under review). It runs the policy comparison that the WONS
-draft (branch `paper`) planned in its section VI-A and the TCPS manuscript (branch
-`tcps`) reports: succession policies S0 to S5, partition cases P-A, P-B and P-C, and a
-commander who is fit, fit but unreachable by voice, or incapacitated, with sweeps of L
-and T. It measures the costs the WONS draft lists, tests every hypothesis cell of that
+An executable form of the scenario and system model
+(`../paper/model/scenario-and-model.tex`). It runs the policy comparison that the WONS
+draft (tag `wons-draft`) planned in its section VI-A and the TCPS manuscript
+(`../paper/`) reports: succession policies S0 to S5, partition cases P-A, P-B and P-C,
+and a commander who is fit, fit but unreachable by voice, or incapacitated, with sweeps
+of L and T. It measures the costs the WONS draft lists, tests every hypothesis cell of that
 draft's Table II as a predicate, and searches random link schedules for runs that break
 the model's invariants.
 

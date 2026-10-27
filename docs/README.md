@@ -2,8 +2,8 @@
 
 These documents are about the prototype: its design, the decisions behind it, how to
 run it, and how the target deployment would be set up. The succession testbed documents
-itself in [`../testbed/README.md`](../testbed/README.md), and the manuscript is on branch
-`tcps`.
+itself in [`../testbed/README.md`](../testbed/README.md), and the manuscript is in
+[`../paper/`](../paper/README.md).
 
 Many documents describe the deployment the prototype was designed for, on vehicle
 hardware, more than the code that exists. Each one below is labelled:

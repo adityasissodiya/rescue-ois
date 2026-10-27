@@ -9,10 +9,10 @@ it changes in the paper or the model document, and is marked:
 - **[inference]**: my reading of what a result means for the paper.
 - **[open]**: speculation, or a question the testbed cannot answer.
 
-Section and table numbers refer to the WONS draft (branch `paper`) and to the model
-document (`model/` on `paper` and `tcps`), which is what this memo was written against.
-The TCPS manuscript (branch `tcps`) is built on these findings; its `TCPS_PLAN.md` says
-which it adopts and which decisions are still open.
+Section and table numbers refer to the WONS draft (tag `wons-draft`) and to the model
+document (`../paper/model/`), which is what this memo was written against. The TCPS
+manuscript (`../paper/`) is built on these findings; `../paper/TCPS_PLAN.md` says which
+it adopts and which decisions are still open.
 
 Robust results are structural: which cells are zero and which are not, counterexamples,
 and invariants. Magnitudes (seconds of takeover delay and the like) follow from

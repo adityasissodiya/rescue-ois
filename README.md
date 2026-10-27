@@ -7,16 +7,16 @@ once the links return? Authority belongs to people, through signed grants and su
 rules the organization fixes in advance. Vehicles and handhelds only enforce it.
 
 The current paper is a journal manuscript for ACM Transactions on Cyber-Physical Systems
-(TCPS), on branch [`tcps`](https://github.com/adityasissodiya/rescue-ois/tree/tcps). This
-branch, `main`, holds the code behind it.
+(TCPS), in [`paper/`](paper/README.md). It sits next to the code and data behind it, on
+this repository's only branch, `main`.
 
 ## Start Here
 
 | You want to | Read | Then run |
 | --- | --- | --- |
-| Understand the problem and the current results | The manuscript on `tcps` (introduction and evaluation), then [`testbed/FINDINGS.md`](testbed/FINDINGS.md) | — |
+| Understand the problem and the current results | The manuscript in [`paper/`](paper/README.md) (introduction and evaluation), then [`testbed/FINDINGS.md`](testbed/FINDINGS.md) | — |
 | Run or change the policy experiments | [`testbed/README.md`](testbed/README.md) | `cd testbed && python -m aas_testbed list` |
-| Work on the manuscript | `README.md` and `TCPS_PLAN.md` on `tcps` | [Working on the manuscript](#working-on-the-manuscript) |
+| Work on the manuscript | [`paper/README.md`](paper/README.md) and [`paper/TCPS_PLAN.md`](paper/TCPS_PLAN.md) | [Working on the manuscript](#working-on-the-manuscript) |
 | Run the prototype, or reproduce the WONS draft's numbers | [`docs/prototype.md`](docs/prototype.md) | `RESPONDERS=3 ./scripts/dev-up.sh` |
 | Read the prototype's design, or check whether a doc is current | [`docs/README.md`](docs/README.md) | — |
 
@@ -31,22 +31,19 @@ what they can show.
 | **Prototype** ([`core/`](core/), [`edge/`](edge/), [`scripts/`](scripts/)) | An incident information system run as a Docker Compose emulation: a regional core, a command vehicle edge and responder edges, with a CRDT baseline ([`baseline/`](baseline/)) and a Raft baseline ([`baseline-raft/`](baseline-raft/)). | The evaluation in the WONS draft. Implements one policy, S1, and has no notion of a person ([what it does not do](docs/prototype.md#what-the-prototype-does-not-do)). |
 | **Formal models** ([`formal/`](formal/)) | A TLA+ model of the prototype's single-writer rule, mirrored by Hypothesis state-machine tests. | Safety of the prototype's rule. No persons, no lease, no relaying yet; the manuscript's two propositions are still to be model-checked. |
 
-## Branches
+## One Branch
 
-| Branch | Contents | Status |
-| --- | --- | --- |
-| `main` | All code: testbed, prototype, baselines, formal models, documentation | Default branch; CI runs on every push and pull request to it. |
-| [`tcps`](https://github.com/adityasissodiya/rescue-ois/tree/tcps) | The TCPS manuscript (`acmart`), the scenario and system model document (`model/`), and the prototype's datasets | The paper under active work. |
-| [`paper`](https://github.com/adityasissodiya/rescue-ois/tree/paper) | The WONS 2027 conference draft (IEEEtran), with the same `model/` and datasets | Kept as it is while the supervisors review the system model; new paper work goes to `tcps`. |
-| `claude/*` | Working branches for AI-assisted changes | Temporary. Do not base work on them. |
+Everything is on `main`, and new work goes there; CI runs on every push to it. Until
+October 2026 the manuscript (`tcps`), the WONS conference draft (`paper`) and AI-assisted
+changes (`claude/*`) had branches of their own. They were merged into `main` with their
+history, then deleted:
 
-The manuscript branches hold the LaTeX sources, the datasets and the scripts that turn
-them into tables; the code that produced the data is on `main`. To work on code and
-paper side by side, check the manuscript out next to this repository:
-
-```bash
-git worktree add ../rescue-ois-tcps tcps
-```
+- The manuscript is in [`paper/`](paper/README.md), with the scenario and system model
+  document in `paper/model/` and the prototype's datasets in `paper/data/`.
+- The WONS draft, as it was left, is the tag
+  [`wons-draft`](https://github.com/adityasissodiya/rescue-ois/tree/wons-draft).
+- Commit hashes from the old branches still resolve: every one of those commits is in
+  `main`'s history.
 
 ## Names You Will Meet
 
@@ -57,9 +54,9 @@ The work has been renamed as its framing changed, and older files keep older nam
 | AAS, Authority-Aligned Sequencing | The approach, as named in the WONS draft. The TCPS manuscript describes it without the acronym. |
 | AAL, Authority-Aligned Linearization; authority-aligned synchronization | Earlier names for AAS, in older documents and commits. |
 | Tiered Sync | The first name of the prototype's architecture. It survives in the design mock-ups in `preview/` and `ui_kits/`. |
-| WONS | The conference draft on branch `paper` (WONS 2027). |
+| WONS | The conference draft for WONS 2027, kept as the tag `wons-draft`. |
 | NCA | The venue of an earlier, double-blind version of the prototype paper (2026); the name appears in old commits. The Android namespace `org.review.rescueois` is left over from anonymizing the code for double-blind review. |
-| TCPS | ACM Transactions on Cyber-Physical Systems, the journal the manuscript on `tcps` targets. |
+| TCPS | ACM Transactions on Cyber-Physical Systems, the journal the manuscript in `paper/` targets. |
 | Command edge, responder edge | The prototype's vehicle roles: the vehicle that accepts the incident's decisions, and the vehicles that queue field submissions and forward them to it. |
 | A, B, S, C, OP | The scenario's people: incident commander, deputy (sector North), sector South leader, duty chief at the regional centre, operator. |
 | S0 to S5, S3L | Succession policies, from no succession (S0) to pre-authorized deputy activation (S4, S5); S3L is S3 with a lease. S1 is the prototype's policy. [`testbed/README.md`](testbed/README.md#policies) defines each. |
@@ -70,6 +67,7 @@ The work has been renamed as its framing changed, and older files keep older nam
 
 | Path | Contents | Status |
 | --- | --- | --- |
+| [`paper/`](paper/README.md) | The TCPS manuscript (`acmart`), the system model document (`model/`), the prototype's datasets and the scripts that turn them into tables | Current; the paper under active work |
 | [`testbed/`](testbed/) | Succession testbed: model, simulator, experiments, results, findings | Current; CI runs its tests |
 | [`core/`](core/) | Regional core services and database migrations | Prototype; measured in Docker |
 | [`edge/`](edge/) | Vehicle-edge services (`ops-api`, `syncd`, local Postgres with outbox and journal) and WireGuard, Nginx and nftables configuration | Prototype; measured in Docker |
@@ -88,26 +86,26 @@ The work has been renamed as its framing changed, and older files keep older nam
   runs the tests and `ruff check .` the lint that CI runs. After a change to the model or
   the simulator, re-run the experiments (`python -m aas_testbed all`, about 10 minutes on
   four cores; runs are deterministic, so unchanged code reproduces `results/` byte for
-  byte), commit the new `results/`, and refresh the manuscript's numbers (below). `FINDINGS.md` interprets the
-  committed results; re-read it when they change.
+  byte), commit the new `results/`, and refresh the manuscript's numbers (below).
+  `FINDINGS.md` interprets the committed results; re-read it when they change.
 - **Prototype services:** each of the eight Python services under `core/` and `edge/` is
   a package with its own tests; CI runs `ruff check .` and `pytest` in each. The
   end-to-end harnesses need the Docker stack ([`docs/prototype.md`](docs/prototype.md)).
-- Pre-commit hooks (`.pre-commit-config.yaml`) run ruff and reject files over 500 KB.
+- Pre-commit hooks (`.pre-commit-config.yaml`) run ruff and reject new files over 500 KB.
 
 ## Working on the Manuscript
 
-The manuscript is on `tcps`; `BUILDING.md` there says how to build it with MiKTeX or TeX
-Live. Every testbed number in it is a macro generated from the committed results on
-`main`, never typed by hand. With the worktree above, refresh them from `testbed/`:
+[`paper/BUILDING.md`](paper/BUILDING.md) says how to build the manuscript with MiKTeX or
+TeX Live. Every testbed number in it is a macro generated from the committed results in
+`testbed/results/`, never typed by hand. To refresh them, from `testbed/`:
 
 ```bash
-python -m aas_testbed latex --out ../../rescue-ois-tcps/data
-mv ../../rescue-ois-tcps/data/tab_*.tex ../../rescue-ois-tcps/tables/
+python -m aas_testbed latex --out ../paper/data
+mv ../paper/data/tab_*.tex ../paper/tables/
 ```
 
-`data/TESTBED_TRACE.md` on `tcps` traces each number to its CSV, filter and statistic.
-The prototype's numbers are traced in `TRACEABILITY.md` on the same branch.
+`paper/data/TESTBED_TRACE.md` traces each of those numbers to its CSV, filter and
+statistic; `paper/TRACEABILITY.md` traces the prototype's numbers to their datasets.
 
 ## License
 

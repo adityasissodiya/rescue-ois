@@ -26,11 +26,11 @@ On Debian or Ubuntu, `texlive-publishers`, `texlive-fonts-extra`, `texlive-latex
 ## Testbed numbers
 
 `data/testbed_macros.tex` and the rows in `tables/tab_policy_costs.tex` and
-`tables/tab_faults.tex` are generated from the testbed's committed results. To refresh
-them, from the rescue-ois checkout that has `testbed/`:
+`tables/tab_faults.tex` are generated from the testbed's committed results in
+`../testbed/results/`. To refresh them, from the repository root:
 
 ```bash
 cd testbed
-python -m aas_testbed latex --out <this directory>/data
-mv <this directory>/data/tab_*.tex <this directory>/tables/
+python -m aas_testbed latex --out ../paper/data
+mv ../paper/data/tab_*.tex ../paper/tables/
 ```
