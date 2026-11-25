@@ -1,0 +1,148 @@
+# configuration: MandateSeed_stall.cfg
+# expected outcome: NoSplitStall
+# tla2tools.jar sha256: 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+# java: openjdk version "21.0.13.1" 2026-11-17
+# TLC exit status: 12
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 20 and seed -2352136111030030774 with 4 workers on 12 cores with 7058MB heap and 64MB offheap memory [pid: 48315] (Linux 7.0.0-43-generic amd64, Ubuntu 21.0.13.1 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <repo>/spec/tla/MandateSeed.tla
+Parsing file /tmp/Integers.tla
+Parsing file /tmp/FiniteSets.tla
+Parsing file /tmp/TLC.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Integers
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module MandateSeed
+Starting... (2026-11-24 13:57:44)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-24 13:57:44.
+Error: Invariant NoSplitStall is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 1)
+/\ M = (a :> 0 @@ b :> 0 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 0
+/\ mve = <<-1, -1>>
+/\ last = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> )
+/\ first = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 2: <SignRenewal line 84, col 3 to line 90, col 58 of module MandateSeed>
+/\ cur = <<{a}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 1)
+/\ M = (a :> 1 @@ b :> 0 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 0
+/\ mve = <<-1, -1>>
+/\ last = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> )
+/\ first = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 3: <SignRenewal line 84, col 3 to line 90, col 58 of module MandateSeed>
+/\ cur = <<{a, b}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 1)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 0
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> )
+/\ first = <<(h1 :> -1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 4: <Tick line 121, col 3 to line 128, col 48 of module MandateSeed>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 1)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 1
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> )
+/\ first = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 5: <Tick line 121, col 3 to line 128, col 48 of module MandateSeed>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 1)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 2
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> 1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> )
+/\ first = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 6: <SignGrant line 94, col 3 to line 100, col 58 of module MandateSeed>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 1 @@ b :> 1 @@ c :> 2)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 2
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> 1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 1]>> )
+/\ first = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<-1, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 7: <SignGrant line 94, col 3 to line 100, col 58 of module MandateSeed>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 2 @@ b :> 1 @@ c :> 2)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 2
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> 1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 2]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 0, h |-> h1, s |-> 0]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 1]>> )
+/\ first = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<2, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+State 8: <SignGrant line 94, col 3 to line 100, col 58 of module MandateSeed>
+/\ cur = <<{}, {}>>
+/\ E = (a :> 2 @@ b :> 2 @@ c :> 2)
+/\ M = (a :> 1 @@ b :> 1 @@ c :> 0)
+/\ X = (a :> {} @@ b :> {} @@ c :> {})
+/\ now = 2
+/\ mve = <<1, -1>>
+/\ last = <<(h1 :> 1 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ vote = ( a :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 2]>> @@
+  b :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 3]>> @@
+  c :> <<[ep |-> 0, h |-> h1, s |-> 0], [ep |-> 2, h |-> h1, s |-> 1]>> )
+/\ first = <<(h1 :> 0 @@ h2 :> -1), (h1 :> -1 @@ h2 :> -1)>>
+/\ tw = <<2, -1>>
+/\ knows = (a :> {1} @@ b :> {1} @@ c :> {1})
+
+352166 states generated, 134419 distinct states found, 93110 states left on queue.
+The depth of the complete state graph search is 8.
+The average outdegree of the complete state graph is 3 (minimum is 0, the maximum 26 and the 95th percentile is 9).
+Finished in 02s at (2026-11-24 13:57:47)

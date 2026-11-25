@@ -1,0 +1,43 @@
+\section{A Limit for Every Protocol}
+\label{sec:limit}
+
+The first result applies to every protocol in the model, not only to \sys{}. It uses one
+property of verifiers: they are deterministic, and their only inputs are messages and
+clock readings.
+
+\begin{prp}[Isolation reach implies hostile tenure]
+\label{prp:limit}
+Let $f \ge 1$. If a protocol has isolation reach $P$ at a verifier $v$, then it has hostile
+tenure $P$ at $v$. In the hostile run, $v$ accepts the same commands at the same times as
+in the isolated run.
+\end{prp}
+
+\begin{argument}[Candidate argument (sketch)]
+Take the isolated run $\rho$ of \cref{def:reach}. Build $\rho'$ equal to $\rho$ until
+$t_0$. At $t_0$ the adversary obtains the key and state of the holder $c$, and every other
+officer withdraws. From $t_0$ the adversary drops every message from the other parties to
+$c$ and $v$. It runs a copy of $c$ that makes the choices $c$ made in $\rho$, and it
+delivers to $v$ exactly the messages that $v$ received in $\rho$, at the same times. The
+clock of $v$ is the same function of real time in both runs. So $v$ has the same inputs,
+and it accepts the same commands at the same times. \Cref{app:arguments} gives the steps.
+\end{argument}
+
+This is the indistinguishability argument of CAP-style
+results~\cite{gilbert2002cap}, and the trade-off it expresses is the one that leases
+make explicit~\cite{gray1989leases}. We restate it in terms of isolation reach and
+withdrawal and claim nothing new about the technique \claim{C-LIM}. Four remarks make the
+statement precise.
+\begin{itemize}
+  \item It is existential. It says that some run has hostile tenure $P$, not that service
+  continues in every isolated run (that is \cref{def:avail}).
+  \item The proof never uses the fact that $P$ is a time. A limit on the number of
+  commands has the same property.
+  \item The verifier accepts the same commands in both runs. Checks of command content
+  therefore cannot shorten the tenure. They can only reject commands that a loyal holder
+  would not send either.
+  \item An input that the adversary does not control, such as a person who sets a
+  local-control switch at the device, is outside the argument.
+\end{itemize}
+A designer who wants zero hostile tenure must therefore accept zero isolation reach, as
+with a quorum signature on every command. Any positive reach is also a minimum hostile
+tenure.

@@ -1,36 +1,46 @@
-# Building the manuscript
+# Building the seed paper
 
-The manuscript uses ACM's `acmart` class (`acmsmall`) and BibTeX with
-`ACM-Reference-Format`. Both ship with MiKTeX and TeX Live.
+The seed uses IEEE's `IEEEtran` class in conference mode, BibTeX with `IEEEtran.bst`, and
+TikZ. We built it with TeX Live 2023 (Debian, pdfTeX 1.40.25) and `latexmk`; other
+distributions are untested. On Debian or Ubuntu, `texlive-publishers`,
+`texlive-latex-extra`, `texlive-pictures`, `texlive-science` and `latexmk` should be
+enough.
 
-## Windows, MiKTeX
+## Commands
 
-From this directory:
-
-```powershell
-.\build.ps1
-```
-
-The PDF and intermediate files are written to `build/`. MiKTeX installs missing packages
-the first time the project needs them.
-
-## Linux or macOS, TeX Live
+From the repository root:
 
 ```bash
-latexmk -pdf -interaction=nonstopmode -outdir=build main.tex
+make paper        # build/main.pdf: names, affiliations and acknowledgment
+make paper-anon   # build/main-anon.pdf: the anonymous review build
 ```
 
-On Debian or Ubuntu, `texlive-publishers`, `texlive-fonts-extra`, `texlive-latex-extra`,
-`texlive-science`, `texlive-pictures`, `texlive-plain-generic` and `latexmk` are enough.
-
-## Testbed numbers
-
-`data/testbed_macros.tex` and the rows in `tables/tab_policy_costs.tex` and
-`tables/tab_faults.tex` are generated from the testbed's committed results in
-`../testbed/results/`. To refresh them, from the repository root:
+Or by hand, from this directory:
 
 ```bash
-cd testbed
-python -m aas_testbed latex --out ../paper/data
-mv ../paper/data/tab_*.tex ../paper/tables/
+latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build main.tex
+latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=build -jobname=main-anon main-anon.tex
+python3 scripts/page_count.py build/main
 ```
+
+The build reads `generated/`. If it is missing, run `make seed` (and `make tla` for the
+model-check numbers) first.
+
+## The review build
+
+`main-anon.tex` defines `\seedanon` and inputs `main.tex`. With it:
+
+* the title block says "Anonymous authors" and "Affiliation withheld for review";
+* `authors.tex`, `authors_meta.tex` and `acks.tex` are not read;
+* the PDF author field is empty, and pdfTeX writes no creation date, source file name
+  or banner.
+
+`make paper-anon` checks the metadata. `make export` builds the review PDF again, copies
+an allowlist of files to `../artifact/out/review/`, and fails if the PDF text or any
+exported file contains a name, an affiliation, a funding identifier or a local path.
+
+## The TCPS manuscript
+
+The TCPS manuscript (`acmart`) is not built from this branch. To build it, check out
+commit `3ebd585` in a separate worktree (`git worktree add ../tcps 3ebd585`) and follow
+its `paper/BUILDING.md`.

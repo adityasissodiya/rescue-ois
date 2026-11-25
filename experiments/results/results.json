@@ -1,0 +1,3260 @@
+[
+ {
+  "codes": [],
+  "config_sha256": "4ea5f07b71f270748ad788cf4404e9247f39f4e2c1d75b457085fcb004aae379",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 5,
+    "last_accept.e1:A": 139,
+    "t_w.e1": 57,
+    "valid_renewals": 3
+   },
+   "min": {
+    "boundary_accepts": 2,
+    "withdrawals": 2
+   },
+   "refusals": [
+    "B:withdrawn",
+    "C:withdrawn"
+   ],
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-RENEW-EXPIRY",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "e1:A": 5
+   },
+   "accepts": [
+    [
+     5,
+     "V1",
+     "e1:A",
+     6,
+     5
+    ],
+    [
+     5,
+     "V2",
+     "e1:A",
+     4,
+     5
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     137,
+     "V1",
+     "e1:A",
+     138,
+     137
+    ],
+    [
+     139,
+     "V2",
+     "e1:A",
+     138,
+     139
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "e1:A": 5
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 139
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 139
+   },
+   "refusals": {
+    "B:withdrawn": 1,
+    "C:withdrawn": 1
+   },
+   "rejected_by_reason": {
+    "expired": 2
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 2
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Renewal, withdrawal and expiry at two verifiers",
+  "trace": "experiments/results/traces/V0-RENEW-EXPIRY.jsonl",
+  "trace_sha256": "ee633f02f5040196cf96956d423ada4a708c60e85eb01b1a216eb5a1b7a60d25",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "82ef073a3e79b473a23ed118e29cf80cf32d25c771c9223efc3bc0c708f495c8",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 6,
+    "first_accept.e2:B": 152,
+    "last_accept.e1:A": 151,
+    "valid_grants_by_epoch.2": 1
+   },
+   "min": {
+    "boundary_accepts": 4,
+    "successions": 1
+   },
+   "refusals": [
+    "A:epoch-advanced",
+    "B:epoch-advanced",
+    "C:epoch-advanced"
+   ],
+   "rejections": [
+    "expired",
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-HANDOVER",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 6,
+   "accepted_by_key": {
+    "e1:A": 4,
+    "e2:B": 2
+   },
+   "accepts": [
+    [
+     120,
+     "V1",
+     "e1:A",
+     121,
+     120
+    ],
+    [
+     120,
+     "V2",
+     "e1:A",
+     119,
+     120
+    ],
+    [
+     149,
+     "V1",
+     "e1:A",
+     150,
+     149
+    ],
+    [
+     151,
+     "V2",
+     "e1:A",
+     150,
+     151
+    ],
+    [
+     152,
+     "V1",
+     "e2:B",
+     153,
+     152
+    ],
+    [
+     154,
+     "V2",
+     "e2:B",
+     153,
+     154
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "e1:A": 120,
+    "e2:B": 152
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 151,
+    "e2:B": 154
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 151,
+    "e2:B": 154
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "B:epoch-advanced": 1,
+    "C:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "expired": 2,
+    "not-started": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 90
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 5,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Prepared handover from A (epoch 1) to B (epoch 2) at T = 150",
+  "trace": "experiments/results/traces/V0-HANDOVER.jsonl",
+  "trace_sha256": "06fc3d4f866291da59ad42dff51fa35f3ff87c5f1c38408335271647bd6c9213",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "41fbb47ef6f776cafddf54d57f180ee20236c8b5642c7632801c2fccc13c016d",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 6,
+    "first_accept.e2:B": 152,
+    "last_accept.e1:A": 151
+   },
+   "min": {
+    "boundary_accepts": 2,
+    "successions": 1
+   },
+   "rejections": [
+    "expired",
+    "no-grant"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-SELECTIVE-DELIVERY",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 6,
+   "accepted_by_key": {
+    "e1:A": 4,
+    "e2:B": 2
+   },
+   "accepts": [
+    [
+     30,
+     "V1",
+     "e1:A",
+     31,
+     30
+    ],
+    [
+     30,
+     "V2",
+     "e1:A",
+     29,
+     30
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     151,
+     "V2",
+     "e1:A",
+     150,
+     151
+    ],
+    [
+     152,
+     "V1",
+     "e2:B",
+     153,
+     152
+    ],
+    [
+     200,
+     "V2",
+     "e2:B",
+     199,
+     200
+    ]
+   ],
+   "boundary_accepts": 3,
+   "first_accept": {
+    "e1:A": 30,
+    "e2:B": 152
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 151,
+    "e2:B": 200
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 151,
+    "e2:B": 200
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 2,
+    "no-grant": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 90
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 5,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Handover with delayed and selective delivery to two verifiers",
+  "trace": "experiments/results/traces/V0-SELECTIVE-DELIVERY.jsonl",
+  "trace_sha256": "1d3e96f7f81b07d6d45164b31e6199b7f04fa5d8efc488876e12a3531f78f18b",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "6d38bb6a458e85bad80f4030a449534a533c7cd6d035cfabc14c99eb9b3fd3dc",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 6,
+    "first_accept.e2:C": 165,
+    "hostile_accepts": 4,
+    "last_hostile_accept": 155,
+    "t_w.e1": 57
+   },
+   "min": {
+    "successions": 1
+   },
+   "refusals": [
+    "B:withdrawn",
+    "C:withdrawn",
+    "D:epoch-advanced"
+   ],
+   "rejections": [
+    "expired",
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-REMOVAL",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 6,
+   "accepted_by_key": {
+    "e1:A": 4,
+    "e2:C": 2
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     153,
+     "V1",
+     "e1:A",
+     154,
+     153
+    ],
+    [
+     153,
+     "V2",
+     "e1:A",
+     152,
+     153
+    ],
+    [
+     155,
+     "V2",
+     "e1:A",
+     154,
+     155
+    ],
+    [
+     165,
+     "V1",
+     "e2:C",
+     166,
+     165
+    ],
+    [
+     167,
+     "V2",
+     "e2:C",
+     166,
+     167
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "e1:A": 100,
+    "e2:C": 165
+   },
+   "hostile_accepts": 4,
+   "last_accept": {
+    "e1:A": 155,
+    "e2:C": 167
+   },
+   "last_hostile_accept": 155,
+   "latest_created_accepted": {
+    "e1:A": 155,
+    "e2:C": 167
+   },
+   "refusals": {
+    "B:epoch-advanced": 1,
+    "B:withdrawn": 2,
+    "C:epoch-advanced": 1,
+    "C:withdrawn": 1,
+    "D:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "expired": 2,
+    "not-started": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 5,
+   "withdrawals": 2
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Hostile holder: compromise, withdrawal race, expiry, successor",
+  "trace": "experiments/results/traces/V0-REMOVAL.jsonl",
+  "trace_sha256": "eca7928cfdc4a27bceadd63d083041198c35225ebdced6396cf8660e3a059b54",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "271567ae1147f784381c90719b0a8cbe54e8d1a68e596f743af6b745499b8fb2",
+  "ed25519_identical": true,
+  "expect": {
+   "accept_between": [
+    [
+     139,
+     139
+    ]
+   ],
+   "equal": {
+    "accepted": 5,
+    "last_accept.e1:A": 157,
+    "latest_created_accepted.e1:A": 157
+   },
+   "min": {
+    "boundary_accepts": 1
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-ISOLATION",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "e1:A": 5
+   },
+   "accepts": [
+    [
+     70,
+     "V1",
+     "e1:A",
+     71,
+     70
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     139,
+     "V1",
+     "e1:A",
+     140,
+     139
+    ],
+    [
+     150,
+     "V1",
+     "e1:A",
+     151,
+     60
+    ],
+    [
+     157,
+     "V1",
+     "e1:A",
+     158,
+     157
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 70
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 157
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Honest holder isolated with one verifier: fresh-command availability",
+  "trace": "experiments/results/traces/V0-ISOLATION.jsonl",
+  "trace_sha256": "8b4817e3136b02ab2fbd894e9fc24354be134e79e14165fd6ddb9fa3542e5460",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "37e2c07f789377e13cf27e8749607b8ab4fe6bf4ced9256e8d2a423cc063f5c7",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 7
+   },
+   "min": {
+    "boundary_accepts": 4
+   },
+   "refusals": [
+    "A:beyond-horizon",
+    "B:beyond-horizon",
+    "C:beyond-horizon"
+   ],
+   "rejections": [
+    "not-started",
+    "replay",
+    "expired",
+    "bad-signature"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-REPLAY-CLOCK",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 7,
+   "accepted_by_key": {
+    "e1:A": 7
+   },
+   "accepts": [
+    [
+     9,
+     "V1",
+     "e1:A",
+     10,
+     9
+    ],
+    [
+     11,
+     "V2",
+     "e1:A",
+     10,
+     11
+    ],
+    [
+     20,
+     "V2",
+     "e1:A",
+     19,
+     9
+    ],
+    [
+     97,
+     "V1",
+     "e1:A",
+     98,
+     97
+    ],
+    [
+     99,
+     "V2",
+     "e1:A",
+     98,
+     99
+    ],
+    [
+     110,
+     "V1",
+     "e1:A",
+     111,
+     110
+    ],
+    [
+     150,
+     "V1",
+     "e1:A",
+     151,
+     150
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "e1:A": 9
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 150
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 150
+   },
+   "refusals": {
+    "A:beyond-horizon": 1,
+    "B:beyond-horizon": 1,
+    "C:beyond-horizon": 1
+   },
+   "rejected_by_reason": {
+    "bad-signature": 1,
+    "expired": 4,
+    "not-started": 1,
+    "replay": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 2,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Replay, start and end boundaries, equal-time order, forged evidence",
+  "trace": "experiments/results/traces/V0-REPLAY-CLOCK.jsonl",
+  "trace_sha256": "66bb7411d432e8585e9d8920fc72b29fae24a37b6833799f668e60d6d72b2ac0",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "ebca17ff9550b80f8f0f95ded7ed411a74c24fb4f0419a39b8d04f89443a1165",
+  "ed25519_identical": true,
+  "expect": {
+   "accept_between": [
+    [
+     121,
+     121
+    ]
+   ],
+   "equal": {
+    "valid_grants_by_epoch.2": 0,
+    "valid_grants_by_epoch.3": 1
+   },
+   "no_accept_between": [
+    [
+     101,
+     120
+    ]
+   ],
+   "refusals": [
+    "A:epoch-advanced",
+    "A:no-valid-grant",
+    "B:epoch-advanced",
+    "B:no-valid-grant",
+    "C:epoch-advanced",
+    "C:no-valid-grant"
+   ],
+   "rejections": [
+    "expired",
+    "no-grant",
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "V0-SPLIT-RECOVERY",
+  "kind": "positive",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 2,
+    "e3:A": 1
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     100,
+     100
+    ],
+    [
+     121,
+     "V1",
+     "e3:A",
+     121,
+     121
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "e1:A": 10,
+    "e3:A": 121
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100,
+    "e3:A": 121
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100,
+    "e3:A": 121
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "A:no-valid-grant": 1,
+    "B:epoch-advanced": 1,
+    "B:no-valid-grant": 1,
+    "C:epoch-advanced": 1,
+    "C:no-valid-grant": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1,
+    "no-grant": 1,
+    "not-started": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 0,
+    "3": 1
+   },
+   "valid_renewals": 2,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Split epoch-2 vote, stall, coordinated epoch-3 recovery (seed-v0, s. 9.3)",
+  "trace": "experiments/results/traces/V0-SPLIT-RECOVERY.jsonl",
+  "trace_sha256": "9aed16a420a070a660fabba40f0a7c126c34143c086d388f1fc3083fafcf7880",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "e7bd040099aedb811a34d016b4a58010dcfb677a40c94a71196f6647824ce466",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "valid_grants_by_epoch.2": 0
+   },
+   "no_accept_between": [
+    [
+     101,
+     300
+    ]
+   ],
+   "refusals": [
+    "A:epoch-advanced",
+    "A:no-valid-grant",
+    "B:epoch-advanced",
+    "B:no-valid-grant",
+    "C:epoch-advanced",
+    "C:no-valid-grant"
+   ],
+   "rejections": [
+    "expired",
+    "no-grant"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "ORIG-SPLIT-STALL",
+  "kind": "witness",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     100,
+     100
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100
+   },
+   "refusals": {
+    "A:epoch-advanced": 2,
+    "A:no-valid-grant": 2,
+    "B:epoch-advanced": 2,
+    "B:no-valid-grant": 2,
+    "C:epoch-advanced": 2,
+    "C:no-valid-grant": 2
+   },
+   "rejected_by_reason": {
+    "expired": 2,
+    "no-grant": 2
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 0
+   },
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "orig-2026-11-11",
+  "status": "pass",
+  "title": "Original rules: partial epoch-2 votes stall service after epoch 1 expires",
+  "trace": "experiments/results/traces/ORIG-SPLIT-STALL.jsonl",
+  "trace_sha256": "0c158b07c8ecb37dcf80fe62da1ebdcfe0b422e292037fa88721ba73376f2a6d",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "79cb9742dc018f37f9ce7b87276e2e354f7a866c17af98896a5c27984fcf4838",
+  "ed25519_identical": true,
+  "expect": {
+   "accept_between": [
+    [
+     121,
+     121
+    ]
+   ],
+   "equal": {
+    "valid_grants_by_epoch.2": 0,
+    "valid_grants_by_epoch.3": 1
+   },
+   "no_accept_between": [
+    [
+     101,
+     120
+    ]
+   ],
+   "refusals": [
+    "A:epoch-advanced",
+    "A:no-valid-grant",
+    "B:epoch-advanced",
+    "B:no-valid-grant",
+    "C:epoch-advanced",
+    "C:no-valid-grant"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "ORIG-SPLIT-RECOVER-E3",
+  "kind": "witness",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 2,
+    "e3:A": 1
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     100,
+     100
+    ],
+    [
+     121,
+     "V1",
+     "e3:A",
+     121,
+     121
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "e1:A": 10,
+    "e3:A": 121
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100,
+    "e3:A": 121
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100,
+    "e3:A": 121
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "A:no-valid-grant": 1,
+    "B:epoch-advanced": 1,
+    "B:no-valid-grant": 1,
+    "C:epoch-advanced": 1,
+    "C:no-valid-grant": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1,
+    "no-grant": 1,
+    "not-started": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 0,
+    "3": 1
+   },
+   "valid_renewals": 2,
+   "withdrawals": 0
+  },
+  "rules": "orig-2026-11-11",
+  "status": "pass",
+  "title": "Original rules: the same stall, then a coordinated epoch-3 proposal recovers",
+  "trace": "experiments/results/traces/ORIG-SPLIT-RECOVER-E3.jsonl",
+  "trace_sha256": "bcb0af78274901b9fc2819ff5ddacc837d204dad120d5bafd83244b08fc8fea3",
+  "violations": []
+ },
+ {
+  "codes": [
+   "SAME-READING-TWO-ISSUERS",
+   "SEPARATION"
+  ],
+  "config_sha256": "545f9a55e898e56fe21ab6f521a13ad6b40a294c1919b4243d901bc936734dc1",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 3
+   },
+   "violations_include": [
+    "SAME-READING-TWO-ISSUERS"
+   ]
+  },
+  "failures": [],
+  "id": "ORIG-DEPUTY-SAME-READING",
+  "kind": "witness",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 2,
+    "e1:B": 1
+   },
+   "accepts": [
+    [
+     50,
+     "V1",
+     "e1:A",
+     50,
+     50
+    ],
+    [
+     110,
+     "V1",
+     "e1:B",
+     110,
+     110
+    ],
+    [
+     110,
+     "V1",
+     "e1:A",
+     110,
+     110
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 50,
+    "e1:B": 110
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 110,
+    "e1:B": 110
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 110,
+    "e1:B": 110
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 2,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 2,
+   "withdrawals": 0
+  },
+  "rules": "orig-2026-11-11",
+  "status": "pass",
+  "title": "Original rules, F > 0: deputy and commander accepted at one clock reading",
+  "trace": "experiments/results/traces/ORIG-DEPUTY-SAME-READING.jsonl",
+  "trace_sha256": "5ab0a6d4151055dde6f0eee11c02faa94f947601308947c9f4ab1c62da3c5802",
+  "violations": [
+   {
+    "code": "SEPARATION",
+    "first": 11,
+    "gap": 0,
+    "second": 13
+   },
+   {
+    "at": "V1",
+    "code": "SAME-READING-TWO-ISSUERS",
+    "local": 110,
+    "seqs": [
+     11,
+     13
+    ]
+   }
+  ]
+ },
+ {
+  "codes": [
+   "EPOCH-ORDER",
+   "SEPARATION"
+  ],
+  "config_sha256": "df966656c1d1daaf21b356c2f6205c63f4bc7540279d49399f6294db42572fc8",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "EPOCH-ORDER",
+    "SEPARATION"
+   ]
+  },
+  "failures": [],
+  "id": "NC-O2-START-GUARD",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 2,
+    "e2:B": 1
+   },
+   "accepts": [
+    [
+     62,
+     "V2",
+     "e2:B",
+     61,
+     62
+    ],
+    [
+     62,
+     "V1",
+     "e1:A",
+     63,
+     62
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 62,
+    "e2:B": 62
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100,
+    "e2:B": 62
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100,
+    "e2:B": 62
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "not-started": 1
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "broken-o2-start-guard",
+  "status": "pass",
+  "title": "Grant start earlier than M_u + g",
+  "trace": "experiments/results/traces/NC-O2-START-GUARD.jsonl",
+  "trace_sha256": "ddefd81528e20c04e0e13f6eec1a4b17de38de6b6f1c086f9c856857d2af39fe",
+  "violations": [
+   {
+    "code": "SEPARATION",
+    "first": 37,
+    "gap": 0,
+    "second": 38
+   },
+   {
+    "code": "EPOCH-ORDER",
+    "gap": 0,
+    "higher": 37,
+    "lower": 38
+   },
+   {
+    "code": "EPOCH-ORDER",
+    "gap": -38,
+    "higher": 37,
+    "lower": 39
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "884e31420721a0411929a7d82a1232b891a9605eac850b671f8c4b1540c3f8f9",
+  "ed25519_identical": true,
+  "expect": {
+   "min": {
+    "accepted": 2
+   },
+   "refusals": [
+    "A:start-too-early"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-O2-START-GUARD-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     62,
+     "V1",
+     "e1:A",
+     63,
+     62
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 62
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100
+   },
+   "refusals": {
+    "A:no-valid-grant": 1,
+    "A:start-too-early": 1,
+    "B:no-valid-grant": 1,
+    "B:start-too-early": 1,
+    "C:no-valid-grant": 1,
+    "C:start-too-early": 1
+   },
+   "rejected_by_reason": {
+    "no-grant": 2
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Grant start earlier than M_u + g",
+  "trace": "experiments/results/traces/NC-O2-START-GUARD-CONTROL.jsonl",
+  "trace_sha256": "f4a5f4cf82efefe0937e70f886547647a31c4c72d5f3b8394a6c335505e5f843",
+  "violations": []
+ },
+ {
+  "codes": [
+   "EPOCH-ORDER",
+   "SEPARATION"
+  ],
+  "config_sha256": "bb964b6daf340e830c00401b1000f4414cf11ee379e9f581d5e352e302c710fa",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "EPOCH-ORDER",
+    "SEPARATION"
+   ]
+  },
+  "failures": [],
+  "id": "NC-O1-EPOCH-GUARD",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 1,
+    "e2:B": 2
+   },
+   "accepts": [
+    [
+     154,
+     "V2",
+     "e2:B",
+     153,
+     154
+    ],
+    [
+     160,
+     "V1",
+     "e1:A",
+     161,
+     160
+    ],
+    [
+     160,
+     "V2",
+     "e2:B",
+     159,
+     160
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 160,
+    "e2:B": 154
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 160,
+    "e2:B": 160
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 160,
+    "e2:B": 160
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 2,
+   "t_w": {
+    "e1": 90
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 6,
+   "withdrawals": 0
+  },
+  "rules": "broken-o1-epoch-guard",
+  "status": "pass",
+  "title": "Renewal of an epoch the signer has left",
+  "trace": "experiments/results/traces/NC-O1-EPOCH-GUARD.jsonl",
+  "trace_sha256": "cc939e3391b362c7b53bea83b9e2f3db00ccae79a5a1369ce87df56fc2775eee",
+  "violations": [
+   {
+    "code": "EPOCH-ORDER",
+    "gap": -6,
+    "higher": 45,
+    "lower": 47
+   },
+   {
+    "code": "SEPARATION",
+    "first": 47,
+    "gap": 0,
+    "second": 48
+   },
+   {
+    "code": "EPOCH-ORDER",
+    "gap": 0,
+    "higher": 48,
+    "lower": 47
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "71c9f1e47bcc980120c8e79964719170590a095ae3c56ac0f41465fe083cbacd",
+  "ed25519_identical": true,
+  "expect": {
+   "min": {
+    "accepted": 2
+   },
+   "refusals": [
+    "A:epoch-advanced"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-O1-EPOCH-GUARD-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e2:B": 2
+   },
+   "accepts": [
+    [
+     154,
+     "V2",
+     "e2:B",
+     153,
+     154
+    ],
+    [
+     160,
+     "V2",
+     "e2:B",
+     159,
+     160
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e2:B": 154
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e2:B": 160
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e2:B": 160
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "B:epoch-advanced": 1,
+    "C:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 5,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Renewal of an epoch the signer has left",
+  "trace": "experiments/results/traces/NC-O1-EPOCH-GUARD-CONTROL.jsonl",
+  "trace_sha256": "720432c448515054cb2d3facfbdfab43ced9c876bb6e6171de588a8736e1170b",
+  "violations": []
+ },
+ {
+  "codes": [
+   "INVALID-EVIDENCE",
+   "WITHDRAWAL-EXPIRY"
+  ],
+  "config_sha256": "58e28cb38cce6763e24cd5ee043d0ce24a64eeaf37ec7f2f364e2e1967625f7e",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "WITHDRAWAL-EXPIRY",
+    "INVALID-EVIDENCE"
+   ]
+  },
+  "failures": [],
+  "id": "NC-D1-END-CHECK",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     200,
+     "V1",
+     "e1:A",
+     201,
+     200
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 100
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 200
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 200
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 2
+  },
+  "rules": "broken-d1-end-check",
+  "status": "pass",
+  "title": "Verifier ignores the renewal end time",
+  "trace": "experiments/results/traces/NC-D1-END-CHECK.jsonl",
+  "trace_sha256": "cfa9daac8044d7d2142738582731d1c9e8512744845b017f00731b82dddfb9f4",
+  "violations": [
+   {
+    "code": "INVALID-EVIDENCE",
+    "seq": 19,
+    "why": "outside [start, end]"
+   },
+   {
+    "code": "WITHDRAWAL-EXPIRY",
+    "limit": 159,
+    "seq": 19,
+    "t": 200
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "bfcd2e6eae8ba9aa40f5c3af135fb20b59057f37c091cb65032c74122cabba85",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 1
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-D1-END-CHECK-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 1,
+   "accepted_by_key": {
+    "e1:A": 1
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 100
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 2
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Verifier ignores the renewal end time",
+  "trace": "experiments/results/traces/NC-D1-END-CHECK-CONTROL.jsonl",
+  "trace_sha256": "dc9808eeebccdc0b7da4b9936b1e7dbc2ba20fa3f064b360eb333a90e93971a0",
+  "violations": []
+ },
+ {
+  "codes": [
+   "REPLAY"
+  ],
+  "config_sha256": "b8efb10ef30b18765f42ffcd27610e8891ce6f0bc9a7ee05af9091d4ae7832f4",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "REPLAY"
+   ]
+  },
+  "failures": [],
+  "id": "NC-D1-REPLAY",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     11,
+     10
+    ],
+    [
+     20,
+     "V1",
+     "e1:A",
+     21,
+     10
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 20
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 10
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "broken-d1-replay",
+  "status": "pass",
+  "title": "Verifier without replay protection",
+  "trace": "experiments/results/traces/NC-D1-REPLAY.jsonl",
+  "trace_sha256": "8fa39d63f958987b9f5233b62e1ff26ce62501523b00b07cac5fc8b6a7aa095a",
+  "violations": [
+   {
+    "at": "V1",
+    "cid": "a1",
+    "code": "REPLAY",
+    "count": 2
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "29f55ae395f1b64918ac0d467cbea83ad0d6af74785d70008da112034f8bb3f0",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 1
+   },
+   "rejections": [
+    "replay"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-D1-REPLAY-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 1,
+   "accepted_by_key": {
+    "e1:A": 1
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     11,
+     10
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 10
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 10
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "replay": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Verifier without replay protection",
+  "trace": "experiments/results/traces/NC-D1-REPLAY-CONTROL.jsonl",
+  "trace_sha256": "7c1303ece71b6deac0b3e3f1cdb70c313fcbbca7fb74fee3bce51594b6cfaa04",
+  "violations": []
+ },
+ {
+  "codes": [
+   "INVALID-EVIDENCE",
+   "WITHDRAWAL-EXPIRY"
+  ],
+  "config_sha256": "b8d0b01584cca5a1574c0a4f6e0ce84c43cdfafb3d5663e9ec98362c85deb01c",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "INVALID-EVIDENCE",
+    "WITHDRAWAL-EXPIRY"
+   ]
+  },
+  "failures": [],
+  "id": "NC-DISTINCT-SIGNERS",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 1,
+   "accepted_by_key": {
+    "e1:A": 1
+   },
+   "accepts": [
+    [
+     250,
+     "V1",
+     "e1:A",
+     251,
+     250
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e1:A": 250
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 250
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 250
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 2
+  },
+  "rules": "broken-distinct-signers",
+  "status": "pass",
+  "title": "Verifier counts one Byzantine signature three times",
+  "trace": "experiments/results/traces/NC-DISTINCT-SIGNERS.jsonl",
+  "trace_sha256": "bf01c61092afe4f46bc73f02db314dfc5775aa7853fbe27753249ff78a3c18e9",
+  "violations": [
+   {
+    "code": "INVALID-EVIDENCE",
+    "msg_id": "renewal:abca0ecefc1d70a7",
+    "seq": 21,
+    "why": "no quorum-signed delivery"
+   },
+   {
+    "code": "WITHDRAWAL-EXPIRY",
+    "limit": 159,
+    "seq": 21,
+    "t": 250
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "e87fe7fd9ef807d6797c9443e15697988941f1c952ad3321ee2d9abc311b4b82",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 0
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-DISTINCT-SIGNERS-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 0,
+   "accepted_by_key": {},
+   "accepts": [],
+   "boundary_accepts": 0,
+   "first_accept": {},
+   "hostile_accepts": 0,
+   "last_accept": {},
+   "last_hostile_accept": null,
+   "latest_created_accepted": {},
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 3,
+   "withdrawals": 2
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Verifier counts one Byzantine signature three times",
+  "trace": "experiments/results/traces/NC-DISTINCT-SIGNERS-CONTROL.jsonl",
+  "trace_sha256": "9f955ee2a0eb76dbe0895da773ec5e142b2f9b3f79c04fe949891f942f25b5a6",
+  "violations": []
+ },
+ {
+  "codes": [
+   "GRANT-UNIQUENESS",
+   "SEPARATION"
+  ],
+  "config_sha256": "bf44e48fa0bf033acb3dfca0335b13f701e6c15f5f82146f53e7b74eb2f4bfcc",
+  "ed25519_identical": true,
+  "expect": {
+   "violations_include": [
+    "GRANT-UNIQUENESS",
+    "SEPARATION"
+   ]
+  },
+  "failures": [],
+  "id": "NC-COMMIT-AFTER-RELEASE",
+  "kind": "negative",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e2:B": 1,
+    "e2:C": 1
+   },
+   "accepts": [
+    [
+     145,
+     "V1",
+     "e2:B",
+     146,
+     145
+    ],
+    [
+     145,
+     "V2",
+     "e2:C",
+     144,
+     145
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e2:B": 145,
+    "e2:C": 145
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e2:B": 145,
+    "e2:C": 145
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e2:B": 145,
+    "e2:C": 145
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 1,
+   "t_w": {},
+   "valid_grants_by_epoch": {
+    "2": 2
+   },
+   "valid_renewals": 3,
+   "withdrawals": 0
+  },
+  "rules": "broken-commit-after-release",
+  "status": "pass",
+  "title": "Signer crash between signature release and durable write",
+  "trace": "experiments/results/traces/NC-COMMIT-AFTER-RELEASE.jsonl",
+  "trace_sha256": "510c4daa5a5fae3eb963a176681c1398f534b4d10fae9a946aea9cf28f82bb8d",
+  "violations": [
+   {
+    "code": "GRANT-UNIQUENESS",
+    "epoch": 2,
+    "grants": [
+     "grant:72c4d226e1c8ccfa",
+     "grant:83dbfc93bbdeb033"
+    ]
+   },
+   {
+    "code": "SEPARATION",
+    "first": 44,
+    "gap": 0,
+    "second": 45
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "843cfcd1aa19640750e221f0e46321f34c96ce3cc2c64678cd9f127e8951c4b0",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 1
+   },
+   "refusals": [
+    "A:epoch-not-higher"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "NC-COMMIT-AFTER-RELEASE-CONTROL",
+  "kind": "control",
+  "metrics": {
+   "accepted": 1,
+   "accepted_by_key": {
+    "e2:B": 1
+   },
+   "accepts": [
+    [
+     145,
+     "V1",
+     "e2:B",
+     146,
+     145
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "e2:B": 145
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e2:B": 145
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e2:B": 145
+   },
+   "refusals": {
+    "A:epoch-not-higher": 1
+   },
+   "rejected_by_reason": {
+    "no-grant": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 3,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Signer crash between signature release and durable write",
+  "trace": "experiments/results/traces/NC-COMMIT-AFTER-RELEASE-CONTROL.jsonl",
+  "trace_sha256": "e5ed5dac75a948ec243bb6e8e5a28bfed97d28b700293067c1a796d955f58b9a",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "6116c2653bf5d701ddb1b17e509e28d58047b00b8a8a0b1f0f16d52f0ac0303f",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 5,
+    "first_accept.e2:B": 155,
+    "last_accept.e1:A": 139
+   },
+   "rejections": [
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-HANDOVER-SEED-V0",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "e1:A": 3,
+    "e2:B": 2
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     137,
+     "V1",
+     "e1:A",
+     138,
+     137
+    ],
+    [
+     139,
+     "V2",
+     "e1:A",
+     138,
+     139
+    ],
+    [
+     155,
+     "V1",
+     "e2:B",
+     156,
+     155
+    ],
+    [
+     157,
+     "V2",
+     "e2:B",
+     156,
+     157
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "e1:A": 100,
+    "e2:B": 155
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 139,
+    "e2:B": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 139,
+    "e2:B": 157
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "B:epoch-advanced": 1,
+    "C:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "not-started": 2
+   },
+   "successions": 1,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 1
+   },
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Handover A to B decided at t = 50",
+  "trace": "experiments/results/traces/CMP-HANDOVER-SEED-V0.jsonl",
+  "trace_sha256": "808c9f54d1b74ce6afa3d078694aa13774a2be7cb8fafac6716c399f1a508fe2",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "e8326438f025bea2db55ee72f839fd77af09b0ec7ae74ccf5f895be39a1328e0",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 5,
+    "first_accept.B": 155,
+    "last_accept.A": 139
+   },
+   "rejections": [
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-HANDOVER-XL",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "A": 3,
+    "B": 2
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     137,
+     "V1",
+     "A",
+     138,
+     137
+    ],
+    [
+     139,
+     "V2",
+     "A",
+     138,
+     139
+    ],
+    [
+     155,
+     "V1",
+     "B",
+     156,
+     155
+    ],
+    [
+     157,
+     "V2",
+     "B",
+     156,
+     157
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "A": 100,
+    "B": 155
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 139,
+    "B": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 139,
+    "B": 157
+   },
+   "refusals": {
+    "A:no-consent": 1,
+    "B:no-consent": 1,
+    "C:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "not-started": 2
+   },
+   "successions": 1,
+   "t_w": {
+    "A": 50
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 5,
+   "withdrawals": 3
+  },
+  "rules": "xl",
+  "status": "pass",
+  "title": "Handover A to B decided at t = 50",
+  "trace": "experiments/results/traces/CMP-HANDOVER-XL.jsonl",
+  "trace_sha256": "e05d59fc7fa9748640bf08c7194b78dce3c8611f92ca695ea2ba880ecd8a3755",
+  "violations": []
+ },
+ {
+  "codes": [
+   "SEPARATION"
+  ],
+  "config_sha256": "7d86f8b75538092bc8682ba4fa3a982fbe8ce3e7e3b0fb366441b7f288cd997b",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "first_accept.B": 60
+   },
+   "violations_include": [
+    "SEPARATION"
+   ]
+  },
+  "failures": [],
+  "id": "CMP-HANDOVER-TC-NAIVE",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "A": 3,
+    "B": 2
+   },
+   "accepts": [
+    [
+     60,
+     "V1",
+     "B",
+     61,
+     60
+    ],
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     100,
+     "V2",
+     "B",
+     99,
+     100
+    ],
+    [
+     137,
+     "V1",
+     "A",
+     138,
+     137
+    ],
+    [
+     139,
+     "V2",
+     "A",
+     138,
+     139
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "A": 100,
+    "B": 60
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 139,
+    "B": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 139,
+    "B": 100
+   },
+   "refusals": {
+    "A:no-consent": 1,
+    "B:no-consent": 1,
+    "C:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "expired": 2
+   },
+   "successions": 3,
+   "t_w": {
+    "A": 50
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 3
+  },
+  "rules": "tc",
+  "status": "pass",
+  "title": "Handover A to B decided at t = 50",
+  "trace": "experiments/results/traces/CMP-HANDOVER-TC-NAIVE.jsonl",
+  "trace_sha256": "a121c8b5b5b5d05fa6ab0e601409791f76a966dfd0a5b2181f045823abf44cd2",
+  "violations": [
+   {
+    "code": "SEPARATION",
+    "first": 36,
+    "gap": 0,
+    "second": 37
+   }
+  ]
+ },
+ {
+  "codes": [],
+  "config_sha256": "655e86dc73937516b1221384a41d9e23687235a7653db4f9152dff5d6951fbb3",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 5,
+    "first_accept.B": 155,
+    "last_accept.A": 139
+   },
+   "rejections": [
+    "not-started"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-HANDOVER-TC-WAIT",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 5,
+   "accepted_by_key": {
+    "A": 3,
+    "B": 2
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     137,
+     "V1",
+     "A",
+     138,
+     137
+    ],
+    [
+     139,
+     "V2",
+     "A",
+     138,
+     139
+    ],
+    [
+     155,
+     "V1",
+     "B",
+     156,
+     155
+    ],
+    [
+     157,
+     "V2",
+     "B",
+     156,
+     157
+    ]
+   ],
+   "boundary_accepts": 4,
+   "first_accept": {
+    "A": 100,
+    "B": 155
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 139,
+    "B": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 139,
+    "B": 157
+   },
+   "refusals": {
+    "A:no-consent": 1,
+    "B:no-consent": 1,
+    "C:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "not-started": 2
+   },
+   "successions": 1,
+   "t_w": {
+    "A": 50
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 5,
+   "withdrawals": 3
+  },
+  "rules": "tc",
+  "status": "pass",
+  "title": "Handover A to B decided at t = 50",
+  "trace": "experiments/results/traces/CMP-HANDOVER-TC-WAIT.jsonl",
+  "trace_sha256": "0e0443f714d684a20eb1232a851ef44dafa3b2ad8152040b45616c2ea52bfe2c",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "7dc5f0c9438e2eede58f2b193cd7b5a7725d9c6123da61f97341bde339119ae5",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "last_hostile_accept": 155,
+    "t_w.e1": 57
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-REMOVAL-SEED-V0",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "e1:A": 3
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     153,
+     "V1",
+     "e1:A",
+     154,
+     153
+    ],
+    [
+     155,
+     "V2",
+     "e1:A",
+     154,
+     155
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "e1:A": 100
+   },
+   "hostile_accepts": 3,
+   "last_accept": {
+    "e1:A": 155
+   },
+   "last_hostile_accept": 155,
+   "latest_created_accepted": {
+    "e1:A": 155
+   },
+   "refusals": {
+    "B:withdrawn": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 2
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Hostile holder: withdrawal race and late delivery",
+  "trace": "experiments/results/traces/CMP-REMOVAL-SEED-V0.jsonl",
+  "trace_sha256": "a21ae36eede64e0ef38d91f7486ebfd425104981b3753c6495b81a51c738d68f",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "421a165b37a286efd9071168217b964eaa618e3f23f1d66227669e770e68759b",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 4,
+    "latest_created_accepted.e1:A": 157
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-ISOLATION-SEED-V0",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 4,
+   "accepted_by_key": {
+    "e1:A": 4
+   },
+   "accepts": [
+    [
+     70,
+     "V1",
+     "e1:A",
+     71,
+     70
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     101,
+     100
+    ],
+    [
+     139,
+     "V1",
+     "e1:A",
+     140,
+     139
+    ],
+    [
+     157,
+     "V1",
+     "e1:A",
+     158,
+     157
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 70
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 157
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Honest holder isolated with V1 from t = 65",
+  "trace": "experiments/results/traces/CMP-ISOLATION-SEED-V0.jsonl",
+  "trace_sha256": "194c0355df4e81988292d69199caa41233e57ac61ddae5d2f29fdb1cea0a97ab",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "82601026aa0bdc3a41befb6f3725946933c304cb25f59a645c1955ca310f14d7",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "last_hostile_accept": 155,
+    "t_w.A": 57
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-REMOVAL-XL",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "A": 3
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     153,
+     "V1",
+     "A",
+     154,
+     153
+    ],
+    [
+     155,
+     "V2",
+     "A",
+     154,
+     155
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "A": 100
+   },
+   "hostile_accepts": 3,
+   "last_accept": {
+    "A": 155
+   },
+   "last_hostile_accept": 155,
+   "latest_created_accepted": {
+    "A": 155
+   },
+   "refusals": {
+    "B:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "A": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 2
+  },
+  "rules": "xl",
+  "status": "pass",
+  "title": "Hostile holder: withdrawal race and late delivery",
+  "trace": "experiments/results/traces/CMP-REMOVAL-XL.jsonl",
+  "trace_sha256": "15b440570fff043a1a293142a5ecd2b3f3fc644b867cbe5e221b6f2bb1b574b6",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "7576da17cea88f72dcf97dfdd363190c9b63706b3df33c223b0d0856d4ccc7ce",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 4,
+    "latest_created_accepted.A": 157
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-ISOLATION-XL",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 4,
+   "accepted_by_key": {
+    "A": 4
+   },
+   "accepts": [
+    [
+     70,
+     "V1",
+     "A",
+     71,
+     70
+    ],
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     139,
+     "V1",
+     "A",
+     140,
+     139
+    ],
+    [
+     157,
+     "V1",
+     "A",
+     158,
+     157
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "A": 70
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 157
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "xl",
+  "status": "pass",
+  "title": "Honest holder isolated with V1 from t = 65",
+  "trace": "experiments/results/traces/CMP-ISOLATION-XL.jsonl",
+  "trace_sha256": "f93167e92c58f8777d4935243cbeba5286fd0cea63af5f4c6cd938675b7e3862",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "13eb5749b679f8964972e36c7c9462218cc9172d678f2f3b6d4a47f23ce8dc9c",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "last_hostile_accept": 155,
+    "t_w.A": 57
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-REMOVAL-TC",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "A": 3
+   },
+   "accepts": [
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     153,
+     "V1",
+     "A",
+     154,
+     153
+    ],
+    [
+     155,
+     "V2",
+     "A",
+     154,
+     155
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "A": 100
+   },
+   "hostile_accepts": 3,
+   "last_accept": {
+    "A": 155
+   },
+   "last_hostile_accept": 155,
+   "latest_created_accepted": {
+    "A": 155
+   },
+   "refusals": {
+    "B:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "A": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 2
+  },
+  "rules": "tc",
+  "status": "pass",
+  "title": "Hostile holder: withdrawal race and late delivery",
+  "trace": "experiments/results/traces/CMP-REMOVAL-TC.jsonl",
+  "trace_sha256": "ad89a36358b589968bbd757bed1e02330e560ac71e42c35687873d193321d1f6",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "f83872f6d4a45e8e6fcb58f3876993c3e162cee495eafb7937753581e935c2c4",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 4,
+    "latest_created_accepted.A": 157
+   },
+   "rejections": [
+    "expired"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-ISOLATION-TC",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 4,
+   "accepted_by_key": {
+    "A": 4
+   },
+   "accepts": [
+    [
+     70,
+     "V1",
+     "A",
+     71,
+     70
+    ],
+    [
+     100,
+     "V1",
+     "A",
+     101,
+     100
+    ],
+    [
+     139,
+     "V1",
+     "A",
+     140,
+     139
+    ],
+    [
+     157,
+     "V1",
+     "A",
+     158,
+     157
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "A": 70
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 157
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 157
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 4,
+   "withdrawals": 0
+  },
+  "rules": "tc",
+  "status": "pass",
+  "title": "Honest holder isolated with V1 from t = 65",
+  "trace": "experiments/results/traces/CMP-ISOLATION-TC.jsonl",
+  "trace_sha256": "60ec1a5a57ad00cd7bd30602e6bc75e87d29f4dd967fc57191e8236bea2c3c35",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "9bc1dc3d13b3e66e92a4368d61600285780c06c6b800e6f3ad8177fbcb44e1bb",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "last_hostile_accept": 76,
+    "t_w.A": 57
+   },
+   "rejections": [
+    "no-order"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-REMOVAL-QO-W",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "A": 2
+   },
+   "accepts": [
+    [
+     74,
+     "V1",
+     "A",
+     75,
+     74
+    ],
+    [
+     76,
+     "V2",
+     "A",
+     75,
+     76
+    ]
+   ],
+   "boundary_accepts": 2,
+   "first_accept": {
+    "A": 74
+   },
+   "hostile_accepts": 2,
+   "last_accept": {
+    "A": 76
+   },
+   "last_hostile_accept": 76,
+   "latest_created_accepted": {
+    "A": 76
+   },
+   "refusals": {
+    "B:no-consent": 3,
+    "C:no-consent": 1
+   },
+   "rejected_by_reason": {
+    "no-order": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "A": 57
+   },
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 2,
+   "withdrawals": 2
+  },
+  "rules": "qo-w",
+  "status": "pass",
+  "title": "Hostile holder: withdrawal race and late delivery",
+  "trace": "experiments/results/traces/CMP-REMOVAL-QO-W.jsonl",
+  "trace_sha256": "2c813d2b05fcf3ff8bac966f5d5acaa92ac1cefeab55137615220f182ff682b2",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "c25dc2602ffd84a7f73a45a15df3541bf99b0f31a6ad0003474febcbc422c253",
+  "ed25519_identical": true,
+  "expect": {
+   "equal": {
+    "accepted": 1,
+    "latest_created_accepted.A": 60
+   },
+   "rejections": [
+    "no-order"
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-ISOLATION-QO-W",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 1,
+   "accepted_by_key": {
+    "A": 1
+   },
+   "accepts": [
+    [
+     70,
+     "V1",
+     "A",
+     71,
+     60
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "A": 70
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 70
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 60
+   },
+   "refusals": {},
+   "rejected_by_reason": {
+    "no-order": 3
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "qo-w",
+  "status": "pass",
+  "title": "Honest holder isolated with V1 from t = 65",
+  "trace": "experiments/results/traces/CMP-ISOLATION-QO-W.jsonl",
+  "trace_sha256": "ffc7635c8f86784ff479d7ac9d23498b6f2fd2d569290edcf771d00abeacc7e6",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "88ddca3d6dfe0a189edbba4d2062b6aa9d5cc504fdd453b019a0016ecbf4e8e4",
+  "ed25519_identical": true,
+  "expect": {
+   "no_accept_between": [
+    [
+     101,
+     160
+    ]
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-SPLIT-SAME-HOLDER-SEED-V0",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     100,
+     100
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "B:epoch-advanced": 1,
+    "C:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 0
+   },
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Split vote on the next authority, no coordination",
+  "trace": "experiments/results/traces/CMP-SPLIT-SAME-HOLDER-SEED-V0.jsonl",
+  "trace_sha256": "9c828ecfa724065029cc3d251d7dae11c6ce8ecc11c2d41da35917197e3a9557",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "78cde9d014f7b8b7b8e55442b4fbf0f7bf456ed0363a13b6a703f4731a6eec58",
+  "ed25519_identical": true,
+  "expect": {
+   "no_accept_between": [
+    [
+     101,
+     160
+    ]
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-SPLIT-TWO-HOLDERS-SEED-V0",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "e1:A": 2
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "e1:A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "e1:A",
+     100,
+     100
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "e1:A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "e1:A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "e1:A": 100
+   },
+   "refusals": {
+    "A:epoch-advanced": 1,
+    "B:epoch-advanced": 1,
+    "C:epoch-advanced": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {
+    "e1": 50
+   },
+   "valid_grants_by_epoch": {
+    "2": 0
+   },
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "seed-v0",
+  "status": "pass",
+  "title": "Split vote on the next authority, no coordination",
+  "trace": "experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-SEED-V0.jsonl",
+  "trace_sha256": "1640f7ecdb317a27ca2f0629ec9248b2007001169d52f6abf1a7bef11b8ebdfd",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "5b02d1dbbcfb8d18120b82c24a40539d29632099c539f40ed5571b21c9b722c2",
+  "ed25519_identical": true,
+  "expect": {
+   "accept_between": [
+    [
+     150,
+     150
+    ]
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-SPLIT-SAME-HOLDER-XL",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 3,
+   "accepted_by_key": {
+    "A": 3
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "A",
+     100,
+     100
+    ],
+    [
+     150,
+     "V1",
+     "A",
+     150,
+     150
+    ]
+   ],
+   "boundary_accepts": 0,
+   "first_accept": {
+    "A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 150
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 150
+   },
+   "refusals": {},
+   "rejected_by_reason": {},
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 2,
+   "withdrawals": 0
+  },
+  "rules": "xl",
+  "status": "pass",
+  "title": "Split vote on the next authority, no coordination",
+  "trace": "experiments/results/traces/CMP-SPLIT-SAME-HOLDER-XL.jsonl",
+  "trace_sha256": "ae90346277518eb674ba06000c68fb33d3fd4f6afc3949fe0ca4840bffc5b8a5",
+  "violations": []
+ },
+ {
+  "codes": [],
+  "config_sha256": "07bd893899472e2c129b40e30d18095f802929e89e36e26f3882b1524b7df459",
+  "ed25519_identical": true,
+  "expect": {
+   "no_accept_between": [
+    [
+     101,
+     160
+    ]
+   ],
+   "violations": []
+  },
+  "failures": [],
+  "id": "CMP-SPLIT-TWO-HOLDERS-XL",
+  "kind": "comparison",
+  "metrics": {
+   "accepted": 2,
+   "accepted_by_key": {
+    "A": 2
+   },
+   "accepts": [
+    [
+     10,
+     "V1",
+     "A",
+     10,
+     10
+    ],
+    [
+     100,
+     "V1",
+     "A",
+     100,
+     100
+    ]
+   ],
+   "boundary_accepts": 1,
+   "first_accept": {
+    "A": 10
+   },
+   "hostile_accepts": 0,
+   "last_accept": {
+    "A": 100
+   },
+   "last_hostile_accept": null,
+   "latest_created_accepted": {
+    "A": 100
+   },
+   "refusals": {
+    "A:start-too-early": 1,
+    "B:start-too-early": 1,
+    "C:start-too-early": 1
+   },
+   "rejected_by_reason": {
+    "expired": 1
+   },
+   "successions": 0,
+   "t_w": {},
+   "valid_grants_by_epoch": {},
+   "valid_renewals": 1,
+   "withdrawals": 0
+  },
+  "rules": "xl",
+  "status": "pass",
+  "title": "Split vote on the next authority, no coordination",
+  "trace": "experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-XL.jsonl",
+  "trace_sha256": "582c9a68eee0ca3cc071c84814e0e02b7a3f572db2d75e50f07e250853b62698",
+  "violations": []
+ }
+]

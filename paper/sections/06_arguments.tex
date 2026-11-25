@@ -1,0 +1,120 @@
+\section{Candidate Arguments for Seed-v0}
+\label{sec:arguments}
+
+The arguments below are short. A person must check each step against the specification
+before any of them becomes a theorem. \Cref{app:arguments} gives them in full.
+
+\begin{lem}[One grant per epoch]
+\label{lem:grant}
+Any two valid grants of the same epoch are equal.
+\end{lem}
+
+\begin{argument}
+Two valid grants of epoch $j > 1$ share an honest signer $u$. By O2, $u$ signs a grant of
+epoch $j$ only if $j > E_u$, and then sets $E_u := j$. Since $E_u$ never decreases, $u$
+signs at most one grant of epoch $j$. No honest agent signs a grant of epoch 1, because
+$E_u \ge 1$, so the genesis grant is the only valid grant of epoch 1 \claim{C-UNIQ}.
+\end{argument}
+
+\begin{lem}[Certificate separation]
+\label{lem:sep}
+If $\renew{k, e}$ and $\grant{j, h, s}$ are valid and $j > k$, then $s \ge e + g$.
+\end{lem}
+
+\begin{argument}
+The two certificates share an honest signer $u$. If $u$ signed the renewal first, then
+$M_u \ge e$ when it signed the grant, and O2 gives $s \ge M_u + g \ge e + g$. If $u$ signed
+the grant first, then $E_u \ge j > k$ from then on, and O1 forbids the renewal.
+\end{argument}
+
+\begin{prp}[Epoch order]
+\label{prp:order}
+Seed-v0 has epoch order with separation $\gamma = g - 2\eps$. Commands of different
+holders are therefore accepted at least $\gamma$ apart.
+\end{prp}
+
+\begin{argument}
+Let $v$ accept a command of epoch $k$ at real time $t$, and $v'$ one of epoch $j > k$ at
+$t'$. D1 at $v$ gives a valid $\renew{k, e}$ with $C_v(t) \le e$, so $t \le e + \eps$. D1
+at $v'$ gives the valid grant $\grant{j, h, s}$ with $s \le C_{v'}(t')$, so
+$t' \ge s - \eps$. \Cref{lem:sep} gives $s \ge e + g$, so $t' - t \ge g - 2\eps$. By
+\cref{lem:grant}, each epoch has one holder \claim{C-SEP}.
+\end{argument}
+
+\begin{prp}[Withdrawal-to-expiry]
+\label{prp:wte}
+No verifier accepts a command of epoch $k$ at a real time $t > t_W(k) + H + 2\eps$.
+\end{prp}
+
+\begin{argument}
+A valid $\renew{k, e}$ has $q$ signers, and at most $q - 1$ officers are outside the set
+$W$ of \cref{def:tw}. So some signer $u \in W$ is honest, and O1 let it sign only before
+it withdrew or moved past $k$, at a real time $t_u \le t_W(k)$. O1 gives
+$e \le C_u(t_u) + H \le t_W(k) + H + \eps$. Acceptance at $t$ needs $C_v(t) \le e$, so
+$t \le e + \eps \le t_W(k) + H + 2\eps$ \claim{C-WTE}.
+\end{argument}
+
+The argument uses no property of the network. Delay, loss and replay cannot extend the
+bound; they can only remove acceptances. \Cref{fig:removal} shows a directed run that
+reaches $t_W + \RemovalAfterTW$ against a bound of $t_W + \RemovalBoundAfterTW$.
+
+\begin{figure}[t]
+\centering
+\input{generated/removal_figure}
+\caption{Scenario \texttt{V0-REMOVAL} as recorded in its trace ($H = \SeedH$,
+$\eps = \SeedEps$). Holder $A$ is compromised at \RemovalCompromise{}. Operators notice
+at \RemovalDetection{}, decide at \RemovalDecision{}, and withdraw at
+\RemovalFirstWithdraw{} and \RemovalTW{}, which is $t_W$. A renewal signed just before
+$t_W$ ends at \RemovalLastValidEnd{}. $A$'s last acceptance is at \RemovalLastHostile{}
+($t_W + \RemovalAfterTW$), within the bound \RemovalBound{}. Successor $C$ starts at
+\RemovalSuccessorStart{} on the verifiers' clocks. Circles are verifier V1 and squares
+V2. Time units are synthetic.}
+\label{fig:removal}
+\end{figure}
+
+\begin{prp}[Fresh-command availability]
+\label{prp:avail}
+Let all officers be honest and consent to the holder $c$ of epoch $k$, whose grant starts
+at $s$. Assume (i) every renewal request that $c$ starts at real time $t_r$ reaches at
+least $q$ honest agents that hold the grant of $k$, have $E_u = k$ and have not withdrawn,
+and their signatures return to $c$ by $t_r + \delta$; (ii) some request that started at
+$t_r \ge t_0 - \Delta - \delta$ completed by $t_0$, where $t_0$ is the start of the outage;
+(iii) $t_0 \ge s + \eps$. If from $t_0$ only $c$ and $v$ exchange messages, then $v$
+accepts every fresh command that $c$ creates and delivers at a real time in
+$[t_0, t_0 + H - \Delta - \delta - 4\eps]$.
+\end{prp}
+
+\begin{argument}
+Take the request of (ii). Its end time is $e = C_c(t_r) + H - 2\eps$, which every
+receiving agent may sign, since $e \le t_r + H - \eps \le C_u(t_u) + H$. So $c$ holds a
+valid $\renew{k, e}$ at $t_0$ and attaches it. At delivery time $t$, D1 needs
+$s \le C_v(t)$, which (iii) gives, and $C_v(t) \le e$. The latter holds because
+$e \ge t_r + H - 3\eps \ge t_0 - \Delta - \delta + H - 3\eps \ge t + \eps$
+\claim{C-AVAIL}.
+\end{argument}
+
+Assumption (i) includes communication and same-epoch eligibility. Consent alone is not
+enough: an agent that voted for a proposal of a later epoch can no longer renew $k$.
+
+\subsection{Split Votes and Conditional Recovery}
+\label{sec:split}
+
+If honest agents sign different proposals for the same epoch $j$ and none reaches $q$
+signatures, then epoch $j$ never gets a valid grant, since each honest agent votes once
+per epoch. Every agent that voted has $E_u = j$ and can no longer renew $j - 1$. Service
+stops when the newest renewal of $j - 1$ expires. This is a gap in progress, not a safety
+violation \claim{C-SPLIT}. A grant proposal for an epoch $j' > j$ becomes valid if three
+conditions hold. (D) It reaches $q$ honest agents and their signatures return. (Q) Those
+agents consent to its holder and have $E_u < j'$ and $M_u + g \le s$. (C) They did not
+sign another proposal of $j'$. Under permanent blocking no protocol makes progress, so we
+make no unconditional recovery claim \claim{C-REC}.
+
+\subsection{Reading the Bounds Together}
+
+By \cref{prp:avail} with a command created at $t_0 + L$, seed-v0 has isolation reach
+$L = H - \Delta - \delta - 4\eps$. By \cref{prp:limit}, some run therefore has hostile
+tenure at least $L$ after withdrawal. By \cref{prp:wte}, no run exceeds $H + 2\eps$. The
+gap between the guaranteed service and the worst hostile tenure is at most
+$\Delta + \delta + 6\eps$ \claim{C-GAP}. These bounds come from quorum renewal and expiry. Threshold
+expiring credentials with the same signer rule have them too. What epochs add is
+\cref{prp:order}.

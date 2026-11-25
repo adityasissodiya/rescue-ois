@@ -1,0 +1,81 @@
+\section{Setting and Nearest Approaches}
+\label{sec:prior}
+
+\paragraph{Setting}
+We use electric distribution as the running example. A \emph{device} in this paper is the
+enforcement point that decides whether to execute a remote command, for example a module
+in a protection relay, a remote terminal unit or a gateway. Where such a point would sit,
+and which operations must continue when a control room is isolated, are open questions
+for people who operate grids (\cref{sec:open}). We consulted no such person.
+
+\paragraph{Sources and how we read them}
+We read the relevant sections of five sources in full: URSA, Nerio, Spire, the report by
+Liskov and Rodrigues, and the paper by Shakarami and Sandhu. Two recent articles, HRCred
+and the work by Stantchev, refused automated download. For them we have only titles,
+abstracts and metadata, and we claim nothing about their content.
+\Cref{tab:positioning} summarizes. The positioning record in the artifact gives page
+references for each statement below.
+
+\paragraph{Threshold-issued expiring credentials}
+In URSA~\cite{luo2004ursa}, a ticket is valid if it is certified and unexpired. Its
+neighbours renew it collectively with a threshold signature, and a node that they see
+misbehave is denied renewal. Removal therefore needs no message to the device. URSA has
+no notion of a single holder of authority or of an exclusive successor. HRCred
+(abstract only)~\cite{zhou2026hrcred} combines threshold issuance with revocation epochs
+and lifetime bounds for device credentials. It could overlap with this seed, and reading
+it is open work (\cref{sec:open}). The same is true of Stantchev~\cite{stantchev2026survives},
+whose title announces authorization that survives disconnection.
+
+\paragraph{Exclusive leases}
+In Nerio~\cite{vanrenesse2011nerio}, each process keeps an assignee and a finish time, and
+never changes its assignee before the finish time. A process is the leader if a quorum
+grants it a lease, so two leaders cannot overlap. The fault model is crash failures, and
+the leader itself checks that its lease is still valid before it sends an edict. Leases in
+general trade the length of a term against the effect of a failure~\cite{gray1989leases}.
+A hostile holder ignores its own expiry. Our comparator \texttt{xl} (\cref{sec:comparisons})
+therefore adds signatures, checks at the device and Byzantine quorums to Nerio's grantor
+rule. This adaptation is ours, and Nerio's authors did not evaluate it.
+
+\paragraph{Intrusion-tolerant SCADA}
+Spire replicates the SCADA master with $3f + 2k + 1$ replicas. It tolerates $f$ compromised
+replicas, one disconnected site and one replica in recovery~\cite{babay2018spire}. Its
+authors write that their ``threat model does not cover a compromised HMI or a rogue
+operator''~\cite{babay2018spire}. Our question is about that case. An exclusion in one
+paper does not show that no other work solves it.
+
+\paragraph{Residual effect after removal}
+Liskov and Rodrigues bound the effect of a Byzantine client after an administrator removes
+it: it can leave at most a bounded number of ``lurking writes''~\cite{liskov2005tr}. Their
+replicas enforce the bound and can be reached. In our setting the devices decide alone,
+and the bound is a time after withdrawal.
+
+\paragraph{Freshness at a decision point}
+Shakarami and Sandhu show that stale attribute values at a decision point cause both
+safety and availability violations, and that refreshing values helps
+both~\cite{shakarami2019refresh}. It is the same tension, for a different object.
+
+\begin{table}[t]
+\caption{Nearest approaches, from the parts of each source we read. ``Exclusive'' means a
+rule that prevents overlapping authority of two holders.}
+\label{tab:positioning}
+\centering
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.2\columnwidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.19\columnwidth}ll@{}}
+\toprule
+Approach & Faults & Authority ends by & Excl. & Read \\
+\midrule
+URSA~\cite{luo2004ursa} & Byzantine nodes below a threshold & expiry, no renewal & no & full \\
+HRCred~\cite{zhou2026hrcred} & unknown & revocation epochs, lifetimes & ? & abstract \\
+Nerio~\cite{vanrenesse2011nerio} & crash & lease expiry & yes & full \\
+Spire~\cite{babay2018spire} & $f$ replicas, one site cut & (operator trusted) & --- & full \\
+Liskov, Rodrigues~\cite{liskov2005tr} & Byzantine clients and replicas & administrator & --- & full \\
+This seed & $f$ officers, hostile holder & expiry; epoch grants & yes & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{What we found open}
+Removal by expiry and exclusive leases both exist. Among the sources we read, none states
+their combination for a hostile holder and disconnected verifiers, together with a lower
+bound in the same model. This is weak evidence of a gap. We read five sources in full, and
+we have not searched the forward citations of URSA and Nerio.

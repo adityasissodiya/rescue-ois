@@ -1,0 +1,91 @@
+\section{Model and Properties}
+\label{sec:model}
+
+\Cref{sec:model,sec:rules} summarize the normative specification in the artifact
+(\file{spec/protocol.md}).
+
+\paragraph{Principals}
+There are $n$ \emph{officers}. An officer is a person, and a \emph{signing agent} holds
+the officer's key and applies the officer's decisions. The \emph{holder} is the officer
+whose commands the devices currently obey. A \emph{verifier} at each device decides which
+commands the device executes. Consent is a human decision. Renewal is automated: while an
+officer consents to the holder, the agent signs renewals that its rules allow. A
+\emph{withdrawal} takes effect when the agent records that it will sign no further renewal
+for the current term.
+
+\paragraph{Faults}
+At most $f$ officers are \emph{compromised}: from some instant on, the adversary holds
+their keys and signs anything with them. The holder may be one of them. All other agents
+are \emph{honest}, and an honest agent that loses its durable state counts as
+compromised. Verifiers are trusted: the adversary cannot change their code, state or
+clock beyond the bound below, and a hostile holder cannot bypass them. The adversary
+controls every link. It can delay without bound, drop, reorder, replay and inject any
+message that it can construct, but it cannot forge an honest signature.
+
+\paragraph{Time}
+Real time $t$ is not observable. Each honest agent and verifier $p$ has a clock with
+$|C_p(t) - t| \le \eps$, and verifier clocks never go backwards. $\eps$ must cover clock
+holdover for the longest outage that a deployment accepts.
+
+\begin{dfn}[Acceptance]
+A verifier $v$ \emph{accepts} a command at real time $t$ when it durably appends the
+command to its log and then releases it to the actuator. Acceptance is a verifier event.
+It is not the completion of a physical action.
+\end{dfn}
+
+\begin{dfn}[Withdrawal instant]
+\label{def:tw}
+For a term (an epoch $k$ in \sys{}), $t_W(k)$ is the instant at which, for the first time,
+$n - q + 1$ honest agents have each withdrawn from $k$ or moved past it. For mechanisms
+without epochs, an agent withdraws by dropping consent for the holder.
+\end{dfn}
+
+Detection of a hostile holder, the human decision and coordination among officers all
+happen before $t_W$. We report them separately and do not bound them.
+
+\begin{dfn}[Exclusive succession]
+\label{def:order}
+A mechanism has \emph{epoch order with separation} $\gamma$ if, for every acceptance of
+term $k$ at real time $t$ and every acceptance of a later term $j > k$ at real time $t'$,
+at any verifiers, $t' - t \ge \gamma$.
+\end{dfn}
+
+The draft of 11 November 2026 used a pairwise condition instead: acceptances of two
+different holders are at least $\gamma$ apart. That condition allows a pattern
+$A, B, A$ in which each pair is far apart, so it is strictly weaker. Our checker
+reports both (\cref{sec:method}).
+
+\begin{dfn}[Withdrawal-to-expiry bound]
+\label{def:wte}
+A mechanism has \emph{withdrawal-to-expiry bound} $B$ if no verifier accepts a command
+of term $k$ at a real time $t > t_W(k) + B$, in every run.
+\end{dfn}
+
+\begin{dfn}[Fresh-command availability]
+\label{def:avail}
+Under assumptions $\mathcal{A}$, a mechanism has \emph{fresh-command availability} $L$ if
+in every run that satisfies $\mathcal{A}$, an outage that starts at $t_0$ leaves the
+verifier accepting every fresh command that the holder creates and delivers at a real
+time in $[t_0, t_0 + L]$.
+\end{dfn}
+
+\begin{dfn}[Isolation reach and hostile tenure]
+\label{def:reach}
+A mechanism has \emph{isolation reach} $P$ at $v$ if \emph{some} run with these properties
+exists. All officers are honest. From $t_0$, only the holder $c$ and $v$ exchange
+messages. $v$ accepts a command that $c$ \emph{created} at or after $t_0 + P$. It has
+\emph{hostile tenure} $\Theta$ at $v$ if some run exists in which the adversary obtains
+$c$'s key and state at $t_0$, every other officer withdraws at $t_0$, and $v$ accepts a
+command of $c$ created at or after $t_0 + \Theta$.
+\end{dfn}
+
+Isolation reach is existential, and availability is universal. The draft of 11 November
+also counted a command that was created before $t_0$ and delivered late. That inflates
+the reach, so we exclude such commands.
+
+\paragraph{Outside the model}
+The properties above do not cover the meaning of commands. A holder may issue wrong or
+dangerous commands while authorized, and may send different commands to different
+verifiers. A bound in time is not a bound on physical damage. Expiry ends a term; it
+does not revoke a key, and a compromised officer stays compromised. Clock attacks beyond
+$\eps$, compromised verifiers and changes of the officer set are also outside the model.

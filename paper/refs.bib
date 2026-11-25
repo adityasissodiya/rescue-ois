@@ -464,7 +464,8 @@
   title     = {Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency},
   booktitle = {Proceedings of the 12th ACM Symposium on Operating Systems Principles (SOSP)},
   pages     = {202--210},
-  year      = {1989}
+  year      = {1989},
+  doi       = {10.1145/74850.74870}
 }
 
 @article{maciver2019hypothesis,
@@ -522,7 +523,9 @@
   journal = {ACM SIGACT News},
   volume = {33},
   number = {2},
-  year = {2002}
+  pages = {51--59},
+  year = {2002},
+  doi = {10.1145/564585.564601}
 }
 
 @misc{rfc2693spki,
@@ -890,4 +893,460 @@
   year   = {2026},
   note   = {arXiv:2609.02866},
   doi    = {10.48550/arXiv.2609.02866}
+}
+
+% ---------------------------------------------------------------------------
+% Entries for the hostile-commander draft (added 2026-11-10).
+% Source of the metadata: the Consensus search engine (title, first authors, year, venue,
+% DOI), unless a comment tells differently. Consensus gives DOIs in small letters.
+% "and others": Consensus gave only the first authors. Complete the list before a submission.
+% VERIFY: from memory, or not complete. Examine it against the page of the publisher.
+% No entry has page numbers or a volume that we did not see in a source.
+% ---------------------------------------------------------------------------
+
+@article{lamport1982byzantine,
+  author  = {Lamport, Leslie and Shostak, Robert and Pease, Marshall},
+  title   = {The {Byzantine} Generals Problem},
+  journal = {ACM Transactions on Programming Languages and Systems},
+  volume  = {4},
+  number  = {3},
+  pages   = {382--401},
+  year    = {1982},
+  doi     = {10.1145/357172.357176}
+}
+
+% The report names its writers on the title page. VERIFY the names before a submission.
+% Copy read for the page numbers in the paper:
+% https://icscsi.org/library/Documents/Cyber_Events/ (file "E-ISAC - Analysis of the Cyber
+% Attack on the Ukrainian Power Grid.pdf").
+@techreport{eisac2016ukraine,
+  author      = {{E-ISAC} and {SANS ICS}},
+  title       = {Analysis of the Cyber Attack on the {Ukrainian} Power Grid: Defense Use Case},
+  institution = {Electricity Information Sharing and Analysis Center},
+  year        = {2016},
+  note        = {18 March 2016}
+}
+
+@inproceedings{babay2018spire,
+  author    = {Babay, Amy and Tantillo, Thomas and Aron, Trevor and Platania, Marco and Amir, Yair},
+  title     = {Network-Attack-Resilient Intrusion-Tolerant {SCADA} for the Power Grid},
+  booktitle = {IEEE/IFIP International Conference on Dependable Systems and Networks (DSN)},
+  year      = {2018},
+  doi       = {10.1109/dsn.2018.00036}
+}
+
+@inproceedings{babay2019deploying,
+  author    = {Babay, Amy and Schultz, John L. and others},
+  title     = {Deploying Intrusion-Tolerant {SCADA} for the Power Grid},
+  booktitle = {IEEE/IFIP International Conference on Dependable Systems and Networks (DSN)},
+  year      = {2019},
+  doi       = {10.1109/dsn.2019.00043}
+}
+
+% VERIFY the year: Consensus gives the date 2013-08 (online); the key uses 2014.
+@article{kirsch2014survivable,
+  author  = {Kirsch, Jonathan and Goose, S. and others},
+  title   = {Survivable {SCADA} Via Intrusion-Tolerant Replication},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2014},
+  doi     = {10.1109/tsg.2013.2269541}
+}
+
+@inproceedings{bommareddy2022realtime,
+  author    = {Bommareddy, Sahiti and Qian, Daniel and Bonebrake, Christopher A. and Skare, Paul M. and Amir, Yair},
+  title     = {Real-Time {Byzantine} Resilience for Power Grid Substations},
+  booktitle = {International Symposium on Reliable Distributed Systems (SRDS)},
+  pages     = {213--224},
+  year      = {2022},
+  doi       = {10.1109/srds55811.2022.00028}
+}
+
+% Authors from the title page of the paper.
+@inproceedings{bommareddy2024compound,
+  author    = {Bommareddy, Sahiti and Khan, Maher and Nadeem, Huzaifah and Gilby, Benjamin and Chiu, Imes and van de Lindt, John W. and Nofal, Omar and Panteli, Mathaios and {Wells II}, Linton and Amir, Yair and Babay, Amy},
+  title     = {Tolerating Compound Threats in Critical Infrastructure Control Systems},
+  booktitle = {International Symposium on Reliable Distributed Systems (SRDS)},
+  pages     = {66--79},
+  year      = {2024},
+  doi       = {10.1109/srds64841.2024.00017}
+}
+
+@inproceedings{castro1999pbft,
+  author    = {Castro, Miguel and Liskov, Barbara},
+  title     = {Practical {Byzantine} Fault Tolerance},
+  booktitle = {Symposium on Operating Systems Design and Implementation (OSDI)},
+  year      = {1999},
+  doi       = {10.1145/296806.296824}
+}
+
+@article{castro2002pbft,
+  author  = {Castro, Miguel and Liskov, Barbara},
+  title   = {Practical {Byzantine} Fault Tolerance and Proactive Recovery},
+  journal = {ACM Transactions on Computer Systems},
+  year    = {2002},
+  doi     = {10.1145/571637.571640}
+}
+
+@article{amir2011prime,
+  author  = {Amir, Yair and Coan, Brian and others},
+  title   = {Prime: {Byzantine} Replication under Attack},
+  journal = {IEEE Transactions on Dependable and Secure Computing},
+  year    = {2011},
+  doi     = {10.1109/tdsc.2010.70}
+}
+
+@article{malkhi1998byzquorum,
+  author  = {Malkhi, Dahlia and Reiter, Michael},
+  title   = {{Byzantine} Quorum Systems},
+  journal = {Distributed Computing},
+  volume  = {11},
+  number  = {4},
+  year    = {1998},
+  doi     = {10.1007/s004460050050}
+}
+
+@inproceedings{liskov2006byzclients,
+  author    = {Liskov, Barbara and Rodrigues, Rodrigo},
+  title     = {Tolerating {Byzantine} Faulty Clients in a Quorum System},
+  booktitle = {IEEE International Conference on Distributed Computing Systems (ICDCS)},
+  year      = {2006},
+  doi       = {10.1109/icdcs.2006.83}
+}
+
+@article{kuznetsov2022reconfig,
+  author  = {Kuznetsov, Petr and Tonkikh, Andrei},
+  title   = {Asynchronous Reconfiguration with {Byzantine} Failures},
+  journal = {Distributed Computing},
+  year    = {2022},
+  doi     = {10.1007/s00446-022-00421-1}
+}
+
+@inproceedings{tennage2023quepaxa,
+  author    = {Tennage, Pasindu and Basescu, Cristina and others},
+  title     = {{QuePaxa}: Escaping the Tyranny of Timeouts in Consensus},
+  booktitle = {ACM Symposium on Operating Systems Principles (SOSP)},
+  year      = {2023},
+  doi       = {10.1145/3600006.3613150}
+}
+
+@inproceedings{giuliari2024dos,
+  author    = {Giuliari, Giacomo and Sonnino, Alberto and others},
+  title     = {An Empirical Study of Consensus Protocols' {DoS} Resilience},
+  booktitle = {ACM Asia Conference on Computer and Communications Security (AsiaCCS)},
+  year      = {2024},
+  doi       = {10.1145/3634737.3656997}
+}
+
+@article{saxena2018signature,
+  author  = {Saxena, Neetesh and Grijalva, S.},
+  title   = {Efficient Signature Scheme for Delivering Authentic Control Commands in the Smart Grid},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2018},
+  doi     = {10.1109/tsg.2017.2655014}
+}
+
+@article{amoah2015dnp3,
+  author  = {Amoah, R. and Camtepe, Seyit Ahmet and Foo, E.},
+  title   = {Formal Modelling and Analysis of {DNP3} Secure Authentication},
+  journal = {Journal of Network and Computer Applications},
+  year    = {2015},
+  doi     = {10.1016/j.jnca.2015.05.015}
+}
+
+@article{esiner2023provenance,
+  author  = {Esiner, Ertem and Tefek, Utku and others},
+  title   = {Message Authentication and Provenance Verification for Industrial Control Systems},
+  journal = {ACM Transactions on Cyber-Physical Systems},
+  year    = {2023},
+  doi     = {10.1145/3607194}
+}
+
+@inproceedings{meliopoulos2016command,
+  author    = {Meliopoulos, S. and Cokkinides, G. and others},
+  title     = {Command Authentication via Faster than Real Time Simulation},
+  booktitle = {IEEE Power and Energy Society General Meeting (PESGM)},
+  year      = {2016},
+  doi       = {10.1109/pesgm.2016.7741974}
+}
+
+@inproceedings{mashima2018onthefly,
+  author    = {Mashima, D. and Chen, Bin-Bin and others},
+  title     = {Securing Substations through Command Authentication Using On-the-fly Simulation of Power System Dynamics},
+  booktitle = {IEEE International Conference on Communications, Control, and Computing Technologies for Smart Grids (SmartGridComm)},
+  year      = {2018},
+  doi       = {10.1109/smartgridcomm.2018.8587604}
+}
+
+@article{mashima2019delaying,
+  author  = {Mashima, D. and Gunathilaka, Prageeth and Chen, Bin-Bin},
+  title   = {Artificial Command Delaying for Secure Substation Remote Control: Design and Implementation},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2019},
+  doi     = {10.1109/tsg.2017.2744802}
+}
+
+@article{hong2019resilient,
+  author  = {Hong, Junho and Nuqui, R. and others},
+  title   = {Cyber Attack Resilient Distance Protection and Circuit Breaker Control for Digital Substations},
+  journal = {IEEE Transactions on Industrial Informatics},
+  year    = {2019},
+  doi     = {10.1109/tii.2018.2884728}
+}
+
+@article{nasr2018operator,
+  author  = {Nasr, Payam Mahmoudi and Yazdian-Varjani, A.},
+  title   = {Toward Operator Access Management in {SCADA} System: Deontological Threat Mitigation},
+  journal = {IEEE Transactions on Industrial Informatics},
+  year    = {2018},
+  doi     = {10.1109/tii.2017.2781285}
+}
+
+@article{nasr2024authorization,
+  author  = {Mahmoudi-Nasr, Payam},
+  title   = {An Authorization Framework to Mitigate Insider Threat in {CIM}-Based Smart Grid},
+  journal = {Sustainable Energy, Grids and Networks},
+  year    = {2024},
+  doi     = {10.1016/j.segan.2024.101572}
+}
+
+@inproceedings{ahmad2026gridlogic,
+  author    = {Ahmad, Kareem and Allahverdi, Arman and others},
+  title     = {{GridLogic 2FA}: Two-Factor Authentication for Critical Infrastructure Commands in the Field},
+  booktitle = {IEEE Texas Power and Energy Conference (TPEC)},
+  year      = {2026},
+  doi       = {10.1109/tpec67884.2026.11513103}
+}
+
+@article{pawar2026certiflash,
+  author  = {Pawar, Pruthviraj and Epiphaniou, Gregory},
+  title   = {{CertiFlash}: A Cryptographic Framework for Secure Firmware and Logic Updates in {SCADA} and Industrial {IoT} Networks},
+  journal = {Electronics},
+  year    = {2026},
+  doi     = {10.3390/electronics15132780}
+}
+
+% VERIFY the author list and the venue (from memory; Consensus gave the title, year and DOI).
+@inproceedings{krishnan2008stale,
+  author    = {Krishnan, Ram and Niu, Jianwei and Sandhu, Ravi and Winsborough, William H.},
+  title     = {Stale-Safe Security Properties for Group-Based Secure Information Sharing},
+  booktitle = {ACM Workshop on Formal Methods in Security Engineering (FMSE)},
+  year      = {2008},
+  doi       = {10.1145/1456396.1456402}
+}
+
+% Metadata checked against Crossref on 2026-11-24.
+@inproceedings{shakarami2019refresh,
+  author    = {Shakarami, Mehrnoosh and Sandhu, Ravi},
+  title     = {Refresh Instead of Revoke Enhances Safety and Availability: A Formal Analysis},
+  booktitle = {Data and Applications Security and Privacy (DBSec)},
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {11559},
+  pages     = {301--313},
+  year      = {2019},
+  doi       = {10.1007/978-3-030-22479-0_16}
+}
+
+@article{zhou1999securing,
+  author  = {Zhou, Lidong and Haas, Zygmunt J.},
+  title   = {Securing Ad Hoc Networks},
+  journal = {IEEE Network},
+  year    = {1999},
+  doi     = {10.1109/65.806983}
+}
+
+% Metadata checked against Crossref and the full text on 2026-11-24.
+@article{luo2004ursa,
+  author  = {Luo, Haiyun and Kong, Jiejun and Zerfos, Petros and Lu, Songwu and Zhang, Lixia},
+  title   = {{URSA}: Ubiquitous and Robust Access Control for Mobile Ad Hoc Networks},
+  journal = {IEEE/ACM Transactions on Networking},
+  volume  = {12},
+  number  = {6},
+  pages   = {1049--1063},
+  year    = {2004},
+  doi     = {10.1109/tnet.2004.838598}
+}
+
+@article{liu2013ccrvc,
+  author  = {Liu, Wei and Nishiyama, H. and others},
+  title   = {Cluster-Based Certificate Revocation with Vindication Capability for Mobile Ad Hoc Networks},
+  journal = {IEEE Transactions on Parallel and Distributed Systems},
+  year    = {2013},
+  doi     = {10.1109/tpds.2012.85}
+}
+
+@article{kwon2025revocation,
+  author  = {Kwon, Hyunsoo and Kim, Doowon and others},
+  title   = {Certificate Revocation in the {TLS} Ecosystem: A Survey},
+  journal = {ACM Computing Surveys},
+  year    = {2025},
+  doi     = {10.1145/3785653}
+}
+
+@article{lee2026ssirevocation,
+  author  = {Lee, Younho and Shin, Hojune and Choi, Daeseon},
+  title   = {A Survey on Credential Revocation and {DID} Deactivation in Self-Sovereign Identity Systems},
+  journal = {IEEE Access},
+  year    = {2026},
+  doi     = {10.1109/access.2025.3649792}
+}
+
+% VERIFY the author list (Consensus gave three names).
+@inproceedings{abraham2020revocable,
+  author    = {Abraham, Andreas and More, Stefan and Rabensteiner, Christof},
+  title     = {Revocable and Offline-Verifiable Self-Sovereign Identities},
+  booktitle = {IEEE International Conference on Trust, Security and Privacy in Computing and Communications (TrustCom)},
+  year      = {2020},
+  doi       = {10.1109/trustcom50675.2020.00136}
+}
+
+% Metadata checked against Crossref on 2026-11-24; full text not read (HTTP 403).
+@article{zhou2026hrcred,
+  author  = {Zhou, Haozhe and Lei, Hang and Yang, Maolin},
+  title   = {{HRCred}: Revocation-Consistent Hardware-Rooted Credentials for Cross-Domain Industrial Cyber-Physical Systems},
+  journal = {Electronics},
+  volume  = {15},
+  number  = {17},
+  pages   = {4004},
+  year    = {2026},
+  doi     = {10.3390/electronics15174004}
+}
+
+@article{lee2023cal,
+  author  = {Lee, Edward A. and Akella, Ravi and others},
+  title   = {Consistency vs. Availability in Distributed Cyber-Physical Systems},
+  journal = {ACM Transactions on Embedded Computing Systems},
+  year    = {2023},
+  doi     = {10.1145/3609119}
+}
+
+% A preprint. No review by other persons.
+@misc{parakhin2026bureaucracy,
+  author = {Parakhin, V.},
+  title  = {The Bureaucracy of Speed},
+  year   = {2026},
+  note   = {Preprint, arXiv:2603.09875},
+  doi    = {10.48550/arxiv.2603.09875}
+}
+
+@incollection{nilsen2018handing,
+  author    = {Nilsen, Marie and Skogstad, Martin Rasmussen and Royrvik, J.},
+  title     = {Handing Over the Safety Baton in High-Risk Systems},
+  booktitle = {Advances in Intelligent Systems and Computing},
+  publisher = {Springer},
+  year      = {2018},
+  doi       = {10.1007/978-3-319-94589-7_49}
+}
+
+@article{marot2022perspectives,
+  author  = {Marot, Antoine and Kelly, A. and others},
+  title   = {Perspectives on Future Power System Control Centers for Energy Transition},
+  journal = {Journal of Modern Power Systems and Clean Energy},
+  year    = {2022},
+  doi     = {10.35833/mpce.2021.000673}
+}
+
+% VERIFY: this entry is from memory. It did not come from the search.
+@book{feaver1992guarding,
+  author    = {Feaver, Peter D.},
+  title     = {Guarding the Guardians: Civilian Control of Nuclear Weapons in the {United States}},
+  publisher = {Cornell University Press},
+  year      = {1992}
+}
+
+@article{crawford2025nc3,
+  author  = {Crawford, Emily},
+  title   = {The Need for an International Law-Informed Code of Conduct for Nuclear Command, Control and Communication},
+  journal = {Journal for Peace and Nuclear Disarmament},
+  year    = {2025},
+  doi     = {10.1080/25751654.2025.2514396}
+}
+
+@article{twigge1999learning,
+  author  = {Twigge, S. and Scott, L.},
+  title   = {Learning to Love the Bomb: The Command and Control of {British} Nuclear Forces, 1953--1964},
+  journal = {Journal of Strategic Studies},
+  year    = {1999},
+  doi     = {10.1080/01402399908437743}
+}
+
+@article{ten2018impact,
+  author  = {Ten, Chee-Wooi and Yamashita, K. and others},
+  title   = {Impact Assessment of Hypothesized Cyberattacks on Interconnected Bulk Power Systems},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2018},
+  doi     = {10.1109/tsg.2017.2656068}
+}
+
+@inproceedings{salazar2024industroyers,
+  author    = {Salazar, Luis E. and Castro, Sebastian R. and others},
+  title     = {A Tale of Two {Industroyers}: It was the Season of Darkness},
+  booktitle = {IEEE Symposium on Security and Privacy (S\&P)},
+  year      = {2024},
+  doi       = {10.1109/sp54263.2024.00162}
+}
+
+@article{zhang2013tsa,
+  author  = {Zhang, Zhenghao and Gong, Shuping and others},
+  title   = {Time Synchronization Attack in Smart Grid: Impact and Analysis},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2013},
+  doi     = {10.1109/tsg.2012.2227342}
+}
+
+@article{gao2023quick,
+  author  = {Gao, Wei-Yuan and Li, Hong and others},
+  title   = {An Underestimated Cybersecurity Problem: Quick-Impact Time Synchronization Attacks and a Fast-Triggered Detection Method},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2023},
+  doi     = {10.1109/tsg.2023.3258963}
+}
+
+@article{laverty2022gnss,
+  author  = {Laverty, David M. and Kelsey, C. and O'Raw, John B.},
+  title   = {{GNSS} Time Signal Spoofing Detector for Electrical Substations},
+  journal = {IEEE Transactions on Smart Grid},
+  year    = {2022},
+  doi     = {10.1109/tsg.2021.3122099}
+}
+
+% Added for the SRDS seed (2026-11-24). Metadata checked against the full text (Nerio,
+% Liskov-Rodrigues report) or Crossref (Stantchev, RFC 8032).
+@misc{vanrenesse2011nerio,
+  author       = {van Renesse, Robbert and Schneider, Fred B. and Gehrke, Johannes},
+  title        = {Nerio: Leader Election and Edict Ordering},
+  howpublished = {arXiv:1109.5111v2 [cs.DC]},
+  year         = {2011},
+  month        = sep,
+  url          = {https://arxiv.org/abs/1109.5111}
+}
+
+@techreport{liskov2005tr,
+  author      = {Liskov, Barbara and Rodrigues, Rodrigo},
+  title       = {{Byzantine} Clients Rendered Harmless},
+  institution = {MIT Computer Science and Artificial Intelligence Laboratory},
+  number      = {MIT-CSAIL-TR-2005-047 (MIT-LCS-TR-994)},
+  year        = {2005},
+  month       = jul
+}
+
+% Full text not read (HTTP 403 on 2026-11-24); cited for its existence only.
+@article{stantchev2026survives,
+  author  = {Stantchev, Vladimir},
+  title   = {Authorization That Survives Disconnection: Capability-Based Security and Portable Evidence for the Cloud-Fog-Edge Continuum},
+  journal = {Future Internet},
+  volume  = {18},
+  number  = {11},
+  pages   = {598},
+  year    = {2026},
+  doi     = {10.3390/fi18110598}
+}
+
+@misc{rfc8032,
+  author       = {Josefsson, Simon and Liusvaara, Ilari},
+  title        = {Edwards-Curve Digital Signature Algorithm ({EdDSA})},
+  howpublished = {RFC 8032},
+  year         = {2017},
+  month        = jan,
+  doi          = {10.17487/RFC8032}
 }

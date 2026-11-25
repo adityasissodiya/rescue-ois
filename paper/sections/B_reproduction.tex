@@ -1,0 +1,39 @@
+\section{Reproduction}
+\label{app:repro}
+
+\paragraph{Environment}
+Python 3.12 with the hashed lock file \file{requirements/seed.lock}, created with
+\texttt{make venv}. The seed has no other dependency. The bounded model needs Java and the
+pinned \texttt{tla2tools.jar}, which \texttt{make tla-tools} downloads and checks. The paper
+needs a TeX Live installation with \texttt{IEEEtran}.
+
+\paragraph{Commands}
+Each command exits with a nonzero status on any failure.
+\begin{itemize}
+  \item \texttt{make seed} runs lint, the tests, and all \SeedScenarioCount{} scenarios
+  in both signature modes. It checks every expectation, writes traces, results and the
+  manifest to \file{experiments/results/}, and writes \file{paper/generated/}.
+  \item \texttt{make tla} runs the four TLA+ configurations, saves their logs in
+  \file{spec/tla/logs/}, and writes \file{paper/generated/tla_macros.tex}. The safety run
+  took \TlaMinutes{} minutes with \TlaWorkers{} workers in the logged run, and the time
+  varies with the load of the machine. This check is optional: it is reported separately,
+  and \texttt{make seed} does not run it.
+  \item \texttt{make paper} and \texttt{make paper-anon} build the author and review PDFs.
+  The review build has no names, no acknowledgment and no author in the PDF metadata. Both
+  report the number of main-text pages.
+  \item \texttt{make export} builds the review PDF and an allowlisted, anonymized copy of
+  the artifact, then checks it for names, paths and private files.
+\end{itemize}
+
+\paragraph{Identity of these results}
+The digest over all scenario identifiers and trace digests is \texttt{\SeedResultsDigest}.
+\file{experiments/results/manifest.json} records the source-tree digest and whether the
+Git tree was dirty. The tree was dirty when these results were made, because the seed
+was not yet committed; the source-tree digest identifies the sources that made them.
+
+\paragraph{Scenario inventory}
+\SeedPositiveCount{} positive scenarios of seed-v0, \SeedWitnessCount{} fixtures of the
+11 November 2026 rules, \SeedNegativeCount{} negative controls with \SeedNegativeCount{}
+control twins, and \SeedComparisonCount{} comparison runs. Together they record
+\SeedAcceptCount{} acceptances. \file{experiments/scenarios.py} defines each scenario's
+events and expectations, and \file{tests/README.md} lists the broken variants.

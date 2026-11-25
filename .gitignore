@@ -77,3 +77,12 @@ Thumbs.db
 Rescue OIS Supervisor-Review Research Report.md
 Rescue OIS Whitepaper.html
 FACTUAL_EVIDENCE_REPORT.md
+
+# Downloaded third-party sources for the positioning record (never export)
+research/cache/
+
+# Pinned tool downloads (TLC jar); fetched by `make tla-tools`
+.tools/
+
+# Review export built by `make export` (never commit; rebuild instead)
+artifact/out/

@@ -1,0 +1,96 @@
+\section{Candidate Arguments in Full}
+\label{app:arguments}
+
+This appendix repeats each argument with all its steps. Nobody has reviewed them. A
+reviewer should check, for each step, which rule of \file{spec/protocol.md} it uses.
+
+\paragraph{Quorum facts}
+Let $n \ge 3f + 1$ and $q = \lceil (n + f + 1)/2 \rceil$. (a) Two sets of $q$ officers
+intersect in at least $2q - n \ge f + 1$ officers, so in at least one honest officer.
+(b) $q \le n - f$, because $(n + f + 1)/2 \le n - f$ exactly when $n \ge 3f + 1$, and
+$n - f$ is an integer. (c) $q > f$. A valid certificate therefore has an honest
+signer, and two valid certificates have a common honest signer.
+
+\paragraph{\Cref{prp:limit} (isolation reach implies hostile tenure)}
+Let $\rho$ be a run that shows isolation reach $P$ at $v$. All officers are honest, and
+from $t_0$ only $c$ and $v$ exchange messages. $v$ accepts a command that $c$ created at
+$t_1 \ge t_0 + P$. Construct $\rho'$ as follows. (1) Until $t_0$, $\rho'$ equals $\rho$,
+with the same clock functions. (2) At $t_0$ the adversary obtains $c$'s key and state; this
+uses one of the $f \ge 1$ compromises. Every other officer withdraws at $t_0$. (3) After
+$t_0$ the adversary drops every message from a party other than $c$ and $v$ to $c$ or $v$.
+It runs a copy of $c$ from $c$'s state at $t_0$. It gives the copy every message that $c$
+received from $v$ in $\rho$, at the same time, and makes for the copy the choices that the
+person $c$ made in $\rho$. (4) It delivers to $v$ every message that $v$ received in
+$\rho$, at the same time. By induction over the events after $t_0$, the copy sends
+exactly the messages that $c$ sent in $\rho$. Its inputs are the same, and in $\rho$, $c$
+received nothing from other parties after $t_0$. So every message that $v$ receives in
+$\rho$ is available to the adversary in $\rho'$. A verifier is deterministic, and its
+inputs are its messages and clock readings, which are the same in both runs. So $v$ takes
+the same steps, and in particular accepts the command created at $t_1$. That is hostile
+tenure $P$. Where the argument could fail: a verifier input that the adversary does not
+control, or randomness at the verifier that the adversary cannot reproduce. The model
+excludes both.
+
+\paragraph{\Cref{lem:grant} (one grant per epoch)}
+Let $\grant{j, h, s}$ and $\grant{j, h', s'}$ be valid and $j > 1$. By (a) they share an
+honest signer $u$. O2 requires $j > E_u$ at the time of signing and then sets $E_u := j$.
+$E_u$ changes only by O2 or by learning a grant, and both only increase it. It is durable,
+since an agent that loses it counts as compromised. So after the first of the two
+signatures $E_u \ge j$, and O2 forbids the second unless the two grants are the same
+message. For $j = 1$, a valid grant other than the genesis grant would need an honest
+signer with $1 > E_u \ge 1$.
+
+\paragraph{\Cref{lem:sep} (certificate separation)}
+Let $\renew{k, e}$ and $\grant{j, h, s}$ be valid, $j > k$, and let $u$ be a common honest
+signer. Its signatures are ordered in time. Case 1: the renewal comes first. Then
+$M_u \ge e$ from then on, because $M_u$ never decreases. When $u$ signs the grant, O2
+requires $s \ge M_u + g \ge e + g$. Case 2: the grant comes first. Then $E_u \ge j > k$
+from then on, and O1 requires $k = E_u$, so $u$ cannot sign the renewal.
+
+\paragraph{\Cref{prp:order} (epoch order)}
+Let $v$ accept $\cmd{k, \cdot}$ at real time $t$ and $v'$ accept $\cmd{j, \cdot}$ at
+$t'$, with $j > k$. D1 gives valid $\renew{k, e}$ with $C_v(t) \le e$. The clock bound
+gives $t - \eps \le C_v(t)$, so $t \le e + \eps$. D1 gives a valid $\grant{j, h, s}$ with
+$s \le C_{v'}(t') \le t' + \eps$. \Cref{lem:sep} gives $s \ge e + g$. Hence
+$t' \ge s - \eps \ge e + g - \eps \ge t + g - 2\eps$. Commands of different holders lie in
+different epochs, by \cref{lem:grant}, and so they inherit the separation.
+
+\paragraph{\Cref{prp:wte} (withdrawal-to-expiry)}
+Let $W$ be the $n - q + 1$ honest agents of \cref{def:tw}. Let $\renew{k, e}$ be valid,
+with signer set $S$, $|S| \ge q$. Since $|W| + |S| > n$, some $u \in S \cap W$. When $u$
+signed, O1 required $k = E_u$ and $k \notin X_u$. So $u$ signed before it withdrew or
+moved past $k$, at real time $t_u \le t_W(k)$. A signature at the same instant counts as
+earlier. O1 gives $e \le C_u(t_u) + H \le t_u + \eps + H \le t_W(k) + H + \eps$. An
+acceptance of epoch $k$ at real time $t$ uses some valid $\renew{k, e}$ with
+$t - \eps \le C_v(t) \le e$, so $t \le t_W(k) + H + 2\eps$. Nothing in the argument
+depends on delivery.
+
+\paragraph{\Cref{prp:avail} (fresh-command availability)}
+Take the request of assumption (ii), started at $t_r \ge t_0 - \Delta - \delta$ and
+complete by $t_0$. Its end is $e = C_c(t_r) + H - 2\eps$, so
+$t_r + H - 3\eps \le e \le t_r + H - \eps$. An agent $u$ that receives it at
+$t_u \ge t_r$ has $C_u(t_u) + H \ge t_r - \eps + H \ge e$. By (i) it holds the grant, has
+$E_u = k$, has not withdrawn and consents, so O1 lets it sign. $q$ signatures reach $c$ by
+$t_r + \delta \le t_0$, and $c$ attaches the grant and this renewal to every command. A
+fresh command created and delivered at $t \in [t_0, t_0 + H - \Delta - \delta - 4\eps]$
+arrives at $\tau = C_v(t)$. Then $\tau \ge t_0 - \eps \ge s$ by (iii). Also
+$\tau \le t + \eps \le t_0 + H - \Delta - \delta - 3\eps \le t_r + H - 3\eps \le e$. Its
+$\mathit{cid}$ is fresh, so D1 accepts it.
+
+\paragraph{Conditional recovery}
+If (D), (Q) and (C) of \cref{sec:split} hold for $\grant{j', h, s}$, then each of the $q$
+agents may sign it under O2 and does so. The signatures return, so the grant is valid. A
+verifier that receives it and a valid renewal of $j'$ accepts commands of $h$ from local
+time $s$. A renewal of $j'$ needs $q$ agents that have learned the grant, and their
+signatures must reach the holder. These are further delivery assumptions of the same
+kind.
+
+\paragraph{Separation for \texttt{xl} (positioning record, claim C-XL-1)}
+Let two valid leases of different holders $h \ne h'$ share an honest signer $u$, and let
+$u$ sign $\mathsf{Lease}\langle h, s, e\rangle$ first. When $u$ later signs the lease for
+$h'$, either $A_u \ne h'$, and the rule requires $s' \ge F_u + g \ge e + g$, or $u$ has
+switched to $h'$ in between. That switch required a start of at least $F_u + g \ge e + g$
+and set the floor $S_u$ to it, and the lease for $h'$ requires $s' \ge S_u$. In both cases
+$s' \ge e + g$, and the clock bound gives acceptance times at least $g - 2\eps$ apart.
+This gives pairwise separation of holders. \texttt{xl} has no terms, so epoch order has
+no direct analogue.

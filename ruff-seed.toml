@@ -1,0 +1,14 @@
+# Lint settings for the Mandate seed (src/, sim/, experiments/, tests/). Passed explicitly
+# with --config so that the legacy code keeps the repository's existing ruff defaults.
+line-length = 88
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[lint.isort]
+known-first-party = ["mandate", "sim", "experiments"]
+
+[lint.pycodestyle]
+# The formatter wraps code at 88; prose in docstrings and comments may run to 100.
+max-line-length = 100

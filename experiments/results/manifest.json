@@ -1,0 +1,529 @@
+{
+ "what": "Directed runs of the Mandate seed and comparison mechanisms",
+ "timing": "All times are synthetic integer units chosen for the scenarios; nothing was measured on a system.",
+ "randomness": "none: every run is deterministic; no seeds are used",
+ "git_head": "e38a5e0270df66f01c618a79dfd3c2146200aec0",
+ "git_seed_sources_dirty": true,
+ "git_seed_sources_status": [
+  "A  experiments/__init__.py",
+  "A  experiments/checker.py",
+  "A  experiments/expect.py",
+  "A  experiments/report.py",
+  "A  experiments/results/manifest.json",
+  "A  experiments/results/results.json",
+  "A  experiments/results/traces/CMP-HANDOVER-SEED-V0.jsonl",
+  "A  experiments/results/traces/CMP-HANDOVER-TC-NAIVE.jsonl",
+  "A  experiments/results/traces/CMP-HANDOVER-TC-WAIT.jsonl",
+  "A  experiments/results/traces/CMP-HANDOVER-XL.jsonl",
+  "A  experiments/results/traces/CMP-ISOLATION-QO-W.jsonl",
+  "A  experiments/results/traces/CMP-ISOLATION-SEED-V0.jsonl",
+  "A  experiments/results/traces/CMP-ISOLATION-TC.jsonl",
+  "A  experiments/results/traces/CMP-ISOLATION-XL.jsonl",
+  "A  experiments/results/traces/CMP-REMOVAL-QO-W.jsonl",
+  "A  experiments/results/traces/CMP-REMOVAL-SEED-V0.jsonl",
+  "A  experiments/results/traces/CMP-REMOVAL-TC.jsonl",
+  "A  experiments/results/traces/CMP-REMOVAL-XL.jsonl",
+  "A  experiments/results/traces/CMP-SPLIT-SAME-HOLDER-SEED-V0.jsonl",
+  "A  experiments/results/traces/CMP-SPLIT-SAME-HOLDER-XL.jsonl",
+  "A  experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-SEED-V0.jsonl",
+  "A  experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-XL.jsonl",
+  "A  experiments/results/traces/NC-COMMIT-AFTER-RELEASE-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-COMMIT-AFTER-RELEASE.jsonl",
+  "A  experiments/results/traces/NC-D1-END-CHECK-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-D1-END-CHECK.jsonl",
+  "A  experiments/results/traces/NC-D1-REPLAY-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-D1-REPLAY.jsonl",
+  "A  experiments/results/traces/NC-DISTINCT-SIGNERS-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-DISTINCT-SIGNERS.jsonl",
+  "A  experiments/results/traces/NC-O1-EPOCH-GUARD-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-O1-EPOCH-GUARD.jsonl",
+  "A  experiments/results/traces/NC-O2-START-GUARD-CONTROL.jsonl",
+  "A  experiments/results/traces/NC-O2-START-GUARD.jsonl",
+  "A  experiments/results/traces/ORIG-DEPUTY-SAME-READING.jsonl",
+  "A  experiments/results/traces/ORIG-SPLIT-RECOVER-E3.jsonl",
+  "A  experiments/results/traces/ORIG-SPLIT-STALL.jsonl",
+  "A  experiments/results/traces/V0-HANDOVER.jsonl",
+  "A  experiments/results/traces/V0-ISOLATION.jsonl",
+  "A  experiments/results/traces/V0-REMOVAL.jsonl",
+  "A  experiments/results/traces/V0-RENEW-EXPIRY.jsonl",
+  "A  experiments/results/traces/V0-REPLAY-CLOCK.jsonl",
+  "A  experiments/results/traces/V0-SELECTIVE-DELIVERY.jsonl",
+  "A  experiments/results/traces/V0-SPLIT-RECOVERY.jsonl",
+  "A  experiments/run.py",
+  "A  experiments/scenarios.py",
+  "A  requirements/seed.lock",
+  "A  sim/__init__.py",
+  "A  sim/baselines.py",
+  "A  sim/engine.py",
+  "A  spec/protocol.md",
+  "A  src/mandate/__init__.py",
+  "A  src/mandate/auth.py",
+  "A  src/mandate/kernel.py",
+  "A  src/mandate/messages.py",
+  "A  src/mandate/store.py"
+ ],
+ "source_tree_sha256": "db7ff7c29f1f498ef8d95e9554fe7b65d623d6b72792a1b338be75cead42bd65",
+ "source_files": [
+  [
+   "spec/protocol.md",
+   "88c8a255cc3a1733d6ce1ee3ceddf7f5fd93bbe727311b175bf7b3baf63fc614"
+  ],
+  [
+   "src/mandate/__init__.py",
+   "4aca930a38ddeca80c93d0ce8bcb26691559a0ae72ceb868288edd0739ef2e46"
+  ],
+  [
+   "src/mandate/auth.py",
+   "165d3149bd5ab9db4a5b60e76c260c729bbb5bc8b6ffeaa56b206443a66421b4"
+  ],
+  [
+   "src/mandate/kernel.py",
+   "b9ce648eee54698e6fce7bd53d2d5951532677ce7f8e9056e77bae18f13ce415"
+  ],
+  [
+   "src/mandate/messages.py",
+   "247d06504948a48d80f3ae6a1a03752fce24ddacd8ea94ce1cfeff0021d9e137"
+  ],
+  [
+   "src/mandate/store.py",
+   "09ebd47dd19efa08119fc021b2d3ed4b2c62e8e14531d84a162e9c5abb03584d"
+  ],
+  [
+   "sim/__init__.py",
+   "aa2de554303d4cb15e553e4f8a097d5e9e8a9bbaa6907ca721b6cc0498448130"
+  ],
+  [
+   "sim/baselines.py",
+   "7db539ce18f28b381e6eb878866c0047caac810740f8b8f7f15d9781cebf9f81"
+  ],
+  [
+   "sim/engine.py",
+   "3507bb692e2dc256a18f0e98dd3cf2d632efad38502e57571701ca2b3a053d0c"
+  ],
+  [
+   "experiments/__init__.py",
+   "864d0db4923c32059393a50fc8fa8cf33e0681a82bccdd5c3108c5d876f71e8a"
+  ],
+  [
+   "experiments/checker.py",
+   "74f14139e0ce4a53d2628f4e6427e8a4b1457daf1d7de529725b2a829bdecd90"
+  ],
+  [
+   "experiments/expect.py",
+   "68c754c4dbfe36151592f9a04958c86fcd5a2e1416726075801969382412c7fb"
+  ],
+  [
+   "experiments/report.py",
+   "92f58fc757013e992529c07a769eaf79b5e3808b73b72d2f3e82716ef882e1fc"
+  ],
+  [
+   "experiments/run.py",
+   "4fa7270ef50c0d332e53c38584edd517856652f99577ed8f45610d391ef495ae"
+  ],
+  [
+   "experiments/scenarios.py",
+   "eedf8bb2082e3b065375bc6fb8548282c7f9bdcee91abc18c6cd9b50dfb277f6"
+  ],
+  [
+   "requirements/seed.lock",
+   "701508bdd55721288deef4d23ad07e8da657cc8a2948b5eec2f57447668fceee"
+  ]
+ ],
+ "python": "3.12.9",
+ "cryptography": "50.0.2",
+ "auth_modes": [
+  "symbolic",
+  "ed25519 (fixture keys; traces must be identical)"
+ ],
+ "metric_definitions": {
+  "accepted": "number of verifier acceptance events",
+  "successions": "changes of authority key (epoch and holder, or holder) between consecutive acceptances in real-time order",
+  "boundary_accepts": "acceptances whose local reading equals the start or end time of the evidence used",
+  "t_w": "real time at which n - q + 1 never-compromised signers had withdrawn from (or advanced past) the epoch, or withdrawn consent from the holder",
+  "last_hostile_accept": "latest real time of an acceptance of a command created by a holder after that holder was compromised",
+  "latest_created_accepted": "latest creation time among accepted commands",
+  "codes": "violation codes reported by experiments/checker.py"
+ },
+ "scenarios": [
+  {
+   "id": "V0-RENEW-EXPIRY",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "4ea5f07b71f270748ad788cf4404e9247f39f4e2c1d75b457085fcb004aae379",
+   "trace": "experiments/results/traces/V0-RENEW-EXPIRY.jsonl",
+   "trace_sha256": "ee633f02f5040196cf96956d423ada4a708c60e85eb01b1a216eb5a1b7a60d25",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-HANDOVER",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "82ef073a3e79b473a23ed118e29cf80cf32d25c771c9223efc3bc0c708f495c8",
+   "trace": "experiments/results/traces/V0-HANDOVER.jsonl",
+   "trace_sha256": "06fc3d4f866291da59ad42dff51fa35f3ff87c5f1c38408335271647bd6c9213",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-SELECTIVE-DELIVERY",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "41fbb47ef6f776cafddf54d57f180ee20236c8b5642c7632801c2fccc13c016d",
+   "trace": "experiments/results/traces/V0-SELECTIVE-DELIVERY.jsonl",
+   "trace_sha256": "1d3e96f7f81b07d6d45164b31e6199b7f04fa5d8efc488876e12a3531f78f18b",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-REMOVAL",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "6d38bb6a458e85bad80f4030a449534a533c7cd6d035cfabc14c99eb9b3fd3dc",
+   "trace": "experiments/results/traces/V0-REMOVAL.jsonl",
+   "trace_sha256": "eca7928cfdc4a27bceadd63d083041198c35225ebdced6396cf8660e3a059b54",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-ISOLATION",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "271567ae1147f784381c90719b0a8cbe54e8d1a68e596f743af6b745499b8fb2",
+   "trace": "experiments/results/traces/V0-ISOLATION.jsonl",
+   "trace_sha256": "8b4817e3136b02ab2fbd894e9fc24354be134e79e14165fd6ddb9fa3542e5460",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-REPLAY-CLOCK",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "37e2c07f789377e13cf27e8749607b8ab4fe6bf4ced9256e8d2a423cc063f5c7",
+   "trace": "experiments/results/traces/V0-REPLAY-CLOCK.jsonl",
+   "trace_sha256": "66bb7411d432e8585e9d8920fc72b29fae24a37b6833799f668e60d6d72b2ac0",
+   "ed25519_identical": true
+  },
+  {
+   "id": "V0-SPLIT-RECOVERY",
+   "kind": "positive",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "ebca17ff9550b80f8f0f95ded7ed411a74c24fb4f0419a39b8d04f89443a1165",
+   "trace": "experiments/results/traces/V0-SPLIT-RECOVERY.jsonl",
+   "trace_sha256": "9aed16a420a070a660fabba40f0a7c126c34143c086d388f1fc3083fafcf7880",
+   "ed25519_identical": true
+  },
+  {
+   "id": "ORIG-SPLIT-STALL",
+   "kind": "witness",
+   "rules": "orig-2026-11-11",
+   "status": "pass",
+   "config_sha256": "e7bd040099aedb811a34d016b4a58010dcfb677a40c94a71196f6647824ce466",
+   "trace": "experiments/results/traces/ORIG-SPLIT-STALL.jsonl",
+   "trace_sha256": "0c158b07c8ecb37dcf80fe62da1ebdcfe0b422e292037fa88721ba73376f2a6d",
+   "ed25519_identical": true
+  },
+  {
+   "id": "ORIG-SPLIT-RECOVER-E3",
+   "kind": "witness",
+   "rules": "orig-2026-11-11",
+   "status": "pass",
+   "config_sha256": "79cb9742dc018f37f9ce7b87276e2e354f7a866c17af98896a5c27984fcf4838",
+   "trace": "experiments/results/traces/ORIG-SPLIT-RECOVER-E3.jsonl",
+   "trace_sha256": "bcb0af78274901b9fc2819ff5ddacc837d204dad120d5bafd83244b08fc8fea3",
+   "ed25519_identical": true
+  },
+  {
+   "id": "ORIG-DEPUTY-SAME-READING",
+   "kind": "witness",
+   "rules": "orig-2026-11-11",
+   "status": "pass",
+   "config_sha256": "545f9a55e898e56fe21ab6f521a13ad6b40a294c1919b4243d901bc936734dc1",
+   "trace": "experiments/results/traces/ORIG-DEPUTY-SAME-READING.jsonl",
+   "trace_sha256": "5ab0a6d4151055dde6f0eee11c02faa94f947601308947c9f4ab1c62da3c5802",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-O2-START-GUARD",
+   "kind": "negative",
+   "rules": "broken-o2-start-guard",
+   "status": "pass",
+   "config_sha256": "df966656c1d1daaf21b356c2f6205c63f4bc7540279d49399f6294db42572fc8",
+   "trace": "experiments/results/traces/NC-O2-START-GUARD.jsonl",
+   "trace_sha256": "ddefd81528e20c04e0e13f6eec1a4b17de38de6b6f1c086f9c856857d2af39fe",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-O2-START-GUARD-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "884e31420721a0411929a7d82a1232b891a9605eac850b671f8c4b1540c3f8f9",
+   "trace": "experiments/results/traces/NC-O2-START-GUARD-CONTROL.jsonl",
+   "trace_sha256": "f4a5f4cf82efefe0937e70f886547647a31c4c72d5f3b8394a6c335505e5f843",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-O1-EPOCH-GUARD",
+   "kind": "negative",
+   "rules": "broken-o1-epoch-guard",
+   "status": "pass",
+   "config_sha256": "bb964b6daf340e830c00401b1000f4414cf11ee379e9f581d5e352e302c710fa",
+   "trace": "experiments/results/traces/NC-O1-EPOCH-GUARD.jsonl",
+   "trace_sha256": "cc939e3391b362c7b53bea83b9e2f3db00ccae79a5a1369ce87df56fc2775eee",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-O1-EPOCH-GUARD-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "71c9f1e47bcc980120c8e79964719170590a095ae3c56ac0f41465fe083cbacd",
+   "trace": "experiments/results/traces/NC-O1-EPOCH-GUARD-CONTROL.jsonl",
+   "trace_sha256": "720432c448515054cb2d3facfbdfab43ced9c876bb6e6171de588a8736e1170b",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-D1-END-CHECK",
+   "kind": "negative",
+   "rules": "broken-d1-end-check",
+   "status": "pass",
+   "config_sha256": "58e28cb38cce6763e24cd5ee043d0ce24a64eeaf37ec7f2f364e2e1967625f7e",
+   "trace": "experiments/results/traces/NC-D1-END-CHECK.jsonl",
+   "trace_sha256": "cfa9daac8044d7d2142738582731d1c9e8512744845b017f00731b82dddfb9f4",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-D1-END-CHECK-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "bfcd2e6eae8ba9aa40f5c3af135fb20b59057f37c091cb65032c74122cabba85",
+   "trace": "experiments/results/traces/NC-D1-END-CHECK-CONTROL.jsonl",
+   "trace_sha256": "dc9808eeebccdc0b7da4b9936b1e7dbc2ba20fa3f064b360eb333a90e93971a0",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-D1-REPLAY",
+   "kind": "negative",
+   "rules": "broken-d1-replay",
+   "status": "pass",
+   "config_sha256": "b8efb10ef30b18765f42ffcd27610e8891ce6f0bc9a7ee05af9091d4ae7832f4",
+   "trace": "experiments/results/traces/NC-D1-REPLAY.jsonl",
+   "trace_sha256": "8fa39d63f958987b9f5233b62e1ff26ce62501523b00b07cac5fc8b6a7aa095a",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-D1-REPLAY-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "29f55ae395f1b64918ac0d467cbea83ad0d6af74785d70008da112034f8bb3f0",
+   "trace": "experiments/results/traces/NC-D1-REPLAY-CONTROL.jsonl",
+   "trace_sha256": "7c1303ece71b6deac0b3e3f1cdb70c313fcbbca7fb74fee3bce51594b6cfaa04",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-DISTINCT-SIGNERS",
+   "kind": "negative",
+   "rules": "broken-distinct-signers",
+   "status": "pass",
+   "config_sha256": "b8d0b01584cca5a1574c0a4f6e0ce84c43cdfafb3d5663e9ec98362c85deb01c",
+   "trace": "experiments/results/traces/NC-DISTINCT-SIGNERS.jsonl",
+   "trace_sha256": "bf01c61092afe4f46bc73f02db314dfc5775aa7853fbe27753249ff78a3c18e9",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-DISTINCT-SIGNERS-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "e87fe7fd9ef807d6797c9443e15697988941f1c952ad3321ee2d9abc311b4b82",
+   "trace": "experiments/results/traces/NC-DISTINCT-SIGNERS-CONTROL.jsonl",
+   "trace_sha256": "9f955ee2a0eb76dbe0895da773ec5e142b2f9b3f79c04fe949891f942f25b5a6",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-COMMIT-AFTER-RELEASE",
+   "kind": "negative",
+   "rules": "broken-commit-after-release",
+   "status": "pass",
+   "config_sha256": "bf44e48fa0bf033acb3dfca0335b13f701e6c15f5f82146f53e7b74eb2f4bfcc",
+   "trace": "experiments/results/traces/NC-COMMIT-AFTER-RELEASE.jsonl",
+   "trace_sha256": "510c4daa5a5fae3eb963a176681c1398f534b4d10fae9a946aea9cf28f82bb8d",
+   "ed25519_identical": true
+  },
+  {
+   "id": "NC-COMMIT-AFTER-RELEASE-CONTROL",
+   "kind": "control",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "843cfcd1aa19640750e221f0e46321f34c96ce3cc2c64678cd9f127e8951c4b0",
+   "trace": "experiments/results/traces/NC-COMMIT-AFTER-RELEASE-CONTROL.jsonl",
+   "trace_sha256": "e5ed5dac75a948ec243bb6e8e5a28bfed97d28b700293067c1a796d955f58b9a",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-HANDOVER-SEED-V0",
+   "kind": "comparison",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "6116c2653bf5d701ddb1b17e509e28d58047b00b8a8a0b1f0f16d52f0ac0303f",
+   "trace": "experiments/results/traces/CMP-HANDOVER-SEED-V0.jsonl",
+   "trace_sha256": "808c9f54d1b74ce6afa3d078694aa13774a2be7cb8fafac6716c399f1a508fe2",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-HANDOVER-XL",
+   "kind": "comparison",
+   "rules": "xl",
+   "status": "pass",
+   "config_sha256": "e8326438f025bea2db55ee72f839fd77af09b0ec7ae74ccf5f895be39a1328e0",
+   "trace": "experiments/results/traces/CMP-HANDOVER-XL.jsonl",
+   "trace_sha256": "e05d59fc7fa9748640bf08c7194b78dce3c8611f92ca695ea2ba880ecd8a3755",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-HANDOVER-TC-NAIVE",
+   "kind": "comparison",
+   "rules": "tc",
+   "status": "pass",
+   "config_sha256": "7d86f8b75538092bc8682ba4fa3a982fbe8ce3e7e3b0fb366441b7f288cd997b",
+   "trace": "experiments/results/traces/CMP-HANDOVER-TC-NAIVE.jsonl",
+   "trace_sha256": "a121c8b5b5b5d05fa6ab0e601409791f76a966dfd0a5b2181f045823abf44cd2",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-HANDOVER-TC-WAIT",
+   "kind": "comparison",
+   "rules": "tc",
+   "status": "pass",
+   "config_sha256": "655e86dc73937516b1221384a41d9e23687235a7653db4f9152dff5d6951fbb3",
+   "trace": "experiments/results/traces/CMP-HANDOVER-TC-WAIT.jsonl",
+   "trace_sha256": "0e0443f714d684a20eb1232a851ef44dafa3b2ad8152040b45616c2ea52bfe2c",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-REMOVAL-SEED-V0",
+   "kind": "comparison",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "7dc5f0c9438e2eede58f2b193cd7b5a7725d9c6123da61f97341bde339119ae5",
+   "trace": "experiments/results/traces/CMP-REMOVAL-SEED-V0.jsonl",
+   "trace_sha256": "a21ae36eede64e0ef38d91f7486ebfd425104981b3753c6495b81a51c738d68f",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-ISOLATION-SEED-V0",
+   "kind": "comparison",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "421a165b37a286efd9071168217b964eaa618e3f23f1d66227669e770e68759b",
+   "trace": "experiments/results/traces/CMP-ISOLATION-SEED-V0.jsonl",
+   "trace_sha256": "194c0355df4e81988292d69199caa41233e57ac61ddae5d2f29fdb1cea0a97ab",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-REMOVAL-XL",
+   "kind": "comparison",
+   "rules": "xl",
+   "status": "pass",
+   "config_sha256": "82601026aa0bdc3a41befb6f3725946933c304cb25f59a645c1955ca310f14d7",
+   "trace": "experiments/results/traces/CMP-REMOVAL-XL.jsonl",
+   "trace_sha256": "15b440570fff043a1a293142a5ecd2b3f3fc644b867cbe5e221b6f2bb1b574b6",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-ISOLATION-XL",
+   "kind": "comparison",
+   "rules": "xl",
+   "status": "pass",
+   "config_sha256": "7576da17cea88f72dcf97dfdd363190c9b63706b3df33c223b0d0856d4ccc7ce",
+   "trace": "experiments/results/traces/CMP-ISOLATION-XL.jsonl",
+   "trace_sha256": "f93167e92c58f8777d4935243cbeba5286fd0cea63af5f4c6cd938675b7e3862",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-REMOVAL-TC",
+   "kind": "comparison",
+   "rules": "tc",
+   "status": "pass",
+   "config_sha256": "13eb5749b679f8964972e36c7c9462218cc9172d678f2f3b6d4a47f23ce8dc9c",
+   "trace": "experiments/results/traces/CMP-REMOVAL-TC.jsonl",
+   "trace_sha256": "ad89a36358b589968bbd757bed1e02330e560ac71e42c35687873d193321d1f6",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-ISOLATION-TC",
+   "kind": "comparison",
+   "rules": "tc",
+   "status": "pass",
+   "config_sha256": "f83872f6d4a45e8e6fcb58f3876993c3e162cee495eafb7937753581e935c2c4",
+   "trace": "experiments/results/traces/CMP-ISOLATION-TC.jsonl",
+   "trace_sha256": "60ec1a5a57ad00cd7bd30602e6bc75e87d29f4dd967fc57191e8236bea2c3c35",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-REMOVAL-QO-W",
+   "kind": "comparison",
+   "rules": "qo-w",
+   "status": "pass",
+   "config_sha256": "9bc1dc3d13b3e66e92a4368d61600285780c06c6b800e6f3ad8177fbcb44e1bb",
+   "trace": "experiments/results/traces/CMP-REMOVAL-QO-W.jsonl",
+   "trace_sha256": "2c813d2b05fcf3ff8bac966f5d5acaa92ac1cefeab55137615220f182ff682b2",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-ISOLATION-QO-W",
+   "kind": "comparison",
+   "rules": "qo-w",
+   "status": "pass",
+   "config_sha256": "c25dc2602ffd84a7f73a45a15df3541bf99b0f31a6ad0003474febcbc422c253",
+   "trace": "experiments/results/traces/CMP-ISOLATION-QO-W.jsonl",
+   "trace_sha256": "ffc7635c8f86784ff479d7ac9d23498b6f2fd2d569290edcf771d00abeacc7e6",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-SPLIT-SAME-HOLDER-SEED-V0",
+   "kind": "comparison",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "88ddca3d6dfe0a189edbba4d2062b6aa9d5cc504fdd453b019a0016ecbf4e8e4",
+   "trace": "experiments/results/traces/CMP-SPLIT-SAME-HOLDER-SEED-V0.jsonl",
+   "trace_sha256": "9c828ecfa724065029cc3d251d7dae11c6ce8ecc11c2d41da35917197e3a9557",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-SPLIT-TWO-HOLDERS-SEED-V0",
+   "kind": "comparison",
+   "rules": "seed-v0",
+   "status": "pass",
+   "config_sha256": "78cde9d014f7b8b7b8e55442b4fbf0f7bf456ed0363a13b6a703f4731a6eec58",
+   "trace": "experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-SEED-V0.jsonl",
+   "trace_sha256": "1640f7ecdb317a27ca2f0629ec9248b2007001169d52f6abf1a7bef11b8ebdfd",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-SPLIT-SAME-HOLDER-XL",
+   "kind": "comparison",
+   "rules": "xl",
+   "status": "pass",
+   "config_sha256": "5b02d1dbbcfb8d18120b82c24a40539d29632099c539f40ed5571b21c9b722c2",
+   "trace": "experiments/results/traces/CMP-SPLIT-SAME-HOLDER-XL.jsonl",
+   "trace_sha256": "ae90346277518eb674ba06000c68fb33d3fd4f6afc3949fe0ca4840bffc5b8a5",
+   "ed25519_identical": true
+  },
+  {
+   "id": "CMP-SPLIT-TWO-HOLDERS-XL",
+   "kind": "comparison",
+   "rules": "xl",
+   "status": "pass",
+   "config_sha256": "07bd893899472e2c129b40e30d18095f802929e89e36e26f3882b1524b7df459",
+   "trace": "experiments/results/traces/CMP-SPLIT-TWO-HOLDERS-XL.jsonl",
+   "trace_sha256": "582c9a68eee0ca3cc071c84814e0e02b7a3f572db2d75e50f07e250853b62698",
+   "ed25519_identical": true
+  }
+ ]
+}

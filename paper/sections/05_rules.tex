@@ -1,0 +1,61 @@
+\section{Candidate Rules: \sys{} seed-v0}
+\label{sec:rules}
+
+\paragraph{Parameters and certificates}
+Let $n \ge 3f + 1$ and $q = \lceil (n + f + 1)/2 \rceil$. Then two sets of $q$ officers
+share at least $f + 1$ officers, so at least one honest officer. Also $q \le n - f$, so
+honest officers alone can form a quorum. The \emph{horizon} $H$ bounds the time from a
+signature to the end time it signs. The \emph{guard} $g > 2\eps$ separates terms. $\Delta$
+is the renewal interval and $\delta$ the time to collect $q$ signatures; both matter only
+for availability. Seed-v0 has no deputy fallback ($F = 0$).
+
+A \emph{grant} $\grant{k, h, s}$ gives epoch $k$ to holder $h$ from start time $s$. A
+\emph{renewal} $\renew{k, e}$ extends epoch $k$ to end time $e$. A \emph{command}
+$\cmd{k, h, \mathit{cid}, \mathit{payload}}$ is signed by $h$ alone, and $\mathit{cid}$ is
+unique for each $(k, h)$. Every signed message is a canonical encoding of its fields with
+a prefix that names the protocol version, the message type and the scope. A signature on
+one type or scope is therefore never valid for another. A grant or renewal is
+\emph{valid} if it carries valid signatures of at least $q$ distinct configured officers
+on identical contents. The genesis grant $\grant{1, h_1, s_1}$ is valid by configuration.
+
+\paragraph{Signer rules}
+An honest agent $u$ keeps three items of durable state: its epoch $E_u$ (initially 1),
+the largest end time $M_u$ that it signed, and the set $X_u$ of epochs that it withdrew
+from.
+\begin{description}
+  \item[O1] \emph{Renewal.} Sign $\renew{k, e}$ only if $u$ holds the valid grant of epoch $k$,
+  $k = E_u$, $k \notin X_u$, $u$ consents to the holder of $k$, and $e \le C_u + H$. Then
+  set $M_u := \max(M_u, e)$.
+  \item[O2] \emph{Grant.} Sign $\grant{j, h, s}$ only if $j > E_u$, $s \ge M_u + g$, and $u$
+  consents to $h$. Then set $E_u := j$.
+  \item[O3] \emph{Withdrawal.} Add $k$ to $X_u$, permanently.
+\end{description}
+When $u$ receives a valid grant of an epoch $j > E_u$, it sets $E_u := j$. An agent makes
+its new state durable before it releases a signature. After a restart it reloads that
+state, and if the state is lost it must not sign again.
+
+\paragraph{Holder and verifier}
+The holder requests a renewal every $\Delta$ with end time $e = C_c + H - 2\eps$. It
+attaches the grant and its newest valid renewal to each command. A verifier keeps every
+valid certificate that it receives, and a durable set of accepted $(k, h, \mathit{cid})$.
+\begin{description}
+  \item[D1] At local time $\tau$, accept $\cmd{k, h, \mathit{cid}, \cdot}$ only if the
+  verifier holds a valid $\grant{k, h, s}$ and a valid $\renew{k, e}$ with
+  $s \le \tau \le e$, and has not accepted $(k, h, \mathit{cid})$ before.
+\end{description}
+Every other outcome is a rejection with a reason: no grant, not started, expired, replay
+or bad signature.
+
+\paragraph{Procedures}
+For a \emph{prepared handover} at time $T$, the holder requests only end times $e \le T$
+from $T - H$ on. Then $M_u \le T$ for every honest agent, and the grant of the next epoch
+can start at $T + g$. For a \emph{removal}, officers withdraw (O3). A proposer $p$ then
+proposes $\grant{j, h', s}$ with $j = E_p + 1$ and $s = C_p + H + g + 2\eps$. Every honest
+agent that withdrew before the proposal can sign it.
+
+\paragraph{Changes from the draft of 11 November 2026}
+That draft had a deputy who took over after a timeout ($F > 0$). Its tenure bound started
+at an informal ``stop of renewals'', and its availability theorem assumed that consent was
+enough. Seed-v0 removes the deputy and anchors the bound at $t_W$. Availability now needs
+communication and same-epoch eligibility as well. Replay protection is part of D1, and the
+split-vote stall of O2 is documented (\cref{sec:split}).

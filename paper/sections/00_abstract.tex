@@ -1,20 +1,20 @@
-In incident response, command belongs to a person: the incident commander, appointed by
-the organization. The commander works from a vehicle or a handheld that is often cut off,
-and the organization may then move command to a deputy or a superior, while the devices of
-the people involved cannot reach one another and crews keep acting on the orders those
-devices record. We ask how an intermittently connected incident information system can
-represent such a succession, enforce it on devices that cannot reach each other, and
-reconcile it when they reconnect, and what each succession policy costs the people who act
-on its orders. We separate a person's authority, conferred by signed grants and by
-succession rules the organization fixes in advance, from a device's enforcement of it, and
-give every order one of four statuses that crews and commanders can see. On an executable
-model of a forest-fire incident, we compare six succession policies across three partition
-cases and three states of the commander, over \tbTotalRuns{} simulated incidents. A
-commander's device that stops on its own after losing contact with the deputy can be
-revived by a stale heartbeat relayed through another vehicle; a timeout acknowledged by
-the deputy prevents this with a margin of only the clock error. A takeover that takes
-effect when it is signed, rather than when the successor's device accepts it, turns orders
-given in good faith into residual orders after the fact. Settlement of orders is safe, but
-it completes only once the predecessor's records arrive or the appointing officer acts.
-\pending{Prototype runs on vehicle edges and an expert walkthrough with rescue-service
-officers: planned.}
+Field devices that keep obeying an operator through a network outage cannot tell an
+isolated loyal operator from an attacker who holds that operator's credentials and has cut
+the links. We ask when command authority can expire and pass to a successor without
+overlapping acceptance of commands from different holders, and what interruption of
+legitimate service is unavoidable. The setting has $n$ officers, at most $f$ of them
+compromised ($n \ge 3f + 1$), a holder who may be hostile, trusted verifiers at the devices
+with clock error at most $\eps$, and a network that the adversary controls. This working
+seed contributes three things. First, definitions that separate what some isolated run
+lets a holder do (isolation reach) from what a loyal holder is guaranteed (fresh-command
+availability), and that measure removal from the instant withdrawals take effect. With
+them, a known indistinguishability argument shows that any isolation reach is also a
+hostile tenure in some run. Second,
+a candidate rule set, \sys{} seed-v0, with candidate arguments for exclusive succession,
+for a withdrawal-to-expiry bound of $H + 2\eps$ and for conditional availability. No
+person has reviewed these arguments. Third, executable evidence: a rule kernel, a
+deterministic simulator, an independent trace checker, \SeedScenarioCount{} directed
+scenarios with negative controls, and a small bounded TLA+ model. The evidence also
+weakens the case for novelty. Removal by quorum renewal and expiry is known, and our
+Byzantine adaptation of exclusive quorum leases behaves like \sys{} in every directed
+comparison we ran. We state the open questions and the experiments that would settle them.

@@ -41,6 +41,32 @@ jobs:
         working-directory: ${{ matrix.service }}
         run: pytest
 
+  seed:
+    name: SRDS seed (lint, tests, directed scenarios)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies (hash-checked)
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements/seed.lock
+      - name: make seed (fails on any lint error, test failure or unmet expectation)
+        run: make seed
+      - name: Committed traces and paper numbers match a fresh run
+        # manifest.json is left out: it records the commit, the dirty state and the
+        # Python version of the run that wrote it.
+        run: |
+          changed="$(git status --porcelain -- experiments/results/traces \
+            experiments/results/results.json paper/generated)"
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "make seed produced results that differ from the committed ones"
+            exit 1
+          fi
+
   kotlin:
     name: Kotlin / Android build
     runs-on: ubuntu-latest

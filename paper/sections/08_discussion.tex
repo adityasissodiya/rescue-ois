@@ -1,0 +1,69 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Is There a Contribution Beyond Known Compositions?}
+\label{sec:memo}
+
+URSA already removes authority by quorum renewal and expiry, with no message to the
+device~\cite{luo2004ursa}. The draft of 11 November 2026 claimed that no removal rule had
+both properties. That claim is false, and we have withdrawn it \claim{C-G4}. Exclusive succession is
+the grantor rule of quorum leases~\cite{vanrenesse2011nerio}. Our adaptation of that rule
+to signatures, device checks and Byzantine quorums (\texttt{xl}) matches seed-v0 in every
+directed comparison, and it avoids one of seed-v0's stalls. A candidate argument for
+\texttt{xl}'s separation exists in the positioning record. Like the arguments for seed-v0,
+nobody has reviewed it.
+
+We therefore do not claim a new mechanism. We see four options and do not choose among
+them here.
+\begin{enumerate}
+  \item A \emph{characterization} paper: the problem, the definitions and the bounds, with
+  the limit credited to the indistinguishability tradition. It would include a reviewed
+  proof that the composition \texttt{xl} meets the bounds, and seed-v0 would be one
+  instance. The risk is that reviewers see a straightforward composition.
+  \item Find a \emph{real difference}: a property that epochs give and \texttt{xl} lacks,
+  such as an order of terms across holders, audit, or re-appointment of the same holder.
+  This option closes only with a checked counterexample or proof.
+  \item \emph{Change the question}, for example to changes of the officer set during
+  partitions, or to limits on the damage that an authorized hostile holder can do. Each
+  needs its own problem statement and prior-art search.
+  \item An \emph{evaluation} paper that compares published designs under one
+  hostile-holder model with this scenario-and-checker method. This needs faithful
+  comparators and review.
+\end{enumerate}
+
+\subsection{Threats to Validity}
+
+\emph{Unreviewed arguments.} Every argument is a candidate, and the specification, code
+and paper were drafted with an AI assistant. \emph{Shared authorship.} The checker shares
+no code with the kernel, but it shares an author. \emph{Directed runs.} Each scenario
+fixes one schedule, and the comparison values depend on the schedules that we chose.
+\emph{Model gaps.} The TLA+ model has exact clocks, one verifier and tiny bounds, and the
+simulator uses constant clock offsets. \emph{Prior art.} We read five sources in full. Two
+recent sources and the forward citations of URSA and Nerio are unread. \emph{Domain.}
+The grid example motivates the problem. No operator was consulted, and the parameters do
+not come from operational data.
+
+\subsection{Open Questions and Next Experiments}
+\label{sec:open}
+
+The roadmap in the artifact ranks the open questions. The first three experiments, each
+with its criterion for closing, are as follows.
+\begin{enumerate}
+  \item[E1] \emph{Composition decision.} Model \texttt{xl} in TLA+ at the bounds of
+  \cref{sec:tla}, run every seed-v0 scenario against an \texttt{xl} translation, and write
+  its proof. \emph{Closes when} a person has reviewed a proof that \texttt{xl} meets
+  \cref{prp:order,prp:wte,prp:avail}, or a checked counterexample shows a property that
+  seed-v0 has and \texttt{xl} lacks.
+  \item[E2] \emph{Prior-art closure.} Read HRCred (in particular what it does under partition) and
+  the work by Stantchev in full, follow the forward citations of URSA and Nerio, and search
+  for Byzantine and signed leases and for IEC~62351-8 role-based access. \emph{Closes when}
+  the positioning record has page-pinned entries for each, and any overlap with the
+  definitions or bounds is recorded.
+  \item[E3] \emph{Review and wider checking.} Have a person review \cref{app:arguments}, and
+  run the bounded model with $\eps > 0$, two verifiers, epoch~3 and withheld Byzantine
+  signatures. \emph{Closes when} each claim's status in the ledger changes on review, and
+  the wider configurations finish with their expected outcomes.
+\end{enumerate}
+Questions for the domain remain open. Which operations must continue when a control room
+is isolated, and for how long? Where would a verifier sit, and what clock holdover gives
+$\eps$? Who may authorize the removal of an operator? These need people who operate grids.

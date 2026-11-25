@@ -1,0 +1,9 @@
+{"byzantine":["D"],"clocks":{"A":0,"B":1,"C":-1,"D":0,"V1":1,"V2":-1},"ev":"header","family":"mandate","genesis":{"msg":{"deputy":null,"epoch":1,"holder":"A","scope":"feeder-7","start":0,"type":"grant"},"msg_id":"grant:5c18150bc23def47"},"kind":"control","officers":["A","B","C","D"],"params":{"F":0,"H":100,"W":null,"eps":1,"f":1,"g":3,"n":4,"q":3},"rules":"seed-v0","scenario":"NC-D1-REPLAY-CONTROL","scope":"feeder-7","verifiers":["V1","V2"]}
+{"adversary":false,"by":"A","ev":"sign","local":0,"msg":{"end":98,"epoch":1,"scope":"feeder-7","type":"renewal"},"msg_id":"renewal:cdeb22086b9a1738","seq":1,"step":0,"t":0}
+{"adversary":false,"by":"B","ev":"sign","local":1,"msg":{"end":98,"epoch":1,"scope":"feeder-7","type":"renewal"},"msg_id":"renewal:cdeb22086b9a1738","seq":2,"step":1,"t":0}
+{"adversary":false,"by":"C","ev":"sign","local":-1,"msg":{"end":98,"epoch":1,"scope":"feeder-7","type":"renewal"},"msg_id":"renewal:cdeb22086b9a1738","seq":3,"step":2,"t":0}
+{"cert":"R1@98","ev":"cert","msg":{"end":98,"epoch":1,"scope":"feeder-7","type":"renewal"},"msg_id":"renewal:cdeb22086b9a1738","seq":4,"signatures":[{"by":"A","kind":"genuine"},{"by":"B","kind":"genuine"},{"by":"C","kind":"genuine"}],"step":3,"t":0}
+{"at":"V1","cert":"R1@98","ev":"store","msg_id":"renewal:cdeb22086b9a1738","seq":5,"step":4,"t":0,"valid":true}
+{"at":"V1","cmd":{"cid":"a1","created":10,"epoch":1,"holder":"A","payload":"op"},"ev":"accept","evidence":[{"msg":{"deputy":null,"epoch":1,"holder":"A","scope":"feeder-7","start":0,"type":"grant"},"msg_id":"grant:5c18150bc23def47"},{"msg":{"end":98,"epoch":1,"scope":"feeder-7","type":"renewal"},"msg_id":"renewal:cdeb22086b9a1738"}],"local":11,"rule":"D1","seq":6,"step":5,"t":10}
+{"at":"V1","cid":"a1","ev":"redeliver","seq":7,"step":6,"t":20}
+{"at":"V1","cmd":{"cid":"a1","created":10,"epoch":1,"holder":"A","payload":"op"},"ev":"reject","local":21,"reason":"replay","seq":8,"step":6,"t":20}

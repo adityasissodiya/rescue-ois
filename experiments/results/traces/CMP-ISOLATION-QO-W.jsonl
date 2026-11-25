@@ -1,0 +1,11 @@
+{"byzantine":["D"],"clocks":{"A":0,"B":1,"C":-1,"D":0,"V1":1,"V2":-1},"ev":"header","family":"order","genesis":null,"kind":"comparison","officers":["A","B","C","D"],"params":{"F":0,"H":100,"W":20,"eps":1,"f":1,"g":3,"n":4,"q":3},"rules":"qo-w","scenario":"CMP-ISOLATION-QO-W","scope":"feeder-7","verifiers":["V1","V2"]}
+{"adversary":false,"by":"A","ev":"sign","local":61,"msg":{"cid":"p1","end":80,"holder":"A","payload":"op","scope":"feeder-7","start":60,"type":"order"},"msg_id":"order:957dc43b075b8550","seq":1,"step":0,"t":61}
+{"adversary":false,"by":"B","ev":"sign","local":62,"msg":{"cid":"p1","end":80,"holder":"A","payload":"op","scope":"feeder-7","start":60,"type":"order"},"msg_id":"order:957dc43b075b8550","seq":2,"step":1,"t":61}
+{"adversary":false,"by":"C","ev":"sign","local":60,"msg":{"cid":"p1","end":80,"holder":"A","payload":"op","scope":"feeder-7","start":60,"type":"order"},"msg_id":"order:957dc43b075b8550","seq":3,"step":2,"t":61}
+{"cert":"O:A:p1[60,80]","ev":"cert","msg":{"cid":"p1","end":80,"holder":"A","payload":"op","scope":"feeder-7","start":60,"type":"order"},"msg_id":"order:957dc43b075b8550","seq":4,"signatures":[{"by":"A","kind":"genuine"},{"by":"B","kind":"genuine"},{"by":"C","kind":"genuine"}],"step":3,"t":62}
+{"ev":"note","mark":"outage-start","seq":5,"step":4,"t":65,"text":"outage: from now only A and V1 exchange messages"}
+{"at":"V1","cert":"O:A:p1[60,80]","ev":"store","msg_id":"order:957dc43b075b8550","seq":6,"step":5,"t":70,"valid":true}
+{"at":"V1","cmd":{"cid":"p1","created":60,"epoch":null,"holder":"A","payload":"op"},"ev":"accept","evidence":[{"msg":{"cid":"p1","end":80,"holder":"A","payload":"op","scope":"feeder-7","start":60,"type":"order"},"msg_id":"order:957dc43b075b8550"}],"local":71,"rule":"ORDER","seq":7,"step":5,"t":70}
+{"at":"V1","cmd":{"cid":"f100","created":100,"epoch":null,"holder":"A","payload":"op"},"ev":"reject","local":101,"reason":"no-order","seq":8,"step":6,"t":100}
+{"at":"V1","cmd":{"cid":"f139","created":139,"epoch":null,"holder":"A","payload":"op"},"ev":"reject","local":140,"reason":"no-order","seq":9,"step":7,"t":139}
+{"at":"V1","cmd":{"cid":"f157","created":157,"epoch":null,"holder":"A","payload":"op"},"ev":"reject","local":158,"reason":"no-order","seq":10,"step":8,"t":157}

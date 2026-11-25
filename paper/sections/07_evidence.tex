@@ -1,0 +1,151 @@
+\section{Executable Evidence}
+\label{sec:evidence}
+
+\subsection{Method}
+\label{sec:method}
+
+\paragraph{Kernel and simulator}
+The kernel (\file{src/mandate/}) implements O1 to O3, D1 and persistence as functions over
+explicit state, with a canonical message encoding. Signatures have two modes: a symbolic
+mode, and Ed25519~\cite{rfc8032} with fixture keys that are only for tests. A file store
+makes state durable before a signature is released. The simulator (\file{sim/}) runs a
+\emph{scenario}, which is a list of timed events: signatures, deliveries, commands,
+withdrawals, compromises, crashes and restarts. Events with equal times run in list
+order. Each party has a constant clock offset of at most $\eps$. The output is a trace in
+canonical JSON, one event per line, with a SHA-256 digest. For every scenario the two
+signature modes must give byte-identical traces, and they do.
+
+\paragraph{Independent checker}
+The checker (\file{experiments/checker.py}) reads only the trace and imports nothing
+from the kernel or the simulator. For each acceptance it checks the evidence again: a
+grant and a renewal, each signed by $q$ distinct configured officers whose signing events
+appear earlier in the trace, and delivered before the acceptance. It reports grant
+uniqueness, epoch order, the pairwise separation of the 11 November draft, replay,
+invalid evidence, the withdrawal-to-expiry bound, clock bounds, trace order, and two
+holders accepted at one clock reading. It also computes metrics such as $t_W$ and the
+last acceptance of a compromised holder. The checker is independent in code but not in
+authorship: the same assistant wrote both, so a shared misreading of the specification
+would pass.
+
+\paragraph{Expectations and manifest}
+Each scenario states its expected violations exactly, together with expected metric
+values. A run fails if any expectation fails. The manifest records the Git commit and
+whether the tree was dirty, a SHA-256 over the source files, the Python and library
+versions, and the digest of every configuration and trace. There is no randomness, and
+all times are synthetic integers.
+
+\subsection{Directed Scenarios}
+\label{sec:scenarios}
+
+\Cref{tab:scenarios} lists the scenarios that exercise the rules. The positive scenarios
+use $n = \SeedN$, $f = \SeedF$, $q = \SeedQ$, $H = \SeedH$, $g = \SeedG$ and
+$\eps = \SeedEps$, so $\gamma = \SeedGamma$. All \SeedScenarioCount{} scenarios meet their
+expectations (\SeedPassCount{} of \SeedScenarioCount{}).
+
+\begin{table*}[t]
+\caption{Directed scenarios of seed-v0 and of the 11 November 2026 rules, with the
+negative controls. ``Acc.'' is the number of accepted commands. ``Violations found'' are
+the checker's codes. ``Met'' means that every expectation of the scenario holds.
+Generated from the traces.}
+\label{tab:scenarios}
+\centering
+\footnotesize
+\input{generated/seed_table}
+\end{table*}
+
+\paragraph{What the scenarios show}
+In \texttt{V0-REMOVAL} (\cref{fig:removal}), a renewal that a withdrawing agent signed just
+before $t_W$ keeps the hostile holder accepted until $t_W + \RemovalAfterTW$, within the
+candidate bound $t_W + H + 2\eps = \RemovalBound$. In \texttt{V0-ISOLATION}, renewal
+requests start every $\Delta = \IsolationDelta$ and complete within
+$\delta = \IsolationCollect$, and the outage starts at \IsolationOutage{}. A fresh command
+at the end of the guaranteed window (\IsolationWindowEnd) is accepted. So is a later one,
+\IsolationFreshSpan{} after the outage starts. A command created before the outage and
+delivered late is accepted as well, but it does not count toward isolation reach.
+\texttt{V0-HANDOVER} shows that separation is tight: the gap is \HandoverGap{}, which is
+$\gamma$. \texttt{V0-REPLAY-CLOCK} covers replay, both window boundaries, the order of
+equal-time events, and forged and cross-scope evidence.
+
+\paragraph{The draft's rules}
+Two fixtures pin findings about the draft of 11 November 2026. In
+\texttt{ORIG-SPLIT-STALL}, a split vote leaves epoch 2 without a valid grant, and no
+command is accepted after the last renewal expires. No safety property is violated. A
+coordinated epoch-3 grant restores service (\texttt{ORIG-SPLIT-RECOVER-E3}), and seed-v0
+behaves the same (\texttt{V0-SPLIT-RECOVERY}). In \texttt{ORIG-DEPUTY-SAME-READING}, the
+deputy rule ($F > 0$) gives two issuers at one clock reading. The verifier accepts the
+deputy, then receives a renewal that the adversary held back, then accepts the holder.
+Part~1 of the draft's deputy proposition (``at one clock time, one device accepts orders
+of not more than one officer'') is therefore false \claim{C-DEP}. The draft's proof checked
+both rules in one verifier state, but the state changed between the two acceptances.
+
+\paragraph{Negative controls}
+Each of six broken variants removes one guard: the O2 start guard, the O1 epoch guard,
+D1's end check, D1's replay check, distinct-signer counting, or persistence before
+release. The checker reports the intended violation for \SeedNegativeDetected{} of
+\SeedNegativeCount{}. The control twins run the same events under seed-v0, and
+\SeedControlClean{} of \SeedNegativeCount{} are clean \claim{C-EV-NC}. This shows that the checker can see
+each fault in its scenario, not that it finds every fault of that kind.
+
+\subsection{Comparison Mechanisms}
+\label{sec:comparisons}
+
+We defined three mechanism abstractions. None of them reproduces a published system.
+\begin{description}
+  \item[\texttt{tc}] Threshold-issued expiring credentials. A quorum signs
+  $\mathsf{Lease}\langle h, s, e\rangle$ with $e \le C_u + H$. There is no exclusive
+  succession rule.
+  \item[\texttt{xl}] Exclusive quorum leases, our Byzantine adaptation of Nerio's grantor
+  rule. Agent $u$ keeps its current holder $A_u$, the start $S_u$ of its first lease for
+  $A_u$, and its largest signed end $F_u$. It signs $\mathsf{Lease}\langle h, s, e\rangle$ only if it consents to
+  $h$, $s \le e \le C_u + H$, and either $h = A_u$ and $s \ge S_u$, or $h \ne A_u$ and
+  $s \ge F_u + g$.
+  \item[\texttt{qo-w}] A quorum signs every command, with a validity window of length $W$.
+\end{description}
+All mechanisms run the same command stream in each comparison. \Cref{tab:comparison}
+gives the results.
+
+\begin{table}[t]
+\caption{Comparison runs (one directed run per cell). Handover: time from the old holder's
+last acceptance to the new holder's first, or ``overlap'' if the checker found
+overlapping holders. After $t_W$: the compromised holder's last acceptance minus $t_W$,
+with the candidate bound in brackets. Isolated: how long after the outage started the
+latest accepted fresh command was created. Split: whether the old holder keeps service
+after a split vote for the same holder, and for two holders.}
+\label{tab:comparison}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\input{generated/comparison_table}
+\end{table}
+
+\paragraph{Reading the comparison}
+Without a waiting rule, \texttt{tc} overlaps two holders in the handover. If officers
+wait for the old credential to expire, it does not, but then exclusivity rests on their
+discipline and not on a signer rule. \texttt{xl} gives the same values as seed-v0 in the
+handover, removal and isolation runs. In a split vote for the same holder, \texttt{xl}
+continues and seed-v0 stalls. The cause is O2, which advances $E_u$ when an agent votes.
+\texttt{qo-w} bounds in-flight hostile commands by $W + 2\eps$ after $t_W$, but accepts no
+fresh command in isolation \claim{C-CMP}. Equal values come partly from the shared
+schedules, and one run per cell measures nothing about cost.
+
+\subsection{Bounded Model Checking}
+\label{sec:tla}
+
+The TLA+ model~\cite{tlaplus} (\file{spec/tla/}) covers O1 to O3 and D1 with
+\TlaHonest{} honest signers and \TlaByz{} Byzantine signer ($q = \TlaQ$), \TlaHolders{}
+holders, epochs up to \TlaMaxEpoch, time up to \TlaMaxTime{}, $H = \TlaH$ and $g = \TlaG$.
+It assumes exact clocks, Byzantine signatures on every message, and a verifier that
+receives every valid certificate at once. TLC~\TlaVersion{} found no violation of grant
+uniqueness, epoch order, one holder per epoch or withdrawal-to-expiry \claim{C-TLA}. It explored
+\TlaDistinct{} distinct states to depth \TlaDepth. Three further configurations must fail,
+and they do. A handover is reachable (trace of \TlaHandoverTrace{} states), and so is the
+split-vote stall (\TlaStallTrace{} states). Without the O2 start guard, epoch order is
+violated (\TlaBrokenTrace{} states). A run with larger bounds was stopped before it finished. The
+model's other abstractions are listed with it.
+
+\subsection{What the Evidence Does Not Show}
+
+Directed runs show that behaviours exist. They do not explore schedules: no randomized
+or exhaustive search over the simulator was run. The bounded model has $\eps = 0$ and tiny
+bounds. No run measures time, throughput or signature cost on real systems. The
+parameters are synthetic, and nobody has tied them to an operational requirement.
