@@ -1,0 +1,62 @@
+# Technical names for the paper (ASD-STE100: a writer can use a word that is not in the
+# dictionary if the word is a technical name).
+#
+# One or more words on each line. A '#' starts a comment. The words are nouns, or
+# adjectives that are part of a technical name. Each group has the category that the writer
+# selected for it. A person must examine the categories against the official standard.
+# `python3 scripts/ste_check.py --unused` shows the words here that the paper does not use.
+
+# --- Persons, groups and organizations
+commander officer deputy attacker operator engineer signer sender customer company party
+author designer
+
+# --- Command (civil and military operations terms)
+command order consent succession tenure takeover handover unity loyal hostile
+response            # incident response
+
+# --- Mathematical, scientific and logic terms
+theorem lemma corollary proposition proof definition model formula
+quorum threshold majority epoch run parameter contradiction induction argument analysis
+substitution real random deterministic median probability diagonal line cost exposure
+hypothesis hypotheses nuclear
+function            # a mathematical function
+view                # the data and the messages that a party has at a time (defined in the paper)
+agreement           # Byzantine agreement
+
+# --- Names of the parts of the protocol (names of systems, components and their functions)
+grant renewal certificate horizon guard fallback anchor rule proposal collection
+valid               # a certificate with the signatures of a quorum (defined in the paper)
+
+# --- Information technology, security and telephony terms
+network link message signature key public protocol clock timeout lease server fault
+failure outage revocation credential console firmware software
+request delay attack authentication authorization replication leader client node
+consistency availability partition intrusion channel simulation program
+search query engine filter web repository checker identity expiry design remote
+telephone call signal
+factor              # a second factor for authentication
+
+# --- Electrical power engineering terms and facilities
+power grid substation breaker switch field center site
+
+# --- Vehicles and machines
+vehicle satellite
+
+# --- Names of official documents and parts of documentation
+paper section subsection table figure appendix page column row text literature abstract
+preprint survey draft submission
+title introduction background discussion conclusion
+
+# --- Units of measurement and time, and colors
+hour december november gray
+
+# --- Geographic terms
+regional
+
+# --- Proper names and abbreviations (persons, organizations, systems)
+ukrainian byzantine generals consensus spire hrcred
+scada               # supervisory control and data acquisition
+cap                 # the CAP result (consistency, availability, partition tolerance)
+tla tlc             # the TLA+ language and its model checker TLC
+# Short names of the four known designs in the cost table
+ne qo sl ts

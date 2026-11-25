@@ -1,0 +1,19 @@
+# Technical verbs for the paper (ASD-STE100: a writer can use a verb that is not in the
+# dictionary if the verb is a technical verb).
+#
+# One verb on each line, in its basic form. A '#' starts a comment. The script also
+# accepts the forms with -s and -ed. It does not accept the -ing form.
+# A person must examine the categories against the official standard.
+
+# --- Computer processes and applications
+sign        # make a digital signature on a message
+forge       # make a signature without the key
+replay      # send a recorded message again
+delay       # make a message arrive after the usual time
+expire      # get to the end time (a lease, a certificate, command)
+revoke      # cancel a certificate or a credential before its end time
+replicate   # operate two or more copies of a server
+acknowledge # send a message that tells the sender that its message came
+
+# --- Engineering processes
+tolerate    # continue to operate correctly with a specified fault

@@ -1,0 +1,141 @@
+\section{Limits for Each Protocol}
+\label{sec:limits}
+
+This section shows two limits. They apply to each protocol in the model of
+\cref{sec:model}, and not only to \sys{}. The two limits come from one lemma.
+
+\subsection{The Substitution Lemma}
+
+\begin{lem}[Substitution]
+\label{lem:subst}
+Let $\rho$ be a run of a protocol in which less than $f$ officers are hostile. Let $x$ be
+an officer who is loyal in $\rho$, and let $d$ be a device. Let $t_0$ be a time such that,
+from $t_0$, $x$ and $d$ receive only messages that $x$ or $d$ sent. Then the protocol has
+a run $\rho'$ with these properties.
+\begin{enumerate}
+  \item Until $t_0$, the run $\rho'$ is the same as $\rho$.
+  \item At $t_0$, the attacker gets the key and the data of $x$. It gets no other key that
+  it does not have in $\rho$.
+  \item From $t_0$, each party other than $x$ and $d$ does the steps that it selects from
+  the steps that the protocol lets it do.
+  \item At all times, the view of $d$ in $\rho'$ is the same as the view of $d$ in $\rho$.
+\end{enumerate}
+\end{lem}
+
+\begin{proof}
+Let each clock in $\rho'$ be the same function of real time as in $\rho$. From $t_0$ in
+$\rho'$, the attacker does three steps. First, it stops each message that a party sends to
+$x$ or to $d$. Second, it makes a copy of $x$ from the data and the key of
+$x$. It gives the copy each message of $d$ that $x$ received in $\rho$, at the same time as
+in $\rho$. Third, it gives $d$ each message that $d$ received in $\rho$, at the same time
+as in $\rho$.
+
+We show by induction on the sequence of steps that the attacker can make these messages.
+Until $t_0$, the two runs are the same. Before a step after $t_0$, let $d$ and the copy
+have the views that $d$ and $x$ have in $\rho$. A device is deterministic, and the attacker
+cannot change its clock. Thus $d$ sends the same message as in $\rho$, at the same time.
+The copy has the data and the key of $x$, and the attacker selects for it the decisions
+that $x$ made in $\rho$.
+
+Thus the copy makes each message that $x$ sent in $\rho$. In $\rho$, $x$ and $d$ receive
+no message from the other parties after $t_0$. Thus no message of the other parties is
+necessary for the attacker. The steps of the other parties in $\rho'$ change no message
+that $d$ receives. The view of $d$ is the same in the two runs at all times.
+\end{proof}
+
+The lemma uses one fact about the device: messages are its only input. A person at the
+device is an input that the attacker does not control. Only such an input can make
+\cref{lem:subst} not applicable.
+
+\subsection{The Limit for the Commander}
+
+\begin{thm}[Tenure limit]
+\label{thm:limit}
+Let a protocol have outage tolerance $P$ at a device $d$. Then the protocol has hostile
+tenure $P$ at $d$. Also, in the run that shows the hostile tenure, $d$ accepts the same
+orders at the same times as in the run with no attacker.
+\end{thm}
+
+\begin{proof}
+Let $\rho$ be the run of \cref{def:tolerance}, with the commander $c$ and the times $t_0$
+and $t_1$. No officer is hostile in $\rho$, and $f \ge 1$, thus \cref{lem:subst} applies
+with $x = c$. In the third property, let each other
+officer do the steps that remove $c$. The run $\rho'$ has the properties of
+\cref{def:tenure}. The view of $d$ is the same as in $\rho$. Thus $d$ accepts the same
+orders at the same times, and one of them is at $t_1 \ge t_0 + P$.
+\end{proof}
+
+The theorem tells that the hostile tenure is not less than the outage tolerance. Four
+points make the result more accurate.
+
+\paragraph{The outage is sufficient for the attacker}
+In the proof, the attacker stops the messages to $c$ and to $d$. In the run with no
+attacker, a failure stopped the same messages. Thus control of all links is not
+necessary for the attacker. The key of the commander and the same outage are sufficient.
+
+\paragraph{Limits on the number of orders}
+The proof does not use the fact that $P$ is a time. Let a device accept $N$ orders of an
+isolated loyal commander. Then it accepts the same $N$ orders of a hostile commander. Thus
+a limit on the number of orders has the same property as a limit on time.
+
+\paragraph{Checks of the contents of an order}
+The device accepts the same orders in the two runs. Thus a check of the contents cannot
+identify the run with the attacker. Such a check can reject only the orders that a loyal
+commander does not give. A loyal operator and an attacker can open the same breaker
+(\cref{sec:background}).
+
+\paragraph{A person at the device}
+The limit applies when messages are the only input of the device. If a person at the
+device can stop remote orders, the hostile tenure stops when that person does this. Rule
+D3 of \sys{} gives this input (\cref{sec:protocol}).
+
+\subsection{The Limit for the Deputy}
+
+\begin{thm}[Timeout takeover]
+\label{thm:deputy}
+Let a protocol have deputy period $F$ at a device $d$. Then the protocol has deputy
+exposure $F$ at $d$.
+\end{thm}
+
+\begin{proof}
+Let $\rho$ be the run of \cref{def:deputy}, with the deputy $b$ and the times $t_0$, $t_1$
+and $t_2$. All officers are loyal in $\rho$, thus \cref{lem:subst} applies with $x = b$.
+In the third property, let the commander
+and the other officers do the steps of usual operation. Let the attacker stop no message
+between them.
+
+The run $\rho'$ has the properties of \cref{def:exposure}. The view
+of $d$ is the same as in $\rho$. Thus $d$ accepts the orders of $b$ at $t_1$ and at
+$t_2 \ge t_1 + F$.
+\end{proof}
+
+The result has a second part. Let the protocol let a commander continue when all officers
+other than one are loyal and connected. Then, in the run of the proof, a different device
+accepts orders of the commander while $d$ accepts orders of the deputy. Two officers give
+orders at the same time, and the protocol does not have unity of command.
+
+\Cref{def:deputy} includes each rule that gives command to a deputy when messages stop.
+Examples are a timeout with a specified length, and the end of a lease. The theorem thus
+tells that each such rule gives its period to an attacker who has the key of the deputy.
+
+\subsection{Results for a Design}
+\label{sec:design}
+
+The two theorems give four rules for a design.
+\begin{enumerate}
+  \item \emph{An end is necessary.} If a device obeys an isolated commander without a time
+  limit, a hostile commander keeps the device without a time limit.
+  \item \emph{Zero has a cost.} If the hostile tenure must be zero, the outage tolerance is
+  zero. A design with a quorum for each order has this property.
+  \item \emph{One number for each device.} The designer selects the time $H$ for which a
+  device obeys an isolated commander. This time is also the minimum of the hostile tenure.
+  The best protocol makes $H$ also the maximum, with hostile officers, with stopped
+  messages, and with no message to the device.
+  \item \emph{A deputy period is an exposure.} The designer selects the period $F$ that a
+  deputy gets without a quorum. A hostile deputy gets the same period. The safe selection
+  is $F = 0$.
+\end{enumerate}
+
+The proofs are short. The argument is the argument of the CAP
+result~\cite{gilbert2002cap}. A party that has the same view in two runs does the same
+steps in the two runs. The theorems give the accurate relation for command. The minimum is the outage tolerance, and it applies to each protocol.

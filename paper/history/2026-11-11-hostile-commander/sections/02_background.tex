@@ -1,0 +1,58 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{Command in a Power Grid}
+
+A power company controls its substations from a control center. An operator at a console
+sends orders through the SCADA system to devices in the substations. A typical order opens
+or closes a breaker. One operator controls many substations. In the 2015 attack, the
+attackers ``operated numerous sites under the control of the
+dispatcher''~\cite[p.~14]{eisac2016ukraine}.
+
+The same order can be correct or dangerous. An operator opens a breaker to isolate a fault
+or to let personnel do work on equipment. An attacker opens the same breaker to remove
+power from customers. The device gets the same order in the two conditions. An analysis
+with a model shows the possible effect of such orders on many substations~\cite{ten2018impact}.
+
+Substations also have local control. A person at the substation can operate the equipment
+without the network. After the 2015 attack, the companies had ``to move to manual
+operations''~\cite[p.~v]{eisac2016ukraine}. \pending{Not done at this time: a power
+engineer must examine the text about local control in this paper.}
+
+\subsection{The 2015 Attack and the Model}
+
+Three facts of the attack are in the model of this paper. First, the attackers had the
+authority of the operators. They were in the networks of the companies ``for six months or
+more''~\cite[p.~3]{eisac2016ukraine}, and they used the consoles of the operators. Second,
+the attackers controlled the channels. The report gives steps to ``take control of the
+operator workstations and thereby lock the operators out of their
+systems''~\cite[p.~8]{eisac2016ukraine}. It also records ``thousands of calls'' to the
+call center of a company~\cite[p.~2]{eisac2016ukraine}.
+
+Third, the attackers were not at the substations. The companies moved to manual operations.
+An analysis of two subsequent software attacks on power grids is
+in~\cite{salazar2024industroyers}.
+
+\Cref{tab:names} gives the names that this paper uses and their equivalents in the grid
+example. The model is not only for a grid. It applies to each system in which one person at
+a time controls devices through a network.
+
+\begin{table}[t]
+\caption{Names in this paper and their equivalents in the grid example. A power engineer
+did not examine the right column at this time.}
+\label{tab:names}
+\centering
+\small
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+Name & Equivalent in the grid example \\
+\midrule
+Commander & The operator who has authority for an area of the grid \\
+Officer & A person who can be the operator for that area, or who gives approval to an operator \\
+Deputy & The officer who gets command if the commander stops \\
+Device & The equipment in a substation that does the orders \\
+Order & A signed message, for example to open a breaker \\
+Local control & A person at the substation operates the equipment \\
+\bottomrule
+\end{tabularx}
+\end{table}

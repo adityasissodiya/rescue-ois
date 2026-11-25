@@ -1,0 +1,110 @@
+\section{Model}
+\label{sec:model}
+
+\subsection{Parties and Orders}
+
+The system has $n$ \emph{officers} and a set of \emph{devices}. An officer is a person with
+a console. A device does orders: for example, it opens a breaker. One officer at a time is
+the \emph{commander}. A second officer can be the \emph{deputy} of the commander.
+
+Each officer has a key and can sign messages. Each party knows the public key of each
+officer. An \emph{order} is a message that an officer signs. A device \emph{accepts} an
+order when it does the order.
+
+\subsection{Attacker}
+
+The system has one attacker. The model gives the attacker these properties.
+\begin{description}
+  \item[A1] \emph{Links.} The attacker controls all links. It reads each message. It can delay a
+  message without a time limit, stop it, replay it, and change the sequence of messages.
+  \item[A2] \emph{Keys.} The attacker can get the key and the data of an officer at a time in a run.
+  From that time, the attacker can sign with that key. An officer is \emph{hostile} in a
+  run if the attacker knows the key of the officer at some time in the run. The other
+  officers are \emph{loyal}. Not more than $f$ officers are hostile in a run, and
+  $f \ge 1$.
+  \item[A3] \emph{Limits.} The attacker cannot forge the signature of a loyal officer. The attacker
+  cannot change the clock or the data of a device. The attacker is not at the location of
+  a device.
+\end{description}
+
+A hostile officer can be a person who helps the attacker. A hostile officer can also be a
+loyal person with a console that the attacker controls. The model does not make a
+difference between these two conditions.
+
+\subsection{Time, Clocks, Runs and Views}
+
+Real time is a number $t \ge 0$. No party knows real time. Each device and each loyal
+officer $p$ has a clock $C_p$, and $|C_p(t) - t| \le \eps$ for all $t$. All parties know
+the clock error $\eps$. \Cref{sec:model-limits} examines attacks on clocks.
+
+A \emph{run} is one possible sequence of the steps of all parties, with the real time of
+each step. Loyal officers and devices follow the protocol. A device is deterministic, and
+messages are its only input. \Cref{sec:protocol} adds one more input, a switch at the
+device.
+
+The \emph{view} of a device at a time $t$ has two parts. The first part is the data that
+the device has at the start. The second part is each message that the device received
+until $t$, with the clock time at which the device received it. The steps of a device are
+a function of its view. Thus, if a device has the same view in two runs, it accepts the
+same orders at the same times.
+
+\subsection{Quantities}
+\label{sec:quantities}
+
+The definitions that follow apply to each protocol in this model. They use only the orders
+that a device accepts. Thus they do not use the rules of one protocol.
+
+\begin{dfn}[Outage tolerance]
+\label{def:tolerance}
+Let $d$ be a device and $P \ge 0$. A protocol has \emph{outage tolerance} $P$ at $d$ if it
+has a run with these properties. All officers are loyal. From a time $t_0$, the commander
+$c$ and the device $d$ receive only messages that $c$ or $d$ sent. The device $d$ accepts an
+order of $c$ at a time $t_1 \ge t_0 + P$.
+\end{dfn}
+
+\begin{dfn}[Hostile tenure]
+\label{def:tenure}
+Let $d$ be a device and $\Theta \ge 0$. A protocol has \emph{hostile tenure} $\Theta$ at
+$d$ if it has a run with these properties. At a time $t_0$, the attacker gets the key of
+the commander $c$, and it gets no other key in the run. From $t_0$, each other officer does
+the steps of the protocol that remove $c$. The device $d$ accepts an order of $c$ at a time
+$t_1 \ge t_0 + \Theta$.
+\end{dfn}
+
+A large outage tolerance is good, and a large hostile tenure is bad. The two definitions
+give times, but a protocol can also put a limit on the number of orders. \Cref{sec:limits}
+includes that condition.
+
+\begin{dfn}[Deputy period]
+\label{def:deputy}
+Let $d$ be a device and $F \ge 0$. A protocol has \emph{deputy period} $F$ at $d$ if it has
+a run with these properties. All officers are loyal. From a time $t_0$, the deputy $b$ and
+the device $d$ receive only messages that $b$ or $d$ sent. The device $d$ accepts an order
+of $b$ at a time $t_1 \ge t_0$ and at a time $t_2 \ge t_1 + F$.
+\end{dfn}
+
+In the run for the deputy period, the device gets no message from the commander. The device
+cannot know the cause. It is possible that the commander stopped. It is also possible that
+the links to the commander have a failure, or that an attacker cut them.
+
+\begin{dfn}[Deputy exposure]
+\label{def:exposure}
+Let $d$ be a device and $F \ge 0$. A protocol has \emph{deputy exposure} $F$ at $d$ if it
+has a run with these properties. At a time $t_0$, the attacker gets the key of the deputy
+$b$, and it gets no other key in the run. The commander is loyal, and the attacker stops no
+message between the commander and the other loyal officers. The device $d$ accepts an order
+of $b$ at a time $t_1 \ge t_0$ and at a time $t_2 \ge t_1 + F$.
+\end{dfn}
+
+A protocol that has one of these four properties for a value also has it for each smaller
+value. When we give one number as the outage tolerance of a protocol, it is the smallest
+number that is not less than each such value. The same applies to the other three
+quantities.
+
+\begin{dfn}[Unity of command]
+\label{def:unity}
+Let $\gamma > 0$. A protocol has \emph{unity of command with separation} $\gamma$ if each
+run has this property. Let a device accept an order of an officer $x$ at real time $t$.
+Let a device accept an order of a different officer $y$ at real time $t'$. Then
+$|t' - t| \ge \gamma$.
+\end{dfn}

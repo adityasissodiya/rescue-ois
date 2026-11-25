@@ -1,0 +1,211 @@
+\section{Cost and Tests}
+\label{sec:cost}
+
+This section gives the cost of \sys{} as formulas. It compares \sys{} with four known
+designs. It also gives the tests that are done and the tests that are not done.
+
+\subsection{Cost of \sys{}}
+
+\paragraph{Time without command}
+Let the commander be loyal, and let an outage of length $\Lambda$ isolate the commander
+from each quorum. The commander keeps a device for $H - \Delta - \delta - 4\eps$ or more
+(\cref{thm:tolerance}), and for less than $H + 2\eps$. Thus the time without command at the
+device is between $\Lambda - H - 2\eps$ and $\Lambda - H + \Delta + \delta + 4\eps$, or zero
+if these values are less than zero. If $F > 0$, the deputy can use a period $F$ of this
+time.
+
+\paragraph{Time with a hostile commander}
+The time is less than $H + 2\eps$ from the time at which $n - q + 1$ loyal officers stop
+their consent (\cref{thm:tenure}). The time that is necessary for the officers to make
+this decision is not in the formula. The protocol cannot make that time shorter.
+
+\paragraph{Signatures and messages}
+For one renewal, one request and $q$ signatures are necessary. Thus the officers make
+$q/\Delta$ signatures in a unit of time. A device examines the signatures of a certificate one time,
+because it keeps each valid certificate. An order has the grant and one renewal attached,
+thus $2q$ signatures. A threshold signature can replace the $q$ signatures of a
+certificate. We did not examine that change.
+
+\paragraph{Handover}
+A prepared handover has a period of $F + g$ between two commanders (\cref{sec:change}). A
+handover that is not prepared has a period of $H + F + g + 2\eps$ or less from the proposal
+to the start of the new commander.
+
+\subsection{Four Known Designs}
+
+\Cref{tab:designs} compares \sys{} with four designs. The entries for the four designs come
+from their definitions. They do not come from tests.
+
+\begin{description}
+  \item[NE] Signed orders with no end time. The device examines only the signature of the
+  commander~\cite{saxena2018signature}.
+  \item[QO] A quorum for each order. A device accepts an order only with the signatures of
+  $q$ officers. A design in which each order goes through replicated servers has the same
+  property~\cite{babay2018spire}.
+  \item[SL] A lease of length $L$ from one server~\cite{gray1989leases}. The commander
+  gets a new lease from the server before the end of each lease.
+  \item[TS] Takeover on a timeout $T$. The deputy gets command when no message comes from
+  the commander for the time $T$. No quorum signs the takeover, and the command of the
+  deputy has no end time.
+\end{description}
+
+\begin{table*}[t]
+\caption{Four known designs and \sys{}. The quantities are those of
+\cref{sec:quantities}. For SL, $L$ is the length of the lease. The last column gives the
+weak point of each design.}
+\label{tab:designs}
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}ll>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.13\textwidth}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+Design & Outage tolerance & Hostile tenure & Deputy exposure & Signatures & Weak point \\
+\midrule
+NE & No limit & No limit & None & 1 for each order & A hostile commander stays (\cref{thm:limit}) \\
+QO & Zero & Zero & None & $q$ for each order & No command in an outage \\
+SL & $L - \Delta - \delta - 4\eps$ & $L + 2\eps$, or no limit with the key of the server & None & 1 for each renewal & One server \\
+TS & No limit & No limit & No limit & 1 for each order & The timeout attack (\cref{thm:deputy}) \\
+\sys{} & $H - \Delta - \delta - 4\eps$ & $H + 2\eps$ & $F + 2\eps$ for each epoch & $q$ for each renewal & No command after $H$ in an outage \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Three points follow from the table. First, expiry has the same cost in SL and in \sys{}.
+For $L = H$, the two designs have the same time without command when the commander cannot
+get a renewal.
+
+Second, \sys{} is better than SL in two properties. No one key gives the attacker a tenure
+with no limit. Also, the officers of a quorum can be at different locations. Some of them
+can be on the same side of a cut as the commander. Third, only \sys{} puts a limit on the
+timeout attack.
+
+\Cref{fig:tradeoff} shows the two quantities of \cref{thm:limit}. No protocol is below the
+diagonal. \sys{} is above the diagonal by $\Delta + \delta + 6\eps$ or less. The designer
+moves along this line when the designer selects $H$.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.0054cm,y=0.0048cm,font=\footnotesize,>=Stealth]
+  % axes: 0..1400 s
+  \fill[soft] (0,0) -- (1300,0) -- (1300,1300) -- cycle;
+  \draw[->,ink] (0,0) -- (1420,0);
+  \node[ink] at (700,-190) {outage tolerance (s)};
+  \draw[->,ink] (0,0) -- (0,1420) node[above right,inner sep=2pt,xshift=-4pt] {hostile tenure (s)};
+  \foreach \v in {0,300,600,900,1200} {
+    \draw[ink] (\v,0) -- (\v,-25) node[below,inner sep=1pt] {\v};
+    \draw[ink] (0,\v) -- (-25,\v) node[left,inner sep=1pt] {\v};
+  }
+  % diagonal: the limit
+  \draw[ink,thick] (0,0) -- (1300,1300);
+  \node[align=center,ink] at (930,330) {not possible\\(\cref{thm:limit})};
+  % Mandate line: tenure = tolerance + 33.2 s
+  \draw[accept,very thick] (57,90.4) -- (1267,1300.4);
+  \foreach \h in {300,600,1200} {
+    \fill[accept] (\h-32.8,\h+0.4) circle[radius=18];
+  }
+  \node[accept!70!black,anchor=east] at (548,720) {\sys{}, $H = 600$\,s};
+  \draw[accept!70!black] (258,322) -- (215,450);
+  \node[accept!70!black,anchor=south,inner sep=1pt] at (215,455) {$H = 300$\,s};
+  \node[accept!70!black,anchor=east] at (1120,1290) {$H = 1{,}200$\,s};
+  % QO at the origin
+  \fill[warn] (0,0) circle[radius=18];
+  \draw[warn] (10,-12) -- (140,-150);
+  \node[warn,anchor=west,inner sep=1pt] at (145,-155) {QO};
+  % SL with L = 90 s
+  \fill[fence] (57.2,90.4) circle[radius=18];
+  \draw[fence] (75,85) -- (330,160);
+  \node[fence!80!black,anchor=west,inner sep=1pt] at (330,160) {SL, $L = 90$\,s};
+  % NE and TS: no limit
+  \draw[->,warn,thick] (1180,1340) -- (1300,1420);
+  \node[warn,anchor=south east] at (1190,1345) {NE, TS};
+\end{tikzpicture}
+\caption{Hostile tenure and outage tolerance. The gray area is not possible for a protocol
+(\cref{thm:limit}). The points for \sys{} use the values of \cref{tab:params}. The point
+for SL applies only if the server is loyal. NE and TS have no limit.}
+\label{fig:tradeoff}
+\end{figure}
+
+\subsection{Cost of Expiry and of Timeouts with No Attacker}
+\label{sec:baseline}
+
+The previous draft of this work has a simulation model of incident
+response~(\file{testbed/} in the repository). The model has a commander, a deputy,
+vehicles at an incident, and a server at a regional center. It has no hostile officer, and
+it is not a model of a power grid. Its \tbTotalRuns{} runs give two results that apply
+here. \pending{The numbers of this subsection come from the previous model. A simulation
+with a hostile commander is not done at this time.}
+
+The first result is the cost of expiry. In one condition, all vehicles are isolated from
+the server for 1{,}200\,s, and the commander is loyal and has links to the vehicles. With a
+lease of 90\,s from the server (design SL), the system was without command for
+\tbPBNoCommand{} of the outage. The device of the commander rejected \tbPBRefused{} correct
+orders. These values are medians of \tbSeedsPerCell{} runs. The formula of this section
+gives $1{,}200 - 90 = 1{,}110$\,s or more for the same condition.
+
+For \sys{} in that condition, the formulas give these values. With $H = 600$\,s, the time
+without command is between 600\,s and 633\,s. With $H = 1{,}233$\,s or more, it is zero,
+and the hostile tenure is then 1{,}200\,s or more (\cref{thm:limit}). If a quorum of
+officers is on the same side of the cut as the commander, the time without command is zero
+for each $H$. We calculated these values. They are not results of a simulation.
+
+The second result is about timeouts. With a takeover on a timeout (design TS), one delayed
+message caused two commanders at the same time for a median of \tbRelayOverlap{}. No
+attacker was in that run. With the acknowledged timeout of the previous draft, the value
+was \tbRelayOverlapAcked{}. Thus a timeout can give command to two persons when no party is
+hostile.
+
+\subsection{Random Tests of the Rules}
+\label{sec:random}
+
+We wrote a program that makes random runs of the rules O1, O2, D1 and
+D2~(\file{paper/model/mandate_sim.py}). In each run, a hostile officer signs each
+certificate with a probability of 0.8, and loyal officers stop their consent at random
+times. The attacker gives valid certificates to three devices at random times. After each
+step, the program examines \cref{lem:grant}, \cref{lem:separation}, \cref{thm:unity},
+\cref{thm:tenure} and the first two parts of \cref{prp:fallback}.
+
+With the rules of the paper, the program found no failure in 3{,}000 runs of 400 steps
+each. The runs use $(n, f)$ from $(4,1)$, $(5,1)$, $(7,2)$ and $(10,3)$. The other values
+are $H = 60$, $g = 1$, $\eps = 0.4$, and $F = 0$ or $F = 20$.
+
+The program found failures when we removed one condition from the rules. Without the start
+time in rule O2, 974 of the 3{,}000 runs had a failure. Without the epoch in rule O2, all
+3{,}000 runs had a failure. Without the epoch and the end time in rule O1, 2{,}992 runs
+had a failure. With a quorum of a majority only, 903 runs had a failure.
+
+These tests are not a proof and not a model check. The rules, the proofs
+and the program also have one source. Thus the tests cannot find an error that is in all
+three.
+
+\subsection{Tests That Are Not Done}
+\label{sec:plan}
+
+Four tests are necessary before a submission. \pending{None of the four is done at this
+time.}
+
+\begin{description}
+  \item[E1] \emph{Model check.} Write the rules in TLA+~\cite{tlaplus} and examine them with the
+  TLC model checker. The model has four officers, one hostile officer, two devices and a
+  clock with steps. The attacker can give each valid certificate to each device at each
+  step. The properties are those of \cref{lem:grant}, \cref{lem:separation},
+  \cref{thm:unity}, \cref{thm:tenure} and \cref{prp:fallback}.
+  \item[E2] \emph{Simulation with an attacker.} Add a hostile commander, a hostile deputy and an
+  attacker on the links to the simulation model, for the five designs of
+  \cref{tab:designs}. Use four conditions: an outage with a loyal commander, a hostile
+  commander with a cut, the timeout attack, and a commander who stops. Use $H$ of 90, 300, 600 and
+  1{,}200\,s, and $F$ of 0, 60 and 120\,s. Use outages of 300, 1{,}200 and 3{,}600\,s, and
+  20 runs for each condition. Measure the hostile tenure, the time without command, the
+  deputy exposure, and the number of loyal commanders that the officers remove.
+  \item[E3] \emph{Check by a power engineer.} Examine four items with a power engineer in
+  one hour. The items are the grid example, rule D3, the usual length of an outage, and the
+  source of time in a substation.
+  \item[E4] \emph{Full text.} Read the full text of each source in \cref{tab:position} and
+  correct the table.
+\end{description}
+
+Test E2 has four hypotheses. First, for each design, the hostile tenure is not less than
+the outage tolerance (\cref{thm:limit}). Second, for \sys{}, the hostile tenure is less than
+$H + 2\eps$ in each run (\cref{thm:tenure}). Third, for \sys{} with $F = 0$, no run has
+two commanders at the same time, and for TS the timeout attack gives command to the deputy
+(\cref{thm:unity,thm:deputy}). Fourth, the time without command for \sys{} agrees with the
+formula of this section. A result against one of the first three hypotheses shows an error
+in a proof or in the program.

@@ -1,0 +1,20 @@
+An operator who controls field devices through a network must continue to give orders when
+links have failures. But a device that obeys an isolated operator cannot know if the operator is
+loyal. It is possible that an attacker has the key of the operator and cut the links. In the
+2015 attack on the Ukrainian power grid, attackers opened breakers from the consoles of the
+operators. We examine how command stops, and how command goes to a different person, when
+the commander can be hostile and the attacker controls all links.
+
+First, we show a limit. For each protocol, a hostile commander keeps a device for a time
+not less than the outage that a loyal commander can continue through. The same
+argument applies to a deputy who gets command on a timeout.
+
+Second, we give a protocol, \sys{}. Command expires at a time that each device compares
+with its clock, unless a quorum of officers signs a renewal. A specified number of loyal
+officers always removes a commander, and hostile officers cannot remove a commander without
+loyal officers. \sys{} is near the limit. The difference is not more than the sum of the
+renewal interval, the collection time and six clock errors.
+
+Third, we give the cost of \sys{} as formulas and compare it with four known designs. The
+paper has the proofs. A model check of the rules and a simulation with a hostile commander
+are not done at this time.

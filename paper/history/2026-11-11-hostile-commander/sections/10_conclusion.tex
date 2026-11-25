@@ -1,0 +1,17 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+A device that obeys an isolated commander cannot know if that commander is loyal. This
+paper gives the cost of that fact. For each protocol, a hostile commander keeps a device
+for a time that is not less than the outage tolerance. A deputy period is in the same
+condition: an attacker with the key of the deputy gets the same period.
+
+\sys{} is a protocol that is near these limits. A quorum of officers signs each renewal of
+command, and each device compares the end time with its clock. Thus the officers remove a
+commander without a message to the device. The hostile officers cannot prevent this, and
+they cannot make a valid certificate without loyal signers. The hostile tenure is more than the outage tolerance by the renewal interval,
+the collection time and six clock errors, or less.
+
+The proofs are in this paper. Four checks are not done at this time. They are a model
+check, a simulation with a hostile commander, a check by a power engineer, and a full-text
+check of the related work.

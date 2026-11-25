@@ -1,0 +1,181 @@
+\section{The \sys{} Protocol}
+\label{sec:protocol}
+
+\sys{} gives command for a specified time, and a quorum of officers can extend that time.
+The protocol has three primary properties. First, each device compares the end time of
+command with its clock. Thus the officers remove a commander when they sign no more
+renewals, and they send no message to the device. Second, a quorum of officers signs each
+certificate, thus a small number of hostile officers has no effect. Third, a new commander
+starts only after the end of each renewal that its signers know.
+
+\subsection{Parameters and Certificates}
+
+\Cref{tab:params} gives the parameters. Let $n \ge 3f + 1$ and
+$q = \lceil (n + f + 1)/2 \rceil$. Then $f + 1$ or more officers are in each two sets of
+$q$ officers, and one of these officers is loyal. Also $q \le n - f$, thus the loyal
+officers can make a quorum. Last, $q > f$, thus the hostile officers cannot make a quorum
+without loyal officers.
+
+\begin{table}[t]
+\caption{Parameters of \sys{}. The values are examples. They do not come from a power grid.}
+\label{tab:params}
+\centering
+\small
+\begin{tabularx}{\columnwidth}{@{}l>{\raggedright\arraybackslash}Xl@{}}
+\toprule
+Symbol & Name & Example \\
+\midrule
+$n$ & Number of officers & 4 \\
+$f$ & Maximum number of hostile officers & 1 \\
+$q$ & Quorum & 3 \\
+$H$ & Horizon: the maximum time from a signature to the end time of a renewal & 600\,s \\
+$g$ & Guard between two epochs, $g > 2\eps$ & 1\,s \\
+$F$ & Fallback period of the deputy & 0\,s or 120\,s \\
+$\eps$ & Clock error & 0.2\,s \\
+$\Delta$ & Renewal interval & 30\,s \\
+$\delta$ & Collection time for $q$ signatures & 2\,s \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The protocol has two types of certificate. A \emph{grant} $\grant{k,h,b,s}$ gives command
+in epoch $k$ to the commander $h$ from the start time $s$. It also gives the deputy $b$,
+an officer other than $h$. A
+\emph{renewal} $\renew{k,e}$ extends command in epoch $k$ to the end time $e$. A
+certificate is \emph{valid} if it has the signatures of $q$ different officers on the same
+contents. At the start, each party has the valid grant $\grant{1,h_1,b_1,0}$.
+
+\subsection{Rules for an Officer}
+
+Each loyal officer $u$ keeps two numbers. The first number is the epoch $E_u$, initially 1.
+The second number is $M_u$, the largest end time in a renewal that $u$ signed, initially 0.
+When $u$ receives a valid grant of an epoch $j > E_u$, it sets $E_u$ to $j$.
+
+\begin{description}
+  \item[O1] \emph{Renewal.} The officer $u$ signs $\renew{k,e}$ only if three
+  conditions are correct. It has the valid grant of epoch $k$, and $k = E_u$. The end time is
+  $e \le C_u + H$. The officer gives consent to the commander of epoch $k$. Then $u$ sets
+  $M_u$ to the larger of $M_u$ and $e$.
+  \item[O2] \emph{Grant.} The officer $u$ signs $\grant{j,h,b,s}$ only if three conditions are
+  correct. The epoch is $j > E_u$, and $b \ne h$. The start time is $s \ge M_u + F + g$. The officer gives
+  consent to $h$ as the commander. Then $u$ sets $E_u$ to $j$.
+  \item[O3] \emph{Removal.} To remove the commander of epoch $k$, the officer $u$ stops its
+  consent. Then $u$ signs no more renewals of epoch $k$.
+\end{description}
+
+Consent is a decision of the person. The protocol does not tell an officer when to stop
+consent. For example, an officer can stop consent when the commander gives dangerous
+orders. An officer can also stop consent when the officer cannot speak to the commander by
+telephone.
+
+\subsection{Rules for the Commander}
+
+The commander $c$ of epoch $k$ sends a request for a renewal at intervals of $\Delta$. The
+request has the end time $e = C_c + H - 2\eps$. Each officer who can sign by rule O1 signs
+and sends its signature to the commander. When the commander has $q$ signatures, it has a
+valid renewal. The commander attaches the grant and the newest valid renewal to each order.
+
+\subsection{Rules for a Device}
+
+A device keeps each valid certificate that it receives. Let $\tau$ be the clock time of the
+device when it receives an order. The device accepts the order only if one of the rules D1
+and D2 applies, and rule D3 does not stop it.
+
+\begin{description}
+  \item[D1] \emph{Commander.} The device accepts an order that $h$ signed for epoch $k$ if it has
+  a valid $\grant{k,h,b,s}$ and a valid $\renew{k,e}$ with $s \le \tau \le e$.
+  \item[D2] \emph{Deputy.} This rule applies only if $F > 0$. The device accepts an order that
+  $b$ signed for epoch $k$ if three conditions are correct. It has a valid
+  $\grant{k,h,b,s}$ with $s \le \tau$. It has one or more valid renewals of epoch $k$, and
+  none of them has an end time $e \ge \tau$. The time is in the fallback interval:
+  $a < \tau \le a + F$, where $a$ is the \emph{anchor} of epoch $k$.
+  \item[D3] \emph{Local control.} The device has a switch with the positions ``REMOTE''
+  and ``LOCAL''.
+  Only a person at the device can set the switch. In the position ``LOCAL'', the device accepts
+  no order from the network.
+\end{description}
+
+The device sets the anchor of an epoch one time. Before the device accepts the first order
+of the deputy for epoch $k$, the anchor can change. It is the largest end time of the valid
+renewals of epoch $k$ that the device has. When the device accepts that order, the anchor of epoch $k$
+does not change again. Without this rule, an attacker can show new renewals to the device
+one at a time. Then the deputy gets a new period $F$ after each renewal.
+
+An attacker can replay an order of the commander while the certificates of that order are
+valid. Thus a design must give a number to each order, and the device must discard an order
+with a number that is not new. This is a known method, and the proofs in this paper do not
+use it.
+
+Rule D3 gives the input that \cref{lem:subst} does not include. A person at the device
+can stop a hostile commander without a message from the officers. \pending{Not done at
+this time: a power engineer must examine rule D3.}
+
+\subsection{Change of the Commander}
+\label{sec:change}
+
+For a new commander, a grant with a higher epoch is necessary. An officer $p$ sends a proposal
+$\grant{j,h',b',s}$ with $j = E_p + 1$ to the officers. The grant is valid when $q$
+officers sign it. Three procedures use this step.
+
+\paragraph{Removal}
+The officers who want to remove the commander stop their consent (rule O3). When
+$n - q + 1$ loyal officers do this, command expires at each device (\cref{thm:tenure}). A
+new grant can use the start time $s = C_p + H + F + g + 2\eps$. Each loyal officer who
+signed no renewal after the proposal can sign this grant by rule O2.
+
+\paragraph{Prepared handover}
+Let the officers prepare a handover for a time $T$. From the time $T - H$, the commander sends
+each request with the end time $T$ or less. Then $M_u \le T$ for each officer $u$, and the
+new grant can start at $T + F + g$. The officers sign the new grant after the last renewal,
+because an officer who signs a grant signs no more renewals of the previous epoch (rule O1).
+Thus a prepared handover has a period of $F + g$ between the two commanders, and not a
+period of $H$.
+
+\paragraph{Fallback to the deputy}
+If $F > 0$, the deputy can give orders in a period $F$ after the last renewal expires at a
+device (rule D2). The officers can use this period to make a new grant. If the officers do
+not make a grant, the device accepts no order after this period.
+
+\Cref{fig:timeline} shows the sequence at one device.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize,>=Stealth]
+  % time axis
+  \draw[->,ink] (0,0) -- (8.5,0) node[below left,inner sep=2pt] {time};
+  % epoch k: commander
+  \fill[accept!55] (0.4,0.25) rectangle (4.3,0.75);
+  \node at (2.0,0.5) {commander $h$ (D1)};
+  % deputy period
+  \fill[pattern=north east lines,pattern color=fence] (4.3,0.25) rectangle (5.6,0.75);
+  \draw[fence] (4.3,0.25) rectangle (5.6,0.75);
+  \node[fill=white,inner sep=1pt] at (4.95,0.5) {$b$ (D2)};
+  % next epoch
+  \fill[accept!55] (6.2,0.25) rectangle (8.3,0.75);
+  \node at (7.25,0.5) {commander $h'$};
+  % renewals
+  \foreach \x in {1.0,1.7,2.4} {\draw[ink] (\x,0.75) -- (\x,0.95);}
+  \node[above] at (1.7,0.92) {renewals};
+  % stop of consent
+  \draw[->,warn,thick] (2.9,1.55) -- (2.9,0.8);
+  \node[above,warn] at (2.9,1.5) {officers stop consent};
+  % ticks
+  \foreach \x/\l in {0.4/$s$,2.9/$t_0$,4.3/$e$,6.2/$s'$} {
+    \draw[ink] (\x,0.08) -- (\x,-0.08);
+    \node[below] at (\x,-0.08) {\l};
+  }
+  % braces
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt},ink] (2.9,-0.55) -- (4.25,-0.55)
+    node[midway,below=3pt] {$\le H + 2\eps$};
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt},ink] (4.35,-0.55) -- (5.55,-0.55)
+    node[midway,below=3pt] {$F$};
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt},ink] (5.65,-0.55) -- (6.2,-0.55)
+    node[midway,below=3pt] {$g$};
+  \node[above] at (7.25,0.78) {epoch $k{+}1$};
+\end{tikzpicture}
+\caption{Command at one device in epoch $k$ and in the subsequent epoch. From the time
+$t_0$, the officers sign no more renewals. The commander $h$ keeps the device until the end
+time $e$ of the last renewal. The deputy $b$ can give orders in the period $F$, if
+$F > 0$. The new commander $h'$ starts after the guard $g$.}
+\label{fig:timeline}
+\end{figure}

@@ -1,0 +1,163 @@
+\section{Related Work and Open Problems}
+\label{sec:related}
+
+\subsection{Method of the Search}
+\label{sec:search-method}
+
+We did the search on 10 November 2026 with the Consensus search engine.
+We used 15 queries. For each query we examined the first 20 records, thus 300 records in
+total. \Cref{app:search} gives the queries. We read the title and the abstract of each
+record. We kept a record if its abstract has one or more of the six properties that follow.
+
+\begin{description}
+  \item[A] One party makes decisions without a quorum during an outage.
+  \item[S] The work has a succession rule.
+  \item[H] The party with authority can be hostile.
+  \item[L] The attacker controls the links, and thus the timeouts.
+  \item[R] Removal tolerates hostile officers, and no message to the device is necessary.
+  \item[T] The work gives a limit on the time that authority stays after removal.
+\end{description}
+
+We read parts of the full text of four sources only. Two are the paper on the Byzantine
+generals problem~\cite{lamport1982byzantine} and the report on the 2015
+attack~\cite{eisac2016ukraine}. The other two are the first section
+of~\cite{babay2018spire} and pages 1 to 7 of~\cite{bommareddy2024compound}. For these
+sources, the paper gives text from the source. The data about all other sources come from
+their abstracts. \pending{Not done at this
+time: read the full text of each source in \cref{tab:position}.}
+
+\subsection{Five Groups of Work}
+
+\paragraph{Byzantine agreement and replication}
+The Byzantine generals problem has a commander who ``need not be
+loyal''~\cite[p.~384]{lamport1982byzantine}. Its solutions make the loyal generals agree on
+one order. They do not stop a hostile commander who gives the same dangerous order to all
+generals. Replication protocols~\cite{castro1999pbft,castro2002pbft,amir2011prime} and
+Byzantine quorum systems~\cite{malkhi1998byzquorum} give a leader no authority without a
+quorum. A commander is different: the commander must make decisions without a quorum during
+an outage.
+
+Other work in this group is near the problem. One protocol puts a limit on the writes of a
+hostile client after its removal~\cite{liskov2006byzclients}. Work on a change of the set of
+servers makes a previous set safe after the change~\cite{kuznetsov2022reconfig}. Attacks on
+timeouts are known. An attacker who delays messages causes incorrect timeouts and a change
+of leader~\cite{tennage2023quepaxa,giuliari2024dos}. In replication, the new leader has no
+authority without a quorum, thus the damage is to speed and not to safety.
+
+\paragraph{Control systems for the grid that tolerate intrusion}
+One group of designs replicates the SCADA server and tolerates hostile
+copies~\cite{kirsch2014survivable,babay2018spire,babay2019deploying}. Subsequent work adds
+substations~\cite{bommareddy2022realtime} and isolated sites~\cite{bommareddy2024compound}.
+The operator stays loyal in this work. The authors of Spire write: ``Note that our threat
+model does not cover a compromised HMI or a rogue operator''~\cite{babay2018spire}.
+
+The work of 2024 gives the condition of the removal problem for servers. In automatic
+removal, it records that ``compromised entities may try to exploit the reconfiguration
+mechanism''~\cite{bommareddy2024compound}. For systems in which a quorum of servers removes
+a server, it records that ``the voting criteria is left
+undefined''~\cite{bommareddy2024compound}. This text is about servers. We found no
+equivalent rule for the person who gives the orders.
+
+\paragraph{Authentication of orders and access of operators}
+Signatures show the sender of an
+order~\cite{saxena2018signature,amoah2015dnp3,esiner2023provenance}. Other methods compare
+the contents of an order with a simulation of the grid before the device obeys
+it~\cite{meliopoulos2016command,mashima2018onthefly,mashima2019delaying,hong2019resilient}.
+Access control for operators puts a limit on the substations that an operator
+controls~\cite{nasr2018operator,nasr2024authorization}. Two designs of 2026 add a second
+factor for an order~\cite{ahmad2026gridlogic} or a quorum of operators for a software
+change~\cite{pawar2026certiflash}.
+
+These methods examine one order: the sender and the contents. They do not examine if the
+sender has command at this time, and they have no succession rule. A check of the contents
+cannot reject an order that a loyal commander also gives (\cref{sec:limits}).
+
+\paragraph{Leases, expiry and revocation}
+A lease gives authority for a specified time~\cite{gray1989leases}. Three methods make sure that an access decision uses only new
+data~\cite{stubblebine1995recent,krishnan2008stale,shakarami2019refresh}. Threshold methods
+let a group of nodes give and revoke certificates in a network with no
+server~\cite{zhou1999securing,luo2004ursa,liu2013ccrvc}. A survey gives the revocation methods for certificates on the
+web~\cite{kwon2025revocation}. A second survey records that a check with no connection is
+an open problem~\cite{lee2026ssirevocation}. One design gives a signed proof that a
+credential was correct at a point in time~\cite{abraham2020revocable}.
+
+HRCred is the nearest work that we found~\cite{zhou2026hrcred}. A threshold of parties
+signs credentials with a short life for each epoch. Its authors show a maximum for the time
+that a device accepts a credential after revocation. The credentials are for the identity
+of a device. The abstract gives no succession rule and no minimum.
+
+Some results show that two properties cannot be correct together, but they give no
+quantity. The CAP result shows that a system
+with a partition cannot have consistency and availability
+together~\cite{gilbert2002cap,brewer2012cap}. An equivalent result is known for systems
+that control equipment~\cite{lee2023cal}. Access control without a quorum makes decisions with
+the data that a party has~\cite{jacob2025eventually,yanakieva2021impossibility}. Three
+preprints examine the time at which authorization
+stops~\cite{santosgrueiro2026effect,parakhin2026bureaucracy,deochake2026heartbeat}.
+
+\paragraph{Handover between persons, and nuclear command}
+Work on handover examines how control moves between operators, and between a person and an
+automatic
+system~\cite{flemisch2012balance,abbink2012haptic,grindley2024handover,nilsen2018handing,marot2022perspectives}.
+All parties are loyal in the 20 records of that query. Nuclear command and control has the
+two properties of this paper. An order must always go out when the correct authority gives it,
+and it must not go out without that
+authority~\cite{feaver1992guarding,crawford2025nc3}. A deputy with authority given before
+the attack is one known solution~\cite{twigge1999learning}. This work gives the problem,
+but it has no protocol model and no attacker on the links.
+
+\begin{table*}[t]
+\caption{Related work and the six properties of \cref{sec:search-method}. The entry ``part''
+tells that the work has the property for a different party, or has only a part of it. We
+made the entries from abstracts, and from text of the sources for the first and the third
+row. A person must examine each entry against the full text.}
+\label{tab:position}
+\centering
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Work & A & S & H & L & R & T \\
+\midrule
+Byzantine generals~\cite{lamport1982byzantine} & no & no & yes & no & no & no \\
+Byzantine replication~\cite{castro1999pbft,castro2002pbft,amir2011prime} & no & yes & yes & part & part & no \\
+Control systems that tolerate intrusion~\cite{babay2018spire,bommareddy2022realtime,bommareddy2024compound} & no & no & no & yes & no & no \\
+Authentication and checks of orders~\cite{saxena2018signature,mashima2019delaying,hong2019resilient} & yes & no & part & no & no & no \\
+Access control for operators~\cite{nasr2018operator,nasr2024authorization} & yes & no & yes & no & no & no \\
+Leases~\cite{gray1989leases} & yes & part & no & no & part & maximum \\
+Threshold certificates~\cite{zhou1999securing,luo2004ursa,liu2013ccrvc} & yes & no & yes & part & part & no \\
+HRCred~\cite{zhou2026hrcred} & yes & no & yes & part & yes & maximum \\
+Handover between operators~\cite{flemisch2012balance,grindley2024handover} & yes & yes & no & no & no & no \\
+Nuclear command and control~\cite{feaver1992guarding,twigge1999learning} & yes & yes & part & no & no & no \\
+\midrule
+This paper & yes & yes & yes & yes & yes & minimum and maximum \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Open Problems}
+\label{sec:gaps}
+
+\Cref{tab:position} gives the result of the search. We found four open problems. For each,
+we found no work in the 300 records and in the sources that we know. This is not a proof
+that no such work is available.
+
+\begin{description}
+  \item[G1] \emph{Model.} No model has a commander who can be hostile and who must make decisions
+  without a quorum during an outage. Replication has the hostile leader but not the
+  decisions without a quorum. Leases have the decisions without a quorum but not the
+  hostile commander.
+  \item[G2] \emph{Limit.} No result gives a minimum for the tenure of a hostile commander. Leases
+  and HRCred give a maximum. Thus a designer cannot know if a smaller tenure is possible.
+  \item[G3] \emph{Timeout attack.} No succession rule puts a limit on the period that an attacker
+  gets when the attacker causes a timeout. Work on replication examines incorrect timeouts
+  only for speed.
+  \item[G4] \emph{Removal.} No removal rule has these two properties together: it tolerates
+  hostile officers, and no message to the device is necessary. For revocation by a quorum,
+  a message is necessary. For expiry, no message is necessary, but known leases come from
+  one server.
+\end{description}
+
+This paper gives a solution for each open problem. \Cref{sec:model} gives the model (G1).
+\Cref{thm:limit} gives the minimum (G2). \Cref{thm:deputy} and rule D2 give the limit for
+the timeout attack (G3). The rules of \sys{} and \cref{thm:tenure} give the removal rule
+(G4).

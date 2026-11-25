@@ -1,0 +1,174 @@
+% Command Succession with a Hostile Commander.
+%
+% The text of this draft follows the writing rules of ASD-STE100 (Simplified Technical
+% English). See STE.md, and run `python3 scripts/ste_check.py` after each change.
+%
+% Format switch. \srdstrue gives the IEEE conference format (the format of SRDS).
+% \srdsfalse gives the ACM acmsmall format (the format of ACM TCPS). The section files are
+% the same for the two formats.
+\newif\ifsrds
+\srdstrue
+% SRDS has double-blind review. Set \anontrue before a submission to hide the authors.
+\newif\ifanon
+\anonfalse
+
+\ifsrds
+  \documentclass[conference]{IEEEtran}
+  \usepackage[T1]{fontenc}
+  \usepackage{amsmath,amssymb}
+  % IEEEtran has a proof environment of its own. Remove it, then load amsthm.
+  \let\proof\relax
+  \let\endproof\relax
+  \usepackage{amsthm}
+  \usepackage{xcolor}
+  \usepackage{cite}
+  \usepackage[hidelinks]{hyperref}
+\else
+  % `review` adds line numbers for comments; remove it for a submission.
+  \documentclass[acmsmall,review]{acmart}
+  \setcopyright{none}
+  \settopmatter{printacmref=false}
+  \renewcommand\footnotetextcopyrightpermission[1]{}
+  \acmJournal{TCPS}
+\fi
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,decorations.pathreplacing,patterns}
+\usepackage[nameinlink,noabbrev,capitalise]{cleveref}
+
+\hypersetup{
+  pdftitle={Command Succession with a Hostile Commander},
+  pdfauthor={Aditya Sissodiya, Eric Chiquito, Johan Kristiansson, Ulf Bodin},
+  pdfsubject={Working draft (not for submission)},
+}
+\pdfinfoomitdate=1
+\pdftrailerid{}
+
+% Theorem environments with names of their own, so that the two formats give the same result.
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{prp}{Proposition}
+\theoremstyle{definition}
+\newtheorem{dfn}{Definition}
+\crefname{thm}{Theorem}{Theorems}
+\crefname{lem}{Lemma}{Lemmas}
+\crefname{cor}{Corollary}{Corollaries}
+\crefname{prp}{Proposition}{Propositions}
+\crefname{dfn}{Definition}{Definitions}
+
+% Colors for the figures and for the draft notes.
+\definecolor{accept}{HTML}{5B8DB8}
+\definecolor{fence}{HTML}{C47B2C}
+\definecolor{ink}{HTML}{1F2A44}
+\definecolor{soft}{HTML}{EEF2F8}
+\definecolor{warn}{HTML}{C0392B}
+
+% Draft notes: \pending shows work that is not done. Remove each note before a submission.
+\newcommand{\pending}[1]{\textcolor{fence}{[\textit{#1}]}}
+
+% The name of the protocol. The name is not final.
+\newcommand{\sys}{\textsc{Mandate}}
+% Certificates: a grant and a renewal.
+\newcommand{\grant}[1]{\mathsf{G}\langle #1\rangle}
+\newcommand{\renew}[1]{\mathsf{R}\langle #1\rangle}
+\newcommand{\eps}{\varepsilon}
+% The name of a file in the repository.
+\newcommand{\file}[1]{\nolinkurl{#1}}  % a file name; lines can break at the slashes
+
+% Numbers from the testbed of the previous draft (a model without a hostile officer).
+\input{data/testbed_macros}
+
+\begin{document}
+
+\ifsrds
+  \title{Command Succession with a Hostile Commander:\\
+  Tenure Limits when an Attacker Controls the Links}
+  \ifanon
+    \author{\IEEEauthorblockN{Authors hidden for review}}
+  \else
+    \author{\IEEEauthorblockN{Aditya Sissodiya, Eric Chiquito, Johan Kristiansson and Ulf Bodin}
+    \IEEEauthorblockA{Department of Computer Science, Electrical and Space Engineering\\
+    Lule{\aa} University of Technology, Lule{\aa}, Sweden\\
+    \{aditya.sissodiya, eric.chiquito, johan.kristiansson, ulf.bodin\}@ltu.se}}
+  \fi
+  \maketitle
+  \begin{abstract}
+  \input{sections/00_abstract}
+  \end{abstract}
+  \begin{IEEEkeywords}
+  command authority, succession, Byzantine faults, leases, revocation, intrusion tolerance,
+  SCADA, power grid
+  \end{IEEEkeywords}
+\else
+  \title[Command Succession with a Hostile Commander]{Command Succession with a Hostile
+  Commander: Tenure Limits when an Attacker Controls the Links}
+  \author{Aditya Sissodiya}
+  \email{aditya.sissodiya@ltu.se}
+  \author{Eric Chiquito}
+  \email{eric.chiquito@ltu.se}
+  \author{Johan Kristiansson}
+  \email{johan.kristiansson@ltu.se}
+  \author{Ulf Bodin}
+  \email{ulf.bodin@ltu.se}
+  \affiliation{%
+    \institution{Lule{\aa} University of Technology}
+    \department{Department of Computer Science, Electrical and Space Engineering}
+    \city{Lule{\aa}}
+    \postcode{SE-971 87}
+    \country{Sweden}}
+  \renewcommand{\shortauthors}{Sissodiya et al.}
+  \begin{abstract}
+  \input{sections/00_abstract}
+  \end{abstract}
+  % Concepts selected by hand; make them again with the ACM CCS tool before a submission.
+  \ccsdesc[500]{Computer systems organization~Dependable and fault-tolerant systems and networks}
+  \ccsdesc[500]{Security and privacy~Access control}
+  \ccsdesc[300]{Computer systems organization~Embedded and cyber-physical systems}
+  \keywords{command authority, succession, Byzantine faults, leases, revocation, intrusion
+  tolerance, SCADA, power grid}
+  \maketitle
+\fi
+
+\noindent\pending{Draft of 11 November 2026. Text in this color shows work that is not
+done. The supervisors did not give their approval for the problem, the grid example, or the
+venue at this time.}
+
+\input{sections/01_introduction}
+\input{sections/02_background}
+\input{sections/03_related_work}
+\input{sections/04_model}
+\input{sections/05_limits}
+\input{sections/06_protocol}
+\input{sections/07_analysis}
+\input{sections/08_cost}
+\input{sections/09_discussion}
+\input{sections/10_conclusion}
+
+\ifsrds
+  \appendices
+  \input{sections/A_search}
+  \section*{Acknowledgment}
+  The work presented in this paper was supported by Digitala Stambanan IndTech (Vinnova
+  Reference Number: 2024-02510), and the Horizon Europe projects COP-PILOT under grant
+  agreement 101189819 and RemaNet under grant agreement 101138627.
+  \bibliographystyle{IEEEtran}
+  \bibliography{refs}
+\else
+% acmart reads the acks environment line by line in review mode: \begin{acks} and \end{acks}
+% must start at the left margin, each on its own line.
+\begin{acks}
+  The work presented in this paper was supported by Digitala Stambanan IndTech (Vinnova
+  Reference Number: 2024-02510), and the Horizon Europe projects COP-PILOT under grant
+  agreement 101189819 and RemaNet under grant agreement 101138627.
+\end{acks}
+  \bibliographystyle{ACM-Reference-Format}
+  \bibliography{refs}
+  \appendix
+  \input{sections/A_search}
+\fi
+
+\end{document}

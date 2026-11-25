@@ -1,0 +1,115 @@
+\section{Introduction}
+\label{sec:intro}
+
+Many systems give one person the authority to control devices at a distance. An operator in
+the control center of a power company opens and closes breakers in substations. In this
+paper, \emph{command} is this authority, and the \emph{commander} is the person who has it.
+The devices get the orders through a network, and networks have failures. Thus the devices
+must continue to obey a commander who is isolated from the other parties.
+
+This property has a cost. A device that obeys an isolated commander cannot know the cause
+of the outage. A link failure and an attack give the device the same messages. In the
+attack, an attacker gets the key of the commander and then cuts the links to the other
+parties. The device continues to obey, and the other parties cannot tell it to stop.
+
+The attack on three Ukrainian power companies in December 2015 had these two
+parts~\cite{eisac2016ukraine}. The attackers used the consoles of the operators to open
+breakers in 27 or more substations, and approximately 225{,}000 customers had no
+power~\cite[p.~8]{eisac2016ukraine}. The attackers also cut the remote control. The report
+records that ``even if the operator workstations were recovered, remote commands could not
+be issued to bring the substations back online''~\cite[p.~9]{eisac2016ukraine}. We use this
+attack only as an example. The report does not tell if the orders had signatures.
+
+A second attack uses the succession rule. Many systems give command to a deputy when no
+message comes from the commander for a specified time. An attacker who controls the links
+can stop the messages of a loyal commander until this timeout occurs. Then the deputy gets
+command. If the attacker knows the key of the deputy, the attacker has command. In this
+paper, the name of this attack is the \emph{timeout attack}.
+
+\paragraph{Problem}
+How does command stop, and how does it go to a different person, when the commander can be
+hostile and the attacker controls all links? A solution must have three properties. First,
+a loyal commander continues through an outage. Second, a hostile commander does not keep
+command after the other officers stop their consent. Third, a timeout does not give command
+to a hostile deputy.
+
+The first result of this paper shows that a protocol cannot fully have
+the first two properties together. It also gives the relation between them.
+
+\paragraph{Known methods}
+Byzantine agreement started with a commander who ``need not be
+loyal''~\cite[p.~384]{lamport1982byzantine}. But its protocols give a leader no authority
+without a quorum~\cite{castro1999pbft}, and a commander must make decisions without a quorum
+during an outage. Control systems for the power grid tolerate hostile servers, but not a
+hostile operator~\cite{babay2018spire}. Command authentication examines one order at a
+time~\cite{mashima2019delaying}. Leases and credentials with a short life give a maximum for
+the time that authority stays after revocation~\cite{gray1989leases,zhou2026hrcred}. We
+found no work that gives a minimum, and no succession rule that is safe against the timeout
+attack (\cref{sec:related}).
+
+\paragraph{Method}
+The work has four steps. First, we did a search of the literature with 15 queries and
+examined 300 records (\cref{sec:related}). Second, we made a model in which the attacker
+controls all links and knows the keys of some officers (\cref{sec:model}). Third, we
+compared runs that give a device the same messages, to find limits that apply to all
+protocols (\cref{sec:limits}). Fourth, we made a protocol for this model, wrote proofs of
+its properties, and calculated its cost (\cref{sec:protocol,sec:analysis,sec:cost}).
+
+\paragraph{Results}
+The paper has four results.
+\begin{enumerate}
+  \item \emph{A limit for the commander} (\cref{thm:limit}). For each protocol, the tenure
+  of a hostile commander at a device is not less than the outage tolerance at that device.
+  The result applies to limits on time and to limits on the number of orders.
+  \item \emph{A limit for the deputy} (\cref{thm:deputy}). The period that a deputy gets on
+  a timeout is also the period that an attacker with the key of the deputy gets.
+  \item \emph{A protocol} (\cref{sec:protocol}). In \sys{}, a quorum of officers signs each
+  renewal of command, and each device compares the end time with its clock. No message to a
+  device is necessary to remove a commander. We show unity of command, a maximum for the
+  tenure, and a minimum for the outage tolerance
+  (\cref{thm:unity,thm:tenure,thm:tolerance}).
+  \item \emph{The cost} (\cref{sec:cost}). We give the time without command and the number
+  of signatures as formulas, and we compare \sys{} with four known designs.
+\end{enumerate}
+
+\paragraph{When to use the results}
+The results apply when three conditions are correct. First, one person at a time controls
+the devices. Second, the links between that person and the other officers can
+have long outages. Third, a hostile commander can cause damage that is not easy to repair.
+If outages are short, a quorum for each order is safer. If no officer can be hostile, a
+lease from one server is sufficient (\cref{sec:select}).
+
+\paragraph{Work that is done and work that is not done}
+\Cref{tab:status} gives the method that shows each result, and the work that is not done.
+The proofs are in this paper, but a second person did not examine them at this time. No
+result of this paper comes from a test on a power grid.
+
+\begin{table}[t]
+\caption{Results and the method that shows each result. The last column tells if the work
+is done at this time.}
+\label{tab:status}
+\centering
+\small
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.30\columnwidth}l@{}}
+\toprule
+Result & Method & Done \\
+\midrule
+Limits (\cref{thm:limit,thm:deputy}) & Proof & Yes \\
+Properties of \sys{} (\cref{thm:unity,thm:tenure,thm:tolerance}, \cref{prp:fallback}) & Proof & Yes \\
+Rules of \sys{} & Random tests (\cref{sec:random}) & Yes \\
+Rules of \sys{} & Model check & No \\
+Cost of \sys{} & Formulas & Yes \\
+Cost of expiry and of timeouts with no attacker & Simulation, previous model & Yes \\
+Cost with a hostile commander & Simulation & No \\
+Local control (rule D3) & Check by a power engineer & No \\
+Related work & Abstracts of 300 records & Yes \\
+Related work & Full text of each source & No \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The paper has these parts. \Cref{sec:background} gives the background, and
+\cref{sec:related} the related work and the open problems. \Cref{sec:model} gives the model,
+and \cref{sec:limits} the limits. \Cref{sec:protocol,sec:analysis} give the protocol and
+its analysis. \Cref{sec:cost} gives the cost and the tests, and \cref{sec:discussion} the
+discussion.

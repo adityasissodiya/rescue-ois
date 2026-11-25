@@ -1,0 +1,194 @@
+\section{Analysis of \sys{}}
+\label{sec:analysis}
+
+This section shows the properties of \sys{}. All results use the model of \cref{sec:model}:
+not more than $f$ officers are hostile, $n \ge 3f + 1$, and
+$q = \lceil (n + f + 1)/2 \rceil$. The attacker controls all links in all results. Only for
+\cref{thm:tolerance}, it is necessary that messages come through.
+
+\subsection{Two Lemmas}
+
+\begin{lem}[One grant for each epoch]
+\label{lem:grant}
+A run has not more than one valid grant for each epoch.
+\end{lem}
+
+\begin{proof}
+Let a run have two different valid grants of an epoch $j > 1$. Each grant has $q$ signers,
+thus one loyal officer $u$ signed the two grants. By rule O2, $u$ signs a grant of epoch
+$j$ only if $j > E_u$, and then $u$ sets $E_u$ to $j$. The number $E_u$ does not decrease.
+Thus $u$ signs not more than one grant of epoch $j$. This is a contradiction.
+
+For epoch 1, the parties have one valid grant at the start. A second valid grant of epoch 1
+has a loyal signer, because $q > f$. But a loyal officer signs no grant of epoch 1, because
+$E_u \ge 1$ at all times.
+\end{proof}
+
+\begin{lem}[Separation]
+\label{lem:separation}
+Let $\renew{k,e}$ and $\grant{j,h,b,s}$ be valid, with $j > k$. Then $s \ge e + F + g$.
+\end{lem}
+
+\begin{proof}
+The renewal and the grant have $q$ signers each, thus one loyal officer $u$ signed the two
+certificates. First, let $u$ sign the renewal before the grant. Then $M_u \ge e$ when $u$
+signs the grant, and rule O2 gives $s \ge M_u + F + g \ge e + F + g$. Second, let $u$ sign
+the grant before the renewal, thus $E_u \ge j > k$ from that time. By rule O1, $u$ signs
+the renewal only if $k = E_u$. This is a contradiction.
+\end{proof}
+
+\subsection{Unity of Command}
+
+\begin{thm}[Unity of command]
+\label{thm:unity}
+Let $F = 0$ and $g > 2\eps$. Then \sys{} has unity of command with separation
+$g - 2\eps$.
+\end{thm}
+
+\begin{proof}
+Let a device $d$ accept an order of an officer $x$ at real time $t$. Let a device $d'$
+accept an order of a different officer $y$ at real time $t'$. Rule D2 does not apply,
+because $F = 0$. By rule D1, the orders are for epochs $k$ and $j$, and $x$ and $y$ are the
+commanders in valid grants of these epochs. By \cref{lem:grant}, $k \ne j$, because
+$x \ne y$. Let $k < j$.
+
+The device $d$ has a valid $\renew{k,e}$ with $C_d(t) \le e$, thus $t \le e + \eps$. The
+device $d'$ has a valid $\grant{j,y,b,s}$ with $s \le C_{d'}(t')$, thus $t' \ge s - \eps$.
+By \cref{lem:separation}, $s \ge e + g$. Thus $t' - t \ge g - 2\eps$. If $k > j$, the same
+argument gives $t - t' \ge g - 2\eps$.
+\end{proof}
+
+The theorem applies with a hostile commander, with hostile officers, and with each sequence
+of messages. It tells that all orders of one epoch come before all orders of a higher
+epoch.
+
+\subsection{Tenure}
+
+\begin{thm}[Tenure of a commander]
+\label{thm:tenure}
+Let $k$ be an epoch and $t_0$ a real time. Let $W$ be a set of $n - q + 1$ or more loyal
+officers. From $t_0$, let no officer in $W$ sign a renewal of epoch $k$. Then no device
+accepts an order of the commander for epoch $k$ at a real time $t \ge t_0 + H + 2\eps$.
+Also, no device accepts an order of the deputy for epoch $k$ at a real time
+$t \ge t_0 + H + F + 2\eps$.
+\end{thm}
+
+\begin{proof}
+Let $\renew{k,e}$ be a valid renewal. It has $q$ signers, and not more than $q - 1$
+officers are not in $W$. Thus one signer $u$ is in $W$. The officer $u$ is loyal, and it
+signed at a real time $t_u < t_0$. By rule O1, $e \le C_u(t_u) + H \le t_u + \eps + H$.
+Thus $e < t_0 + H + \eps$ for each valid renewal of epoch $k$.
+
+Let a device $d$ accept an order by rule D1 at real time $t$. Then $C_d(t) \le e$ for a
+valid renewal, thus $t \le e + \eps < t_0 + H + 2\eps$. Let $d$ accept an order by rule D2
+at real time $t$. Then $C_d(t) \le a + F$, and the anchor $a$ is the end time of a valid
+renewal. Thus $t < t_0 + H + F + 2\eps$.
+\end{proof}
+
+The proof uses no property of the network. The attacker cannot extend the tenure when it
+stops, delays or replays messages. It can only make the tenure shorter.
+
+\begin{cor}[Two thresholds]
+\label{cor:thresholds}
+Let $r_h = n - q + 1$ and $r_l = n - q + 1 - f$.
+\begin{enumerate}
+  \item If $r_h$ loyal officers stop their consent at $t_0$, the tenure of the commander
+  stops before $t_0 + H + 2\eps$. The hostile officers cannot prevent this.
+  \item The hostile officers cannot make a valid certificate without $q - f$ loyal signers.
+  \item If the number of loyal officers who stop consent is less than $r_l$, then $q$ or
+  more loyal officers continue to sign. Thus the renewals continue when the hostile
+  officers do not sign.
+\end{enumerate}
+\end{cor}
+
+\begin{proof}
+The first part is \cref{thm:tenure}. The second part is correct because $q > f$. For the
+third part, the number of loyal officers is $n - f$ or more. If less than $r_l$ of them
+stop, more than $n - f - r_l = q - 1$ continue.
+\end{proof}
+
+The two thresholds are different for the two types of commander. To remove a hostile
+commander, $r_h$ loyal officers are sufficient. To stop the renewals of a loyal commander,
+$r_l$ loyal officers must stop consent, together with $f$ hostile officers. For $n = 3f + 1$
+the values are $q = 2f + 1$, $r_h = f + 1$ and $r_l = 1$. Thus one loyal officer and $f$
+hostile officers can stop the renewals of a loyal commander. A larger $n$ makes $r_l$
+larger: $n = 7$ and $f = 1$ give $q = 5$, $r_h = 3$ and $r_l = 2$.
+
+The numbers of officers for removal and for a new commander are different. For removal,
+$r_h$ loyal officers are sufficient. For a new grant, a quorum is necessary. If $r_h$ officers stop
+consent and no quorum signs a grant, the system has no commander. Then only local control
+stays (rule D3).
+
+\subsection{Outage Tolerance}
+
+\begin{thm}[Outage tolerance]
+\label{thm:tolerance}
+Let all officers be loyal and give consent to the commander $c$ of an epoch $k$. Let each
+officer $u$ have $E_u = k$ and the valid grant of epoch $k$, with the start time $s$. Let
+$c$ start a request at intervals of $\Delta$ or less in real time. Let $c$ have the valid
+renewal not more than $\delta$ after the start of each request.
+
+Let an outage start at a real time $t_0 \ge s + \Delta + \delta + \eps$. From $t_0$, $c$
+and a device $d$ receive only messages that $c$ or $d$ sent, and the switch of $d$ is in
+the position ``REMOTE''. Then $d$ accepts each order of $c$ that it receives at a real time
+$t$ with $t_0 \le t \le t_0 + H - \Delta - \delta - 4\eps$.
+\end{thm}
+
+\begin{proof}
+One request started at a real time $t_r$ with $t_0 - \Delta - \delta < t_r \le t_0 -
+\delta$. Its end time is $e = C_c(t_r) + H - 2\eps$, thus $e \ge t_r + H - 3\eps$ and
+$e \le t_r + H - \eps$. An officer $u$ who receives the request at a real time
+$t_u \ge t_r$ has $C_u(t_u) + H \ge t_r - \eps + H \ge e$. Thus each officer can sign by
+rule O1, and $c$ has the valid renewal at $t_0$.
+
+Each order of $c$ has the grant and the renewal, and rule D3 does not stop the order. The
+device accepts by rule D1 at $t$ if $s \le C_d(t) \le e$. The first condition is
+correct because $C_d(t) \ge t_0 - \eps \ge s$. The second condition is correct if
+$t + \eps \le e$. This is correct for each $t \le t_r + H - 4\eps$, and
+$t_r > t_0 - \Delta - \delta$.
+\end{proof}
+
+Thus the outage tolerance of \sys{} is $H - \Delta - \delta - 4\eps$ or more. By
+\cref{thm:tenure}, the hostile tenure is not more than $H + 2\eps$. The difference between the
+two quantities is not more than $\Delta + \delta + 6\eps$. By \cref{thm:limit}, the
+difference cannot be less than zero for a protocol. With the values of \cref{tab:params},
+the outage tolerance is 567.2\,s or more. The hostile tenure is not more than 600.4\,s, and the
+difference is not more than 33.2\,s.
+
+\subsection{Fallback to the Deputy}
+
+\begin{prp}[Fallback]
+\label{prp:fallback}
+Let $F > 0$ and $g > 2\eps$. Then \sys{} has these properties.
+\begin{enumerate}
+  \item At one clock time, one device accepts orders of not more than one officer.
+  \item For each epoch, one device accepts orders of the deputy only at clock times in one
+  interval of length $F$.
+  \item Let a device accept an order of epoch $k$ at real time $t$. Let a device accept an
+  order of an epoch $j > k$ at real time $t'$. Then $t' - t \ge g - 2\eps$.
+\end{enumerate}
+\end{prp}
+
+\begin{proof}
+For the first part, let the two orders be for the same epoch. By \cref{lem:grant}, one
+order is of the commander and one order is of the deputy. By rule D1, the device has a
+valid renewal with an end time $e \ge \tau$. By rule D2, the device has no such renewal.
+This is a contradiction.
+
+Then let the orders be for the epochs $k < j$. For the order of epoch $j$, the start time
+is $s \le \tau$. For the order of epoch $k$, $\tau \le e + F$ for the end time $e$ of a
+valid renewal. By \cref{lem:separation}, $s \ge e + F + g > \tau$. This is a
+contradiction.
+
+The second part is correct because the anchor $a$ of an epoch does not change after the
+first order of the deputy. Rule D2 accepts an order only if $a < \tau \le a + F$. For the third part, the
+order of epoch $k$ gives $t \le e + F + \eps$ for the end time $e$ of a valid renewal. The
+order of epoch $j$ gives $t' \ge s - \eps$. By \cref{lem:separation}, $s \ge e + F + g$.
+\end{proof}
+
+With $F > 0$, \sys{} does not have unity of command. A device with no new renewal can
+accept orders of the deputy while a different device accepts orders of the commander. The
+proposition puts a limit on this condition: one interval of length $F$ for each device and
+each epoch. The deputy exposure at a device is thus not more than $F + 2\eps$ in real time
+for each epoch. By \cref{thm:deputy}, a protocol with the deputy period $F$ cannot have a
+smaller exposure.

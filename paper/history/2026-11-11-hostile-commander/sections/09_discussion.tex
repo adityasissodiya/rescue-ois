@@ -1,0 +1,93 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{How to Select a Design}
+\label{sec:select}
+
+The limits of \cref{sec:limits} tell when each design of \cref{tab:designs} is the correct
+selection.
+
+\begin{itemize}
+  \item Use QO if each order can wait until a quorum signs it. Then the hostile tenure is
+  zero, and no other design is safer.
+  \item Use SL if no officer can be hostile, and the attacker cannot get the key of the
+  server. Then one server is sufficient.
+  \item Use NE if each order is easy to cancel and the system has a record of all orders.
+  Then a long hostile tenure causes small damage.
+  \item Use \sys{} if the commander must continue through outages, an officer can be
+  hostile, and orders can cause damage that is not easy to repair.
+\end{itemize}
+
+A designer who selects \sys{} makes three decisions. The first decision is the horizon
+$H$. It is the longest outage that a loyal commander must continue through. It is also the
+time that a hostile commander keeps a device, and no protocol can change this
+(\cref{thm:limit}). Thus the designer compares two risks: a time $H$ with a hostile
+commander, and an outage longer than $H$ with only local control.
+
+The second decision is the fallback period $F$. With $F = 0$, the system has unity of
+command, and it has no commander between the end of the last renewal and a new grant. With
+$F > 0$, the deputy can give orders in that period, and a hostile deputy gets the same
+period at each device.
+
+The third decision is the quorum $q$. The value $q = \lceil (n + f + 1)/2 \rceil$ is the
+minimum. A larger $q$, to a maximum of $n - f$, makes the two thresholds of
+\cref{cor:thresholds} smaller. Then a smaller group of loyal officers can remove a hostile
+commander. But a smaller group of loyal officers, together with the hostile officers, can
+also stop the renewals of a loyal commander.
+
+\subsection{Limits of the Model}
+\label{sec:model-limits}
+
+\paragraph{Clocks}
+The tenure limit uses the clock of the device. An attacker who sets that clock to a previous time extends the tenure. Substations frequently get time from satellite signals, and an
+attacker can forge such signals~\cite{zhang2013tsa,gao2023quick}. Methods to find such an
+attack are known~\cite{laverty2022gnss}. A device must thus keep a local clock, and
+$\eps$ must include the error of that clock during the longest outage. \pending{Not done at
+this time: a model of clock attacks.}
+
+\paragraph{More than $f$ hostile officers}
+If more than $f$ officers are hostile, it is possible that each officer who is in two
+quorums is hostile. Then \cref{lem:grant} and \cref{lem:separation} are not correct, and two commanders
+are possible. With $q$ hostile officers, no property stays.
+
+\paragraph{A constant set of officers}
+The set of officers and their keys do not change in the model. A change of that set is a
+different problem~\cite{kuznetsov2022reconfig}. We did not examine it.
+
+\paragraph{Hostile devices}
+Each device is correct in the model. A device with changed software can do each order and
+can ignore each rule. The report on the 2015 attack records an attack on the firmware of
+network devices at substations~\cite[p.~9]{eisac2016ukraine}.
+
+\paragraph{The decision to stop consent}
+The model does not tell how an officer knows that a commander is hostile. A second
+channel, for example a telephone, helps the officers to make that decision. An attacker can
+also attack that channel. The telephone calls of the 2015 attack are an
+example~\cite[p.~2]{eisac2016ukraine}.
+
+\paragraph{Damage in the tenure}
+\sys{} puts a limit on the time of a hostile commander, and not on the damage. In that
+time, the hostile commander can give each order. Checks of the contents of
+orders~\cite{mashima2018onthefly,hong2019resilient} and a limit on the number of orders
+decrease the damage. \Cref{thm:limit} shows that such checks cannot make the tenure
+shorter.
+
+\paragraph{A faster stop when messages come through}
+A device that receives a valid grant of a higher epoch can reject the orders of the
+previous epoch immediately. This rule is safe, because a quorum signs each valid grant. It
+makes the tenure shorter when the attacker does not stop the grant. \Cref{thm:limit} shows
+that a design cannot use this rule as a replacement for expiry.
+
+\paragraph{An attacker who only stops messages}
+An attacker who controls the links can always stop orders and renewals. Expiry thus gives
+that attacker no new method to stop command. A takeover on a timeout is different: it
+gives the attacker a method to move command.
+
+\subsection{Known Risks of Errors in This Draft}
+
+Five risks are known. First, no second person and no model checker examined the proofs.
+Second, the data about related work come from abstracts, and \cref{tab:position} can
+be incorrect for a source. Third, the entries of \cref{tab:designs} for the four known
+designs come from definitions and not from tests. Fourth, no power engineer examined the
+grid example and rule D3. Fifth, the numbers of \cref{sec:baseline} come from a model of
+incident response with no attacker.
